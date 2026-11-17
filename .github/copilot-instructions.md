@@ -24,7 +24,7 @@ The game's history from before this repo (setup checklist, diary) stays in [unit
 
 ## Gates
 
-Every change closes on the gates in `docs/headless-unity.md` §3, run by the agent in batch mode:
+Every change closes on the gates in `docs/headless-unity.md` §3, run by the agent in batch mode (`Tools/gates.sh all` for the first three):
 compile with 0 errors and 0 warnings, EditMode and PlayMode tests green, the `dev` APK for build-affecting changes, a capture for visual ones.
 Results go in the commit message. The device run is the human's.
 

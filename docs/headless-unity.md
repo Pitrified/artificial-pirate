@@ -56,6 +56,8 @@ xvfb-run -a -s "-screen 0 1280x1024x24" "$EDITOR" -batchmode -force-vulkan \
 | `dev` APK | `Tools/build-android.sh dev`, itself under `xvfb-run -a` | `Build SUCCEEDED`; the APK under `ArtificialPirate/Build/dev/` |
 | Capture | `-executeMethod <Class.Method>` of an editor script that renders a camera to a PNG | the PNG looks right, and measures right where the change is visual |
 
+`Tools/gates.sh [compile|edit|play|all]` runs the first three gates this way and exits non-zero on any `error CS`, `warning CS` or failed test, naming the failed tests; logs and results go to `ArtificialPirate/Logs/gates/`.
+
 `-runTests` must not be combined with `-quit`. A failing test's message is in the XML's `failure/message`.
 
 `build-android.sh` finds the editor under `~/Unity/Hub/Editor/` by itself; `UNITY_PATH` overrides it.
