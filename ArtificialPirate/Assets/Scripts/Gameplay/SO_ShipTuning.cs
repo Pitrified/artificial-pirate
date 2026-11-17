@@ -4,10 +4,10 @@ namespace Game.Gameplay
 
     /// <summary>
     /// Designer-tunable data for the ship kinematic model.
-    /// Create an instance via Assets > Create > artificial-pi > Ship Tuning
+    /// Create an instance via Assets > Create > artificial-pirate > Ship Tuning
     /// and assign it to the ShipController on PF_Ship.
     /// </summary>
-    [CreateAssetMenu(menuName = "artificial-pi/Ship Tuning", fileName = "SO_ShipTuning")]
+    [CreateAssetMenu(menuName = "artificial-pirate/Ship Tuning", fileName = "SO_ShipTuning")]
     public sealed class SO_ShipTuning : ScriptableObject
     {
         [SerializeField] private float _maxSpeed = 8f;

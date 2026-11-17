@@ -1,4 +1,4 @@
-Shader "artificial-pi/Water"
+Shader "artificial-pirate/Water"
 {
     Properties
     {

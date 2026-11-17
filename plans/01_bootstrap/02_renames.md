@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in progress
 ---
 
 # Phase 02 - Renames
@@ -23,3 +23,9 @@ Source Q2, Q7 and Q8: the repo, the Unity project and the Android app all take t
 - The `dev` APK reports `com.pitrified.artificialpirate` and the label `Artificial Pirate` (`aapt2 dump badging`).
 
 ## What the implementation found
+
+- 2026-11-17. `ProjectSettings.asset` set by a temporary `Phase02Rename` editor method in batch mode: product name, Android id, Windows Store package name and description. Deleted before the commit.
+- One `UnitySetupPrpj` stays, on purpose: `projectName` in `ProjectSettings.asset` is the linked Unity Cloud project's name, read-only from the editor API and tied to `cloudProjectId`; it goes with [`00_start.md`](00_start.md) Q1.
+- Gates after the renames: EditMode 114/114, PlayMode 4/4, no `error CS` or `warning CS`.
+  Game scene captured before and after the shader rename: the water renders with its material, and the only difference is inside the animated water region below the horizon (mean 0.4 of 255), as in the source's control pair.
+- The first `dev` APK build was stopped by Claude Code for low memory on the box (swap full; an idle Gradle daemon from the source's earlier build held 6 GB). It left `Assets/Resources/PerformanceTestRun*`, deleted. The APK check is still open.
