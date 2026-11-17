@@ -54,6 +54,7 @@ The source's phases 0 to 8 and its `scratch/` diary stay there as history.
   - a. leave it; link a separate cloud project if a Unity service is ever needed.
   - b. unlink now, in the Editor at the workstation (Project Settings, Services).
   - Recommended: a. It has no effect today, and unlinking is an Editor action with no batch-mode API.
+  - ANS: the user, 2026-11-17: change it later, for neatness. Left linked for now; this repo gets its own Unity Cloud project (and with it its own `projectName`) in a later session at the Editor.
 
 ## Out of scope
 

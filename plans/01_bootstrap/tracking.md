@@ -33,3 +33,4 @@ Append-only. Newest at the bottom.
 - 2026-11-17 : phase 02 closed: `dev` APK built, `com.pitrified.artificialpirate`, label `Artificial Pirate`, arm64-v8a.
 - 2026-11-17 : phase 05 box checks green in a fresh clone (compile 0 warnings, EditMode 114/114, PlayMode 4/4, `dev` APK with the game's id). Waiting on the push from g4 and the device run.
 - 2026-11-17 : phase 05 done: the user installed the `dev` APK on the phone from Downloads and it works. Logcat not read (no adb on the phone); moved to `03_performance`. All phases done; waiting on the merge into `main`.
+- 2026-11-17 : Q1 answered: the Unity Cloud link changes later, for neatness. `main` created from this branch.
