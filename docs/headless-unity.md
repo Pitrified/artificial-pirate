@@ -1,7 +1,7 @@
 # Running Unity headless
 
 How a session with no screen (a Claude Code session on a Linux box over SSH) opens the project, runs the tests, builds the APK and renders images.
-These are the gates every change closes on; [ai-development-playbook.md](ai-development-playbook.md) says when each one applies.
+These are the gates every change closes on; the guide's [ai-development-playbook.md](https://github.com/Pitrified/unity-setup-project/blob/main/docs/ai-development-playbook.md) says when each one applies.
 A person at the Editor uses the Test Runner and Play mode instead; the results must agree.
 
 Verified on Ubuntu 26.04 with an NVIDIA GPU, Unity `6000.4.4f1`, 2026-11-17.

@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 03 - Docs and instructions
@@ -24,3 +24,10 @@ Here they describe the game; what is generic to setting up Unity stays in the gu
 - `git grep` finds no reference to `docs/tracking.md`, `scratch/` or a guide-only doc as a local path.
 
 ## What the implementation found
+
+- 2026-11-17. Root `README.md` new; `docs/README.md`, the instructions, `AGENTS.md` and two docs link the guide's playbook, MCP setup and dev environment on its `main` instead of local copies.
+- The instructions' Plans section points at the source for the pre-`plans/` history instead of a local `docs/tracking.md` and `scratch/`.
+- `build-and-release.md` §11.6 still showed the Unity template's package id with advice to change it before publishing; it now gives `com.pitrified.artificialpirate`.
+- `headless-unity.md` needed nothing beyond the phase 02 renames; it is the fresh-session note as planned.
+- Link check: 32 files, 0 broken relative links; every link into the source names a file on its `main` (checked with `git cat-file` there), and the one anchor, `#3-the-work-loop`, exists.
+  Those links follow the guide's `main`, so a rename in its `02_guide_rebuild` breaks them; that folder should keep these paths or update this repo.

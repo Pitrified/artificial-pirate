@@ -268,25 +268,17 @@ adb logcat -s Unity:V            # show only Unity log lines, verbose level
 
 **Terminal 2 - Launch the app:**
 
-First, confirm the exact package name that was installed:
+The package name is `com.pitrified.artificialpirate` (`applicationIdentifier` > Android in `ProjectSettings/ProjectSettings.asset`).
+It is permanent once a build is on Play. Confirm it is installed:
 ```bash
-adb shell pm list packages | grep -i unity
-# Example output:
-#   package:com.UnityTechnologies.com.unity.template.urpblank
-#
-# The package name matches applicationIdentifier > Android in
-# ProjectSettings/ProjectSettings.asset (grep "applicationIdentifier" to read it).
-# Before publishing, change it in Edit -> Project Settings -> Player -> Other
-# Settings -> Package Name to your real reverse-DNS name (e.g. com.myorg.artificialpi).
+adb shell pm list packages | grep artificialpirate
+# package:com.pitrified.artificialpirate
 ```
 
-Then launch with the confirmed package name:
+Then launch it:
 ```bash
 adb shell am start \
-    -n <your-package-name>/com.unity3d.player.UnityPlayerGameActivity
-# Example with the default template name:
-#   adb shell am start \
-#       -n com.UnityTechnologies.com.unity.template.urpblank/com.unity3d.player.UnityPlayerGameActivity
+    -n com.pitrified.artificialpirate/com.unity3d.player.UnityPlayerGameActivity
 ```
 
 The activity class is always `com.unity3d.player.UnityPlayerGameActivity` in Unity 6.

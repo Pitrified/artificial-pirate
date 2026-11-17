@@ -3,8 +3,8 @@
 Guidance distilled from real MCP runs in this repository, for interactive sessions at the Editor.
 The agent's default way into Unity is batch mode ([headless-unity.md](headless-unity.md)); the debugging loop and the runtime validation below apply there too.
 Use this with:
-- [docs/ai-development-playbook.md](ai-development-playbook.md)
-- [docs/mcp-setup.md](mcp-setup.md)
+- [ai-development-playbook.md](https://github.com/Pitrified/unity-setup-project/blob/main/docs/ai-development-playbook.md), in the guide
+- [mcp-setup.md](https://github.com/Pitrified/unity-setup-project/blob/main/docs/mcp-setup.md), in the guide
 
 ## 1. Session control and pacing
 

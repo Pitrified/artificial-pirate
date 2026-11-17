@@ -86,7 +86,7 @@ Never call `Debug.Log` directly outside the `Log` utility.
 
 - `///` summary on every public type and member.
 - Inline comments explain **why**, never **what** the code already says.
-- `// TODO(name): ...` only with an owner. Tracked in `tracking.md` if non-trivial.
+- `// TODO(name): ...` only with an owner. Tracked in a `plans/` folder if non-trivial.
 
 ---
 
