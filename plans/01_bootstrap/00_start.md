@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 priority: 0
 description: |
   Bootstrap this repo from unity-setup-project: the naval vertical slice with the generic runtime

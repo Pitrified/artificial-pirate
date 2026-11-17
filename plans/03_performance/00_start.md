@@ -16,6 +16,7 @@ Nothing of it was started there.
 The reference device is a Pixel 7 (the budget and `functional-specs.md` §2). The budget and the protocol are [`docs/performance-budget.md`](../../docs/performance-budget.md) (§6 profiling, §7 the order to fix things in).
 
 - HUMAN: build the `profile` APK (`Tools/build-android.sh profile`; the agent can build it on the box) and attach the Unity Profiler to the device.
+- HUMAN: with the phone on USB, `adb logcat -s Unity:V` from launch: no errors or exceptions from the game (moved from [`01_bootstrap/05_verify.md`](../01_bootstrap/05_verify.md)).
 - HUMAN: capture 60 s of play and compare it with the budget.
 - HUMAN: a Frame Debugger snapshot; draw calls at most 80.
 - AI: fix what is over budget, in the order of §7; each fix closes on the batch gates.
