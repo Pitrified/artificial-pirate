@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 02 - Renames
@@ -29,3 +29,4 @@ Source Q2, Q7 and Q8: the repo, the Unity project and the Android app all take t
 - Gates after the renames: EditMode 114/114, PlayMode 4/4, no `error CS` or `warning CS`.
   Game scene captured before and after the shader rename: the water renders with its material, and the only difference is inside the animated water region below the horizon (mean 0.4 of 255), as in the source's control pair.
 - The first `dev` APK build was stopped by Claude Code for low memory on the box (swap full; an idle Gradle daemon from the source's earlier build held 6 GB). It left `Assets/Resources/PerformanceTestRun*`, deleted. The APK check is still open.
+- 2026-11-17, after stopping the idle Gradle daemon (user's go): `Tools/build-android.sh dev` under `xvfb-run -a`, exit 0, 70 MB. `aapt2 dump badging`: `com.pitrified.artificialpirate`, label `Artificial Pirate`, `arm64-v8a`.

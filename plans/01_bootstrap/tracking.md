@@ -14,7 +14,7 @@ This repo written from unity-setup-project with the naval game and the runtime i
 | #  | Phase                          | Plan                                       | Status  |
 | -- | ------------------------------ | ------------------------------------------ | ------- |
 | 01 | Copy the baseline              | [`01_baseline.md`](01_baseline.md)         | done    |
-| 02 | Renames                        | [`02_renames.md`](02_renames.md)           | in progress |
+| 02 | Renames                        | [`02_renames.md`](02_renames.md)           | done    |
 | 03 | Docs and instructions          | [`03_docs.md`](03_docs.md)                 | done    |
 | 04 | Move the open roadmap          | [`04_plans.md`](04_plans.md)               | done    |
 | 05 | Verify                         | [`05_verify.md`](05_verify.md)             | planned |
@@ -30,3 +30,4 @@ Append-only. Newest at the bottom.
 - 2026-11-17 : phase 02 - renamed to `ArtificialPirate/`, `Artificial Pirate`, `com.pitrified.artificialpirate`, `artificial-pirate`. EditMode 114/114, PlayMode 4/4, 0 warnings, capture unchanged. `dev` APK not yet built: the build was stopped for low memory.
 - 2026-11-17 : phase 03 - root README, docs index and instructions about the game; guide-only docs linked on the source's GitHub; the template package id in the release doc replaced. Link check clean.
 - 2026-11-17 : phase 04 - source phases 9 to 13 moved in as `02_mcp_smoke`, `03_performance`, `04_release`, drafts, every unticked item placed.
+- 2026-11-17 : phase 02 closed: `dev` APK built, `com.pitrified.artificialpirate`, label `Artificial Pirate`, arm64-v8a.
