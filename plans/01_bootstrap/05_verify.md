@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in progress
 ---
 
 # Phase 05 - Verify
@@ -25,3 +25,9 @@ The repo as a newcomer gets it: a fresh clone, nothing from this session's worki
 - The device run is recorded in [`tracking.md`](tracking.md)'s log.
 
 ## What the implementation found
+
+- 2026-11-17, box checks in a fresh clone of `feat/01_bootstrap` at `8838925`, all pass:
+  `git lfs ls-files` empty with the LFS rules in `.gitattributes`; `Tools/setup.sh` exit 0 (warns that `bundletool` is missing, needed only for AABs); `plans.py check` and the link check pass;
+  compile exit 0 with 0 warnings after the one-time Shader Graph import errors; EditMode 114/114; PlayMode 4/4; `dev` APK 70 MB, `com.pitrified.artificialpirate`, `Artificial Pirate`, `arm64-v8a`.
+- The first clone, in the session's scratch directory under `/tmp`, failed to import packages with error -122 (`EDQUOT`): `/tmp` on the box is a RAM-backed tmpfs with a per-user quota. A Unity project with its `Library/` belongs on disk.
+- Open: the HUMAN push and device run.

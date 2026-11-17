@@ -17,7 +17,7 @@ This repo written from unity-setup-project with the naval game and the runtime i
 | 02 | Renames                        | [`02_renames.md`](02_renames.md)           | done    |
 | 03 | Docs and instructions          | [`03_docs.md`](03_docs.md)                 | done    |
 | 04 | Move the open roadmap          | [`04_plans.md`](04_plans.md)               | done    |
-| 05 | Verify                         | [`05_verify.md`](05_verify.md)             | planned |
+| 05 | Verify                         | [`05_verify.md`](05_verify.md)             | in progress |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -31,3 +31,4 @@ Append-only. Newest at the bottom.
 - 2026-11-17 : phase 03 - root README, docs index and instructions about the game; guide-only docs linked on the source's GitHub; the template package id in the release doc replaced. Link check clean.
 - 2026-11-17 : phase 04 - source phases 9 to 13 moved in as `02_mcp_smoke`, `03_performance`, `04_release`, drafts, every unticked item placed.
 - 2026-11-17 : phase 02 closed: `dev` APK built, `com.pitrified.artificialpirate`, label `Artificial Pirate`, arm64-v8a.
+- 2026-11-17 : phase 05 box checks green in a fresh clone (compile 0 warnings, EditMode 114/114, PlayMode 4/4, `dev` APK with the game's id). Waiting on the push from g4 and the device run.
