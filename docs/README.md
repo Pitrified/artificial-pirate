@@ -34,6 +34,7 @@ Split by concern: **what we build**, **how we build it**, **how we ship it**.
 
 - [headless-unity.md](headless-unity.md)
 - [unity-mcp-best-practices.md](unity-mcp-best-practices.md)
+- [building_assets.md](building_assets.md) - models from a reference photograph: Blender builders, FBX, passes (skill `.claude/skills/build-asset/`)
 - In the guide: [ai-development-playbook.md](https://github.com/Pitrified/unity-setup-project/blob/main/docs/ai-development-playbook.md), [mcp-setup.md](https://github.com/Pitrified/unity-setup-project/blob/main/docs/mcp-setup.md)
 
 ### Build & release

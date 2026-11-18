@@ -13,8 +13,8 @@ The guide's diagnostics, asset pipeline and water, brought into the game, and th
 | #  | Phase              | Plan                                   | Status  |
 | -- | ------------------ | -------------------------------------- | ------- |
 | 01 | Diagnostics        | [`01_diagnostics.md`](01_diagnostics.md) | done    |
-| 02 | Asset pipeline     | [`02_assets.md`](02_assets.md)         | in progress |
-| 03 | Water              | [`03_water.md`](03_water.md)           | planned |
+| 02 | Asset pipeline     | [`02_assets.md`](02_assets.md)         | done    |
+| 03 | Water              | [`03_water.md`](03_water.md)           | in progress |
 | 04 | Ship on the water  | [`04_ship.md`](04_ship.md)             | planned |
 | 05 | Verify             | [`05_verify.md`](05_verify.md)         | planned |
 
@@ -27,3 +27,4 @@ Append-only. Newest at the bottom.
 - 2026-11-18 : asked by the user; the two repos compared file by file; Q1 (ship on the water), Q2 (sample content), Q3 (phases) written. Branch `feat/05_from_guide` from `main` at `576f6e5`.
 - 2026-11-18 : Q1 A, the rest as recommended. Five phases.
 - 2026-11-18 : phase 01 - diagnostics ported (the Persistent scene taken whole, unchanged here since the split); boot's quality lookup fixed. Gates green, dev APK.
+- 2026-11-18 : phase 02 - asset pipeline ported; the builders reproduce the barrel, crate and island byte for byte here. Gates green.
