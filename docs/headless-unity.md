@@ -79,7 +79,18 @@ Scenes, prefabs, ScriptableObjects and project settings are YAML that Unity writ
 ## 5. Pitfalls seen here
 
 - **First import of a fresh `Library/`** fails once inside the Shader Graph package (`error CS0246: 'GUID' could not be found`); Unity's API updater fixes it and the next run compiles. Expect it once per new clone.
-- **Do not copy `Library/` between clones.** A copied one compiled, then every scene component came up as "referenced script is missing" in PlayMode. Delete it and let Unity import (a few minutes).
+- **Do not copy `Library/` between clones, and delete it after moving the project folder.** A copied or moved one compiled and passed EditMode, then scene components came up as "referenced script is missing" in PlayMode. Delete it and let Unity import (a few minutes).
 - **An interrupted build** leaves `Assets/Resources/PerformanceTestRun*.json` behind (the performance test package's build step). Delete it; a finished build removes it itself.
 - **PlayMode tests that boot the game** must destroy the `DontDestroyOnLoad` `GameManager` in teardown (`PlayModeTestReset`), or the next test waits on the old instance.
-- **Animated shaders** (the water uses `_Time`) make two captures differ even with no change. Compare a change against a control pair of captures, not against zero.
+- **Animated shaders** (anything using `_Time`, such as a water shader) make two captures differ even with no change. Compare a change against a control pair of captures, not against zero.
+- **The Editor's render counters (`UnityStats`) stay at 0** for a render made from a script in batch mode; `SceneCapture -captureBudget` counts from the scene instead.
+- **A CustomRenderTexture's updates run during rendering**, at a point a script or a test does not control (a test saw it never step). Ping-pong two render textures with `Graphics.Blit` when the steps must happen on call, as `WaterRipples` does.
+- **Tests that build objects in code share the world with scenes an earlier test left loaded**: build them far from the scene's content (the water tests use 1 km out).
+- **Measuring managed allocation**: `GC.GetAllocatedBytesForCurrentThread` reads 0 in Unity's runtime and `GC.GetTotalMemory` only moves in blocks; the Profiler's "GC Allocated In Frame" (`ProfilerRecorder`) counts, per frame (`AllocationTests` checks it against a known allocation). And measure in a player, not the Editor: play mode allocates about 150 kB a frame by itself.
+- **A desktop player measures the wrong renderer**: it starts on the PC quality level, whose renderer has SSAO, and this project strips shaders for Android, so URP logs "Couldn't find the required resources for the ScreenSpaceAmbientOcclusion render feature" with a stack trace every frame, which allocates and slows the run. Switch to the Mobile quality level for a measurement (the allocation scan does).
+- **A desktop player pauses without focus**, which a headless run never has: set `Application.runInBackground` for such runs (the allocation scan does).
+- **Building for another platform rewrites settings** (URP shader prefiltering, batching entries, a Connect flag); restore them with `git checkout` before committing.
+- **`WaitForEndOfFrame` never fires in batch mode**: a PlayMode test that yields it fails. Yield `null` and render the camera into a texture yourself.
+- **The first `Camera.Render()` after opening a scene** in an editor method comes out without its realtime light: surfaces show ambient only and look near black. Render twice and keep the second frame.
+- **`DISPLAY` set but not usable**: a session over SSH can inherit `DISPLAY=:0` from a desktop it cannot open, and Unity then fails with "Error opening default X display". Run under `xvfb-run` regardless, as `gates.sh` does.
+- **A RAM-backed `/tmp`**: Ubuntu 25.10 and later mount `/tmp` as a tmpfs with a per-user quota. A project clone there fills RAM, and Unity's package import fails with error -122 (`EDQUOT`). Keep projects and their `Library/` on disk.

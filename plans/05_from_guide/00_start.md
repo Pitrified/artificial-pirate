@@ -1,5 +1,5 @@
 ---
-status: draft
+status: in progress
 priority: 0
 description: |
   Bring the guide's work since the split into the game: diagnostics report, asset pipeline,
@@ -56,4 +56,8 @@ Proposed, each closing on the gates and a commit:
 
 ## Decisions
 
-None yet.
+Answered 2026-11-18 by the user: "Q1 a / The rest as REC".
+
+- **Q1: A.** The ship stays kinematic and rides the waves: height, pitch and roll from the `WaveField` at four hull points, smoothed; a `RippleSource` on the hull; a kinematic collider so floating props bounce off it.
+- **Q2: the island model and a few barrels and crates**; no cannonball launcher, no blobs.
+- **Q3: the five phases** as proposed.

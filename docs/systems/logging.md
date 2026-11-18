@@ -32,6 +32,27 @@ Log.Error  (LogCat cat, string message, params object[] args)
 - `[Conditional("UNITY_EDITOR")]` and `[Conditional("DEVELOPMENT_BUILD")]` on
   `Verbose` and `Info` so they vanish from Release IL2CPP output.
 - `Warn`/`Error` always present.
+- The ring of the last 500 entries exists in every build; in Release it holds warnings and errors only.
+
+---
+
+## Diagnostics report
+
+What a person copies or shares off the phone with no adb (built in the guide, unity-setup-project's `plans/05_diagnostics/`), after abyss's log button: header lines, a blank line, then statistics, problems and log lines. Every build carries it.
+
+- **`DiagnosticsRecorder`** (in `Persistent.unity`) collects, with fixed buffers and no allocation per frame: frame times into a session histogram (0.5 ms bins) and a last-minute ring; memory and managed heap once a second into histograms and a 600-second series; exceptions, errors and asserts from `Application.logMessageReceived` into a `ProblemLog`, apart from the ring, so a busy log never pushes them out (distinct by message and first stack line, with count, first and last time, top 6 stack lines, at most 10).
+- **`DiagnosticsReport`** writes it on demand:
+  - header: product, version and version code, build kind, commit and time (`SO_BuildInfo`, stamped by `BuildPipeline` around each build and set back to "editor" after), development or release, Unity version; device, OS, CPU, memory; GPU and graphics API; screen, refresh rate, DPI, orientation; quality level, target frame rate, vsync; session time, game state, loaded scenes; battery;
+  - statistics for the session and the last 60 s: min, p05, median, mean, p95, max of frame time and frame rate (read off the frame times), memory and heap, and in development builds managed allocation per frame (`gc alloc kB`, the Profiler's "GC Allocated In Frame"); GC collections and frames over 33 ms;
+  - problems; the log ring, `seconds level category text`;
+  - detailed only: the per-second series (frames, mean and max frame time, memory, heap) of the last 10 minutes.
+- Size: a few kB typical (a launch into play logs about 15 lines); the detailed series adds about 40 bytes a second.
+- **Opened** from a Diagnostics button on the main menu and the pause screen (`ScreenId.Diagnostics`, `DiagnosticsPanel`): Copy (the report to the clipboard), Copy detailed (with the series), Share (the detailed report to Android's share sheet: save to Files or Drive, send to a chat), Previous session (the last session's kept report to the clipboard), Close. The preview shows the report's first 40 lines in Liberation Mono (`UI/Fonts/`, SIL Open Font License, its text beside the font), so the statistics' columns line up; it adds about 190 kB to the APK.
+- **Kept on the phone**: `persistentDataPath/diagnostics/current.txt` every 30 s and on pause and quit; `previous.txt` is the session before, so a crash's report can still be copied after a relaunch.
+- **Allocation scan** (development builds): `-allocationScan <file>` on a player's command line plays a new game and measures managed allocation per frame with everything on, then with each component type disabled in turn, without and with a simulated finger on the stick, and writes what each type accounts for. On the box: `Game.Editor.BuildLinuxDevPlayer.BuildFromCommandLine -playerOut <dir>/ArtificialPirate.x86_64`, then `xvfb-run -a <dir>/ArtificialPirate.x86_64 -force-vulkan -allocationScan out.txt`. The Editor cannot answer this: its play mode allocates about 150 kB a frame by itself.
+  The scan switches to the Mobile quality level first, so it measures the phone's renderer, and records the boot and the Game scene's load with the Profiler into `out.txt.profile.raw`. `Game.Editor.ProfileCaptureReport.FromCommandLine -profileCapture out.txt.profile.raw -reportOut loads.txt` (Editor, batch mode) writes, for the whole capture, which markers allocate directly, then the call tree of the heaviest frames down to what allocates.
+- **What a load costs** (the guide's sample in a Linux development player, 2026-11-18): boot, the menu and the Game scene allocate about 4.8 MB on the main thread, nearly all of it Unity's one-off setup: URP's first frame (1.3 MB), UI Toolkit's text (a font's kerning and synthesised characters on first use, 0.9 MB; layout and render data, 0.9 MB), `UIDocument.OnEnable`, Mono's JIT (not in the IL2CPP phone build) and the Input System's on-screen controls. The game's own code allocates about 17 kB of it. It happens behind the loading overlay, so the collections it causes are not seen; it is the expected cost of a load, not something to fix.
+- Read one without a phone: `REPORT_OUT=<file>` with the PlayMode `DiagnosticsReportTests`; a picture of the panel: `PANEL_CAPTURE=<file.png>` with `DiagnosticsPanelTests`.
 
 ---
 
@@ -44,7 +65,7 @@ Displays:
 - FPS (avg, 1% low over last 60 frames)
 - Frame time (main, render)
 - Current `GameManager` state
-- Last 20 log lines
+- The newest 20 log lines
 
 Buttons (dev builds only):
 
