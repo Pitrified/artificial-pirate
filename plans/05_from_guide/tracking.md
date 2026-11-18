@@ -31,3 +31,4 @@ Append-only. Newest at the bottom.
 - 2026-11-18 : phase 03 - water, island and floating props in the Game scene (carried from the guide as prefabs), the ship's start moved into the bay; the depth bake no longer takes floating bodies for seabed. Gates green, dev APK.
 - 2026-11-19 : phase 04 - the ship rides the waves kinematically (`WaveRider`, a `Hull` child, a kinematic collider); a start splash fixed in `RippleSource`. Gates green, dev APK.
 - 2026-11-19 : phase 05 - fresh clone green; the APK goes to the phone. Waiting on the device run.
+- 2026-11-19 : phone report: 60 fps held, 147 MB, no per-frame allocation, no problems. The look not yet reported.
