@@ -42,7 +42,20 @@ no Rigidbody forces.
 - `transform.Rotate(Vector3.up, YawRateDeg * smoothedSteering * Time.deltaTime)`.
 - Y is locked at the sea-surface height (constant in v0.2).
 
-No Rigidbody, no `MovePosition`, no physics queries.
+No forces, no `MovePosition`, no physics queries. The root keeps yaw only, so `forward` and `Rotate` stay on the plane.
+
+---
+
+## Riding the waves (`WaveRider`)
+
+The ship stays kinematic and rides the water without physics (`plans/05_from_guide`, Q1).
+
+- `PF_Ship`'s root carries `ShipController`, `WaveRider` and a kinematic `Rigidbody`; a `Hull` child carries the mesh, the box collider and a `RippleSource`.
+- Each `LateUpdate`, `WaveRider` samples the water (`WaterSurface.HeightAt`, the same waves the shader draws) at the bow, stern, port and starboard, `_halfLength` and `_halfBeam` from the centre, and eases the hull's height, pitch and roll toward them at `_response` per second; `Start` places it at once. `_waterlineOffset` raises or sinks the hull's centre against the mean surface.
+- The camera follows the root, so it does not bob; the save reads the root, so saves are unchanged.
+- The kinematic `Rigidbody` makes the hull a moving collider: floating props are pushed out of it rather than passing through. The depth bake passes through it, as through anything on a Rigidbody.
+- The water is wired on the scene's instance (`_water` on `WaveRider`, `_water` and `_ripples` on the hull's `RippleSource`).
+- `WaveRiderTests` (EditMode): level at the sea on flat water, nose up where the water rises toward the bow, roll with crests along the hull, eased after the first step.
 
 ---
 
@@ -63,14 +76,15 @@ ShipState GetState()                            // position + yaw
 
 ### Used by
 - CameraController (reads transform)
+- WaveRider (reads the root's position and heading)
 - SaveSystem (reads `GetState`, calls `Teleport` on load)
 
 ---
 
 ## Constraints
 
-- No collision handling in v0.2 (the island is a visual only).
-- No buoyancy / wave response in v0.2.
+- No collision handling with the island in v0.2: the ship can sail onto it.
+- No buoyancy forces: the wave response is the hull's visual ride (`WaveRider`).
 - No allocations per frame.
 - No camera, audio, or UI calls.
 
