@@ -81,7 +81,7 @@ Never leave `GameObject (1)`.
 
 **Assets:**
 
-- Prefabs: `PF_Ship`, `PF_Island`
+- Prefabs: `PF_Ship`, `PF_Barrel`
 - Materials: `M_Water`, `M_Hull`
 - Textures: `T_Hull_Albedo`, `T_Hull_Normal`
 - Scenes: bare name (`Game.unity`)

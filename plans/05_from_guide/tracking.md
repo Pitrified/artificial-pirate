@@ -14,8 +14,8 @@ The guide's diagnostics, asset pipeline and water, brought into the game, and th
 | -- | ------------------ | -------------------------------------- | ------- |
 | 01 | Diagnostics        | [`01_diagnostics.md`](01_diagnostics.md) | done    |
 | 02 | Asset pipeline     | [`02_assets.md`](02_assets.md)         | done    |
-| 03 | Water              | [`03_water.md`](03_water.md)           | in progress |
-| 04 | Ship on the water  | [`04_ship.md`](04_ship.md)             | planned |
+| 03 | Water              | [`03_water.md`](03_water.md)           | done    |
+| 04 | Ship on the water  | [`04_ship.md`](04_ship.md)             | in progress |
 | 05 | Verify             | [`05_verify.md`](05_verify.md)         | planned |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
@@ -28,3 +28,4 @@ Append-only. Newest at the bottom.
 - 2026-11-18 : Q1 A, the rest as recommended. Five phases.
 - 2026-11-18 : phase 01 - diagnostics ported (the Persistent scene taken whole, unchanged here since the split); boot's quality lookup fixed. Gates green, dev APK.
 - 2026-11-18 : phase 02 - asset pipeline ported; the builders reproduce the barrel, crate and island byte for byte here. Gates green.
+- 2026-11-18 : phase 03 - water, island and floating props in the Game scene (carried from the guide as prefabs), the ship's start moved into the bay; the depth bake no longer takes floating bodies for seabed. Gates green, dev APK.

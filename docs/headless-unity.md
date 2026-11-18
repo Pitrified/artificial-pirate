@@ -55,8 +55,13 @@ xvfb-run -a -s "-screen 0 1280x1024x24" "$EDITOR" -batchmode -force-vulkan \
 | PlayMode tests | `-runTests -testPlatform PlayMode -testResults <xml>` | exit 0; the XML root has `failed="0"` |
 | `dev` APK | `Tools/build-android.sh dev`, itself under `xvfb-run -a` | `Build SUCCEEDED`; the APK under `ArtificialPirate/Build/dev/` |
 | Capture | `-executeMethod Game.Editor.SceneCapture.CaptureFromCommandLine -captureOut shot.png [-captureEye x,y,z -captureTarget x,y,z] [-captureBudget]` | the PNG looks right, and measures right where the change is visual; `-captureBudget` logs triangles and material slots in view |
+| Sequence | `-runTests -testPlatform PlayMode -testFilter Game.Tests.PlayMode.SequenceCaptureTests` with `CAPTURE_SEQUENCE_DIR=<dir>` (and `CAPTURE_SECONDS`, `CAPTURE_FPS`, `CAPTURE_EYE`, `CAPTURE_TARGET`) | frames over time in Play mode, read with `measure.py sheet / gif / motion / track` |
 
 `Tools/gates.sh [compile|edit|play|all]` runs the first three gates this way and exits non-zero on any `error CS`, `warning CS` or failed test, naming the failed tests; logs and results go to `ArtificialPirate/Logs/gates/`.
+
+**A still is not enough for anything that moves** (water, animation, physics, particles): the sequence capture plays the Game scene in fixed 1/30 s steps, real physics included, and writes `frame_NNN.png` from a pose, so the same frames come out however slow the machine is.
+In `Tools/asset_builders`: `measure.py sheet DIR out.png` (all frames on one image, to look at), `gif DIR out.gif` (to watch), `motion DIR` (change between frames, overall and per grid cell: is it moving, and where; a still scene measures about 0.02, the control), `track DIR X0 Y0 X1 Y1 [--colour R G B]` (a box's brightness and the centroid of its brightest pixels, or of pixels near a colour, over time: something bobbing, a wave passing).
+Without `CAPTURE_SEQUENCE_DIR` the same test only checks that the scene plays through, so the gates run it at no cost.
 
 `-runTests` must not be combined with `-quit`. A failing test's message is in the XML's `failure/message`.
 

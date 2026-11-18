@@ -29,7 +29,7 @@ Priorities (in order):
 | Backend        | **IL2CPP**, ARM64 only                    | Required for Play Store, best perf     |
 | Input          | **Unity Input System** (`com.unity.inputsystem`) | Future-proof, abstraction-friendly |
 | Movement       | **Kinematic / arcade**                    | Deterministic, no physics instability  |
-| Water          | **Custom URP shader (stylized)**          | Avoid simulation cost                  |
+| Water          | **Custom URP shader (stylized)**: Gerstner waves, shore foam from a baked depth map, a 256x256 ripple step ([water](systems/water.md)) | Decent and reactive, one draw; no fluid simulation |
 | Camera         | **Third-person chase**                    | Mobile-friendly, no free look          |
 | Orientation    | **Landscape only (locked)**               | Single layout to design for            |
 | Scenes         | **Multi-scene additive + persistent root** | Clean lifetime separation             |
@@ -82,7 +82,7 @@ Ownership rules:
 | `Boot`       | Single    | First frame only      | `GameBootstrap` only                   |
 | `Persistent` | Additive  | Whole session         | GameManager, Input, Save, Audio, UIRoot |
 | `Menu`       | Single    | While in menu         | Main menu UI                           |
-| `Game`       | Additive  | While playing         | Ship, sea, island, GameCamera          |
+| `Game`       | Additive  | While playing         | Ship, water, island, floating props, GameCamera |
 
 ---
 
@@ -102,6 +102,7 @@ Each system has a dedicated spec under [systems/](systems/).
 | [audio-manager](systems/audio-manager.md)         | Music + SFX channels                   |
 | [ui-system](systems/ui-system.md)                 | UI Toolkit roots, safe area, scaling   |
 | [logging](systems/logging.md)                     | Central log + debug overlay            |
+| [water](systems/water.md)                         | Waves, floating, ripples, shore        |
 
 ---
 

@@ -55,6 +55,7 @@ Split by concern: **what we build**, **how we build it**, **how we ship it**.
 - [systems/audio-manager.md](systems/audio-manager.md)
 - [systems/ui-system.md](systems/ui-system.md)
 - [systems/logging.md](systems/logging.md)
+- [systems/water.md](systems/water.md) - waves, buoyancy, ripples, shore
 
 ### Plans and history
 
