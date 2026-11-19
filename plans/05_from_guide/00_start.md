@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 priority: 0
 description: |
   Bring the guide's work since the split into the game: diagnostics report, asset pipeline,

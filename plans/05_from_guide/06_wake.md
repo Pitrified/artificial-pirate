@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 06 - The ship's wake
@@ -44,3 +44,4 @@ Strength is tuned on the phone later, as the user said.
 - `WaterRippleTests`, 3 new: a following square moves by whole texels and a ripple keeps its world place; foam is stamped, about half gone after 1.5 s, spread beyond its stamp, and makes no ripples; a `WakeSource` at 8 m/s on game-sized texels leaves foam on its path behind, none ahead or 2.5 m to the side, and ripple energy ahead under a tenth of behind.
 - Docs: `water.md` (the parts, the square rule, "A wake", the cost), `ship-controller.md` (the ship's parts and wiring), `headless-unity.md` (the capture's new variables).
 - Gates: compile 0 warnings, EditMode 136/136, PlayMode 19/19. Dev APK 73,685,386 bytes; the build left git unchanged except Unity's re-save of `M_WaterRippleSim` with the shader's new properties, kept.
+- 2026-11-19. The user, on the captures: "Looks neat"; then "looks good, complete this effort". Closed on that. Not checked on the phone: 60 fps with the RGBA ripple step (the phase 05 run held 60 fps with the RG one) and the strength tuning (`_dentStrength`, `_foamRate`, `_WakeFoam`, `_foamFade`).
