@@ -7,8 +7,28 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Deck
+    second: {fileID: 2100000, guid: c64c571c9228b3737989148fb981fcb6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Flag
+    second: {fileID: 2100000, guid: 1dfcccd4869c057a09b23ea3d8f98084, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Gilt
+    second: {fileID: 2100000, guid: 208ac0209c7960290a581d5e2c8a2c4d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: HullBottom
     second: {fileID: 2100000, guid: b02ddcd857b387a54b9d87c9b7279538, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Palette
+    second: {fileID: 2100000, guid: ddcba0baf5b5745aca29f4480b3ec72e, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -19,6 +39,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: ShipWood
     second: {fileID: 2100000, guid: 0893d6d22050e850b8546e6a076b1010, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tar
+    second: {fileID: 2100000, guid: 9e43e005826005fc4a244d0be8caa388, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

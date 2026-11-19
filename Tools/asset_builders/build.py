@@ -101,6 +101,7 @@ def export_fbx(path: Path) -> None:
 def stats() -> dict:
     """Triangles, material slots and bounds of the scene's meshes, as the budget sees them."""
     tris = 0
+    per_object: dict[str, int] = {}
     slots: set[str] = set()
     lo = [math.inf] * 3
     hi = [-math.inf] * 3
@@ -111,6 +112,7 @@ def stats() -> dict:
         mesh = obj.evaluated_get(depsgraph).to_mesh()
         mesh.calc_loop_triangles()
         tris += len(mesh.loop_triangles)
+        per_object[obj.name] = len(mesh.loop_triangles)
         slots.update(m.name for m in mesh.materials if m)
         for v in mesh.vertices:
             w = obj.matrix_world @ v.co
@@ -119,6 +121,7 @@ def stats() -> dict:
         obj.evaluated_get(depsgraph).to_mesh_clear()
     return {
         "triangles": tris,
+        "triangles_per_object": per_object,
         "materials": sorted(slots),
         "size_xyz_m": [round(h - l, 4) for l, h in zip(lo, hi)],
         "min_z_m": round(lo[2], 4),
@@ -138,6 +141,8 @@ def main() -> None:
     parser.add_argument("--lens", type=float, default=50.0, help="probe focal length in mm (36 mm sensor)")
     parser.add_argument("--samples", type=int, default=32, help="probe Cycles samples")
     parser.add_argument("--height", type=int, default=720, help="probe image height in pixels")
+    parser.add_argument("--hide", action="append", default=[], metavar="OBJECT",
+                        help="leave this object out of the probe (it is still exported)")
     args = parser.parse_args()
 
     module = importlib.import_module(f"builders.{args.name}")
@@ -153,6 +158,8 @@ def main() -> None:
         export_fbx(out)
         print(f"fbx: {out}")
     if args.probe:
+        for hidden in args.hide:
+            bpy.data.objects.remove(bpy.data.objects[hidden])
         render_probe(args.probe, view=args.view, lens=args.lens, samples=args.samples,
                      height=args.height, reference=args.reference)
         print(f"probe: {args.probe}")

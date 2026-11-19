@@ -25,7 +25,8 @@ namespace Game.Tests.EditMode
         private static readonly string[] ShipMaterials =
         {
             "Assets/Art/M_HullBottom.mat", "Assets/Art/M_Topsides.mat", "Assets/Art/M_Trim.mat",
-            "Assets/Art/M_ShipWood.mat", "Assets/Art/M_SailCloth.mat",
+            "Assets/Art/M_ShipWood.mat", "Assets/Art/M_SailCloth.mat", "Assets/Art/M_Tar.mat",
+            "Assets/Art/M_Deck.mat", "Assets/Art/M_Gilt.mat", "Assets/Art/M_Palette.mat", "Assets/Art/M_Flag.mat",
         };
 
         /// <summary>A built model and what its builder's PARAMS say it should be.</summary>
@@ -130,8 +131,11 @@ namespace Game.Tests.EditMode
         [TestCaseSource(nameof(Models))]
         public void Materials_AreMappedToProjectMaterials(Expected model)
         {
-            var renderer = Load(model).GetComponentInChildren<MeshRenderer>();
-            string[] paths = System.Array.ConvertAll(renderer.sharedMaterials, AssetDatabase.GetAssetPath);
+            var paths = new HashSet<string>();
+            foreach (MeshRenderer renderer in Load(model).GetComponentsInChildren<MeshRenderer>(true))
+            {
+                paths.UnionWith(System.Array.ConvertAll(renderer.sharedMaterials, AssetDatabase.GetAssetPath));
+            }
             CollectionAssert.AreEquivalent(model.Materials, paths);
         }
 

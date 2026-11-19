@@ -2,7 +2,7 @@
 
 Run from this folder:
 
-    uv run --no-sync python textures.py water_normals
+    uv run --no-sync python textures.py water_normals   (or palette, sail_canvas, hull_planks, deck_planks, flag)
 
 Each texture is a function below. Tiling comes from building the height field out of
 waves with integer frequencies over the tile, so the edges meet. The same seed gives
@@ -15,7 +15,9 @@ import argparse
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
+
+from builders import palette as palette_table
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TEXTURES_DIR = REPO_ROOT / "ArtificialPirate" / "Assets" / "Art" / "Textures"
@@ -55,7 +57,93 @@ def water_normals() -> Path:
     return out
 
 
-TEXTURES = {"water_normals": water_normals}
+def _save(image: Image.Image, name: str) -> Path:
+    out = TEXTURES_DIR / f"{name}.png"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    image.save(out, optimize=False)
+    return out
+
+
+def _grey(values: np.ndarray) -> Image.Image:
+    return Image.fromarray(np.round(np.clip(values, 0, 1) * 255).astype(np.uint8), "L").convert("RGB")
+
+
+def palette() -> Path:
+    """The flat-colour swatches of builders/palette.py, 8 px each, for point filtering."""
+    swatch = 8
+    size = palette_table.SWATCHES_PER_ROW * swatch
+    rgb = np.zeros((size, size, 3))
+    for i, colour in enumerate(palette_table.COLOURS.values()):
+        row, col = divmod(i, palette_table.SWATCHES_PER_ROW)
+        rgb[row * swatch:(row + 1) * swatch, col * swatch:(col + 1) * swatch] = colour
+    return _save(Image.fromarray(np.round(rgb * 255).astype(np.uint8), "RGB"), "T_Palette")
+
+
+def sail_canvas() -> Path:
+    """Worn canvas over 4 x 4 m, tiling: seams between 0.5 m cloths, dirt and wear in broad patches."""
+    size = 256
+    dirt = tiling_height(size, waves=24, min_freq=1, max_freq=5, falloff=1.0, seed=21)
+    grain = tiling_height(size, waves=48, min_freq=12, max_freq=40, falloff=0.8, seed=22)
+    tone = np.array([0.9, 0.86, 0.77]) * (1 - 0.06 * (dirt[..., None] * 0.5 + 0.5) - 0.02 * grain[..., None])
+    x = np.arange(size)
+    seams = (x % (size // 8)) < 2
+    tone[:, seams] *= 0.86
+    return _save(Image.fromarray(np.round(np.clip(tone, 0, 1) * 255).astype(np.uint8), "RGB"), "T_SailCanvas")
+
+
+def _planks(width_px: int, height_px: int, plank_px: int, butt_every_px: int, seed: int) -> np.ndarray:
+    """Planks running along x: dark seams between them, staggered butt joints, grain. Grey, about 1."""
+    rng = np.random.default_rng(seed)
+    grain = tiling_height(max(width_px, height_px), waves=40, min_freq=8, max_freq=32, falloff=0.9, seed=seed)
+    tone = 0.92 + 0.05 * grain[:height_px, :width_px]
+    for row in range(0, height_px, plank_px):
+        tone[row:row + 1, :] *= 0.55
+        tone[row:row + plank_px, :] *= 0.95 + 0.08 * rng.random()
+        offset = rng.integers(0, butt_every_px)
+        for x in range(offset, width_px, butt_every_px):
+            tone[row:row + plank_px, x:x + 1] *= 0.6
+    return tone
+
+
+def hull_planks() -> Path:
+    """The hull's sides: 4 m along, 0 to 8 m up (the bottom row is the waterline), strakes 0.25 m,
+    and a wet band darkening the lowest 0.9 m. Grey, multiplied by each hull's paint."""
+    width, height = 256, 512  # 64 px a metre
+    tone = _planks(width, height, plank_px=16, butt_every_px=192, seed=31)
+    metres = (height - 1 - np.arange(height)) / 64.0
+    wet = 0.6 + 0.4 * np.clip(metres / 0.9, 0, 1) ** 0.7
+    return _save(_grey(tone * wet[:, None]), "T_HullPlanks")
+
+
+def deck_planks() -> Path:
+    """The deck: planks 0.25 m wide running along 4 m, tiling. Grey, multiplied by the deck's colour."""
+    return _save(_grey(_planks(256, 256, plank_px=16, butt_every_px=128, seed=41)), "T_DeckPlanks")
+
+
+def flag() -> Path:
+    """A black flag with a white skull over crossed bones, 2:1.3."""
+    w, h = 256, 166
+    image = Image.new("RGB", (w, h), (18, 18, 20))
+    draw = ImageDraw.Draw(image)
+    white = (232, 228, 214)
+    cx, cy = w // 2, h // 2 - 8
+    for angle in (-1, 1):
+        draw.line([(cx - 52, cy + 30 * angle + 22), (cx + 52, cy - 30 * angle + 22)], fill=white, width=14)
+    draw.ellipse([cx - 30, cy - 38, cx + 30, cy + 18], fill=white)
+    draw.rectangle([cx - 18, cy + 8, cx + 18, cy + 28], fill=white)
+    for ex in (-12, 12):
+        draw.ellipse([cx + ex - 8, cy - 16, cx + ex + 8, cy], fill=(18, 18, 20))
+    return _save(image, "T_Flag")
+
+
+TEXTURES = {
+    "water_normals": water_normals,
+    "palette": palette,
+    "sail_canvas": sail_canvas,
+    "hull_planks": hull_planks,
+    "deck_planks": deck_planks,
+    "flag": flag,
+}
 
 
 def main() -> None:

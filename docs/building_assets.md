@@ -49,14 +49,16 @@ The FBX is written for Unity (Y up, units applied, axis change baked) and **byte
 ### Families of objects: ships
 
 Several objects of one kind share one builder, and each type is a module of numbers over it.
-`builders/ship.py` builds a ship from a dict, and `builders/sloop.py` is the sloop's `PARAMS` with `ship.build`, so `build.py sloop` writes `Sloop.fbx`.
+The package `builders/ship/` builds a ship from a dict, and `builders/sloop.py` is the sloop's `PARAMS` with `ship.build`, so `build.py sloop` writes `Sloop.fbx`.
+Its modules are the parts: `hull`, `rig`, `sails`, `rigging`, `fittings`, `props`, with `mesh` for the primitives.
+A ship is four objects: the hull, its flag, and two sail states (`<Name>Sailing`, `<Name>Anchored`), of which the game shows one. `build.py` prints the triangles per object, and `--hide <object>` leaves one out of the probe.
 A new type is a new parameter set (`sloop.py`, `brig.py`). When it needs a part the builder lacks, the part is added to `ship.py` as a parameter, never named after the type: the brig brought `brace_deg`, yards turned round the mast, without which square sails are edge-on from the side.
 
 Ships break two of the props' conventions:
 - The origin is on the design waterline amidships, not at the base, because a hull is placed by its waterline.
 - The bow points to -Y in Blender, which the FBX export turns into Unity's +Z, the ship's forward; `BuiltModelTests` checks it. The probe's `--view 270 5` shows the starboard side, bow to the right.
 
-The five slots `HullBottom`, `Topsides`, `Trim`, `ShipWood` and `SailCloth` are shared by every ship. A type with its own paint gets a material override on its prefab variant.
+Slots are named by the parts and shared by every ship (`BuiltModelTests` lists them). UVs are in metres, so a textured material tiles by metres (a 4 m tile is a tiling of 0.25). Props take their colours from one palette texture (`builders/palette.py`, `textures.py palette`): a face puts its UVs on a swatch, and many colours cost one slot. A type with its own paint gets a material override on its prefab variant.
 
 ## 4. The Unity side
 

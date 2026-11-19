@@ -28,7 +28,7 @@ targets for v0.2 and tested on-device, not in editor.
 | Draw calls              | ≤ 80                  |                          |
 | Tris on screen          | ≤ 150 k               |                          |
 | Real-time lights        | 1 directional         | No additional realtime   |
-| Real-time shadows       | Off in v0.2           | Baked or none            |
+| Real-time shadows       | Main light only, hard, one cascade, 50 m | On for the ships' detail; the cost on the phone is still to measure |
 | Post-processing         | None / minimal        | Color grading at most    |
 
 URP asset (mobile profile) lives in `Assets/Settings/`. Only one URP asset is shipped.

@@ -28,6 +28,7 @@ Shader "artificial-pirate/Water"
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma multi_compile_fog
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -53,6 +54,7 @@ Shader "artificial-pirate/Water"
             float4 _WaterRippleRect;  // x min, z min, size (0 when no ripples), texel size in uv
 
             static const float Gravity = 9.81;
+            static const float ShadowDarkening = 0.45; // how much of the water's light a shadow takes
 
             struct Attributes
             {
@@ -163,10 +165,12 @@ Shader "artificial-pirate/Water"
                 // Colour: shallow over sand, deep further out.
                 half3 water = lerp(_WaterShallow.rgb, _WaterDeep.rgb, saturate(depth / _WaterDetail.w));
 
-                Light sun = GetMainLight();
+                Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
+                // In shadow the water loses the sun's share of its light and its glint, not the sky's.
+                float sunlit = lerp(1.0 - ShadowDarkening, 1.0, sun.shadowAttenuation);
                 float3 v = normalize(GetWorldSpaceViewDir(i.positionWS));
                 float nl = saturate(dot(n, sun.direction));
-                half3 lit = water * (0.45 + 0.55 * nl) * sun.color;
+                half3 lit = water * (0.45 + 0.55 * nl) * sun.color * sunlit;
 
                 // Sky at grazing angles (Schlick, F0 of water), the sun's glint.
                 // Fresnel on a mostly geometric normal: the detail would sparkle sky everywhere at a low angle.
@@ -174,7 +178,7 @@ Shader "artificial-pirate/Water"
                 float fresnel = 0.02 + 0.98 * pow(1.0 - saturate(dot(nf, v)), 5.0);
                 half3 colour = lerp(lit, _WaterSky.rgb, fresnel * 0.6);
                 float3 h = normalize(sun.direction + v);
-                colour += sun.color * pow(saturate(dot(n, h)), 220.0) * 1.6;
+                colour += sun.color * pow(saturate(dot(n, h)), 220.0) * 1.6 * sun.shadowAttenuation;
 
                 // Foam: a line at the waterline, bands running up the beach, crests, ripples.
                 float shoreDepth = _WaterFoamParams.x;

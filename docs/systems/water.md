@@ -31,6 +31,7 @@ The choice and the alternatives are in the guide, unity-setup-project's `plans/0
 - **One clock.** Everything reads `WaterSurface.Now`; a capture or a test can pin it (`PinClock`).
 - **The shader reads globals**, so a scene has one body of water at a time.
 - **Ripples are visual.** Floaters ride `WaveField` only; a splash does not push them (the ball hitting them does, through physics).
+- **The water receives the sun's shadows**: in shadow it loses part of its sun-lit light and its glint, not the sky's reflection (`ShadowDarkening`). The mobile renderer must let transparent surfaces receive shadows (`Mobile_Renderer`, on).
 - **Ripples and the wake live in the square.** In the Game scene it follows the ship (48 m, about 24 m each way), so its wake is always drawn; things farther away make no ripples. The square moves whole texels at a time and the step reads the field shifted by them, so ripples keep their place in the world.
 - **The drawn waves calm in water shallower than `CalmDepth`; the CPU waves do not.** A floater in very shallow water rides a little high. Keep floaters in deeper water, or add the depth map to `WaveField` if it matters.
 
