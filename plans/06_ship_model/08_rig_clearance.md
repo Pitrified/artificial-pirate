@@ -43,3 +43,9 @@ All at build time, so it costs nothing in the game.
 - **Result**: 0 ropes through sails, both ships, both states. Captures before and after: the brig sailing and anchored, the sloop sailing and anchored.
 - **Cost**: triangles about the same: sloop 3,782 / 916 / 1,310, brig 5,660 / 2,018 / 2,962 (hull, sailing, anchored), from 3,800 / 910 / 1,254 and 5,678 / 2,012 / 2,994. No new slot.
 - **Gates**: compile 0 warnings, EditMode 146/146, PlayMode 19/19. No new APK: the change is rope routing and a few degrees of boom, the same triangles and slots.
+- 2026-11-19, **the phone report** (Pixel 7 Pro, build `dev 4c1626f` of 16:54:45Z, this phase and the furls):
+  - 117.4 s, about 111 s of it playing (4.2 to 115.3 s).
+  - Frame time 16.8 ms at p05, median and p95, the same over the last 60 s. **60 fps held.** Three frames of 33 ms in play (75.4, 103.7, 106.7 s); the 300 ms and 133 ms frames are the scene load and the pause.
+  - Memory 147.5 MB, as before. Heap 9.7 to 13.0 MB. `gc alloc kB` 0.1 a frame at p05, median and p95. 8 collections.
+  - No problems.
+  - The user: "Works very well".
