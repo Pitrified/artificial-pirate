@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 priority: 0
 description: |
   A ship model in place of the box hull, built so several ship types come from one builder:

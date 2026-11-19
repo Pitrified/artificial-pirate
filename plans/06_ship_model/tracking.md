@@ -23,7 +23,7 @@ A ship model in place of the box hull, general enough for several ship types. Br
 | 02 | Ship builder and sloop   | [`02_builder.md`](02_builder.md)           | done    |
 | 03 | The sloop in the game    | [`03_sloop_in_game.md`](03_sloop_in_game.md) | done    |
 | 04 | The brig                 | [`04_brig.md`](04_brig.md)                 | done    |
-| 05 | Verify                   | [`05_verify.md`](05_verify.md)             | planned |
+| 05 | Verify                   | [`05_verify.md`](05_verify.md)             | done    |
 | 06 | Detail and look          | [`06_detail.md`](06_detail.md)             | done    |
 | 07 | Furled sails             | [`07_furls.md`](07_furls.md)               | done    |
 | 08 | Rigging clear of sails   | [`08_rig_clearance.md`](08_rig_clearance.md) | done    |
@@ -50,3 +50,4 @@ Append-only. Newest at the bottom.
 - 2026-11-19 : the user: rigging intersects the sails sometimes. Phase 08 added: a build-time check, rigging routed as a ship's is, the cloth giving way to ropes. Runtime cloth not now.
 - 2026-11-19 : phase 08 - a build-time check of ropes through sails (sloop 6 and 3, brig 9 and 22 at first); the rigging routed as a ship's (yards clear of the mast, lifts, braces to the mast ahead, running backstays, stays above the yards, jib sheets, furls); the sloop's boom brought in to 14 deg by its lee braces. 0 crossings. The cloth push was built, changed nothing once the routing held, and was taken out. Gates green.
 - 2026-11-19 : phone report of `dev 4c1626f` (furls and rig clearance): 60 fps held, 147.5 MB, 0.1 kB allocated a frame, no problems. The user: "Works very well".
+- 2026-11-19 : phase 05 - fresh clone of `660c93d`: setup and gates green from an empty `Library/` (EditMode 146/146, PlayMode 19/19), plans and links checked. With the phone reports, the plan is done.
