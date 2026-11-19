@@ -20,7 +20,7 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 | 04 | Seed and save      | [`04_seed_and_save.md`](04_seed_and_save.md) | done |
 | 05 | The minimap        | [`05_minimap.md`](05_minimap.md) | done |
 | 06 | The full map       | [`06_full_map.md`](06_full_map.md) | done |
-| 07 | Verify             | -    | pending |
+| 07 | Verify             | [`07_verify.md`](07_verify.md) | in progress |
 
 ## Log
 
@@ -32,3 +32,4 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 - 2026-11-19: phase 04 done: a random seed on a new game, the seed and explored cells saved (version 3) and restored.
 - 2026-11-19: phase 05 done: shared map tiles, the HUD minimap, `CAPTURE_HUD`.
 - 2026-11-19: phase 06 done: the full map over the paused game, opened from the minimap; `CAPTURE_MAP`.
+- 2026-11-19: phase 07: a fresh clone passes the gates, the dev APK is built; waiting on the phone.
