@@ -25,7 +25,7 @@ PARAMS = {
     "boot": 0.3,             # m
     "masts": [
         {
-            "at": 0.69, "height": 28.5, "diameter": 0.55, "rake_deg": 5.0,
+            "at": 0.69, "height": 28.5, "diameter": 0.55, "rake_deg": 5.0, "brace_deg": 30.0,
             "yards": [{"z": 17.0, "length": 12.0}, {"z": 22.5, "length": 10.0}, {"z": 26.5, "length": 6.5}],
             "boom": {"z": 4.5, "length": 16.5, "rise_deg": 4.0},
             "gaff": {"z": 15.5, "length": 11.0, "peak_deg": 35.0},

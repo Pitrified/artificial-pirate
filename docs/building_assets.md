@@ -50,7 +50,7 @@ The FBX is written for Unity (Y up, units applied, axis change baked) and **byte
 
 Several objects of one kind share one builder, and each type is a module of numbers over it.
 `builders/ship.py` builds a ship from a dict, and `builders/sloop.py` is the sloop's `PARAMS` with `ship.build`, so `build.py sloop` writes `Sloop.fbx`.
-A new type is a new parameter set. When it needs a part the builder lacks, the part is added to `ship.py` as a parameter, never named after the type.
+A new type is a new parameter set (`sloop.py`, `brig.py`). When it needs a part the builder lacks, the part is added to `ship.py` as a parameter, never named after the type: the brig brought `brace_deg`, yards turned round the mast, without which square sails are edge-on from the side.
 
 Ships break two of the props' conventions:
 - The origin is on the design waterline amidships, not at the base, because a hull is placed by its waterline.

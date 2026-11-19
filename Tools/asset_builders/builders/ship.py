@@ -12,7 +12,8 @@ beam), transom_rake_deg, bulwark (height above the deck), band (the trim band's 
 boot (how high the bottom paint shows above the water).
 
 masts: each has at (fraction from the stern), height (above the water), diameter, rake_deg, yards
-(each z and length), and optionally a boom (z, length, rise_deg) and a gaff (z, length, peak_deg).
+(each z and length), and optionally brace_deg (the yards turned round the mast), a boom (z, length,
+rise_deg) and a gaff (z, length, peak_deg).
 bowsprit: length beyond the stem, steeve_deg, diameter.
 sails: a square sail hangs from a yard (top) to the yard below it (bottom) or to a foot {z, length};
 a gaff sail fills a mast's gaff and boom; a jib runs from head_z on a mast to a point along the bowsprit
@@ -232,9 +233,16 @@ def _gaff_end(mast: Mast) -> tuple[Vector, Vector]:
     return start, start + Vector((0.0, -math.cos(peak), math.sin(peak))) * gaff["length"]
 
 
+def _yard_forward(mast: Mast) -> Vector:
+    """Square to a mast's yards, braced round by its brace_deg."""
+    brace = math.radians(mast.spec.get("brace_deg", 0.0))
+    return Vector((math.sin(brace), math.cos(brace), 0.0))
+
+
 def _yard_ends(mast: Mast, yard: dict) -> tuple[Vector, Vector]:
-    centre = mast.at(yard["z"]) + Vector((0.0, SAIL_CLEARANCE, 0.0))
-    half = Vector((yard["length"] / 2, 0.0, 0.0))
+    forward = _yard_forward(mast)
+    centre = mast.at(yard["z"]) + forward * SAIL_CLEARANCE
+    half = Vector((forward.y, -forward.x, 0.0)) * (yard["length"] / 2)
     return centre - half, centre + half
 
 
@@ -291,7 +299,7 @@ def _square_sail(parts: MeshParts, mast: Mast, spec: dict) -> None:
     foot = yards[bottom] if isinstance(bottom, int) else bottom
     foot_l, foot_r = _yard_ends(mast, foot)
     width = (top_r - top_l).length
-    _sheet(parts, (foot_l, foot_r, top_r, top_l), Vector((0.0, SAIL_BELLY * width, 0.0)))
+    _sheet(parts, (foot_l, foot_r, top_r, top_l), _yard_forward(mast) * (SAIL_BELLY * width))
 
 
 def _gaff_sail(parts: MeshParts, mast: Mast) -> None:

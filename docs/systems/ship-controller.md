@@ -32,6 +32,8 @@ It holds:
 - **the camera's offset**, handed to the camera by `GameSceneWiring`.
 
 A new type is a model from the ship builder (`docs/building_assets.md`), an `SO_ShipType`, and a variant of `PF_Ship` carrying both.
+A variant whose paint differs overrides the shared slots on its renderer, as `PF_Ship_Brig` does with `M_BrigTopsides` and `M_BrigTrim`.
+`ShipController` is the player's: the Game scene has exactly one, which `GameSceneWiring` wires and `GameManager` saves. A ship nobody steers has its instance's `ShipController` removed, as the Game scene's `AnchoredBrig` does; it rides the waves where it lies.
 
 ## Tunable data (serialized → `SO_ShipType`)
 

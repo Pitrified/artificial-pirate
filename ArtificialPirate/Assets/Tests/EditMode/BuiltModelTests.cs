@@ -57,6 +57,12 @@ namespace Game.Tests.EditMode
                 Materials = ShipMaterials,
                 ShipType = "Assets/Settings/SO_Ship_Sloop.asset",
             };
+            yield return new Expected
+            {
+                Path = "Assets/Art/Models/Brig.fbx",
+                Materials = ShipMaterials,
+                ShipType = "Assets/Settings/SO_Ship_Brig.asset",
+            };
         }
 
         private static IEnumerable<Expected> Props()
