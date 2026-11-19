@@ -6,9 +6,10 @@ namespace Game.Tests.EditMode
 
     /// <summary>
     /// <see cref="WorldGenerator"/> with the default settings: a seed always gives the same world
-    /// and another seed another one, islands keep inside their cells with the seabed at every
-    /// cell's edge, about the asked share of cells has one, and the start island is at the origin
-    /// in every world with the scene's props on land and in water where they belong.
+    /// and another seed another one, islands reach no further than the next cell and are seabed
+    /// outside their bounds, about the asked share of cells has one, and the start island is at
+    /// the origin in every world, in open water, with the scene's props on land and in water where
+    /// they belong.
     /// </summary>
     public sealed class WorldGeneratorTests
     {
@@ -78,47 +79,76 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
-        public void Islands_StayInsideTheirCells()
+        public void Islands_ReachNoFurtherThanTheNextCell()
         {
             var world = new WorldGenerator(Seed, _settings);
-            float half = _settings.CellSize * 0.5f;
+            float cell = _settings.CellSize;
 
             for (int x = -Span; x <= Span; x++)
             {
                 for (int z = -Span; z <= Span; z++)
                 {
-                    var cell = new CellCoord(x, z);
-                    if (!world.TryGetIsland(cell, out IslandSite site))
+                    var coord = new CellCoord(x, z);
+                    if (!world.TryGetIsland(coord, out IslandSite site))
                     {
                         continue;
                     }
-                    Vector2 offset = site.Centre - world.CellCentre(cell);
-                    float reach = _settings.Reach(site.Radius);
-                    Assert.That(Mathf.Abs(offset.x) + reach, Is.LessThanOrEqualTo(half + Tolerance), $"cell {cell}");
-                    Assert.That(Mathf.Abs(offset.y) + reach, Is.LessThanOrEqualTo(half + Tolerance), $"cell {cell}");
+                    Assert.AreEqual(coord, world.CellAt(site.Centre.x, site.Centre.y), "centred in its own cell");
+                    Vector2 centre = world.CellCentre(coord);
+                    Rect bounds = site.Bounds;
+                    Assert.That(bounds.xMin, Is.GreaterThanOrEqualTo(centre.x - 1.5f * cell - Tolerance), $"cell {coord}");
+                    Assert.That(bounds.xMax, Is.LessThanOrEqualTo(centre.x + 1.5f * cell + Tolerance), $"cell {coord}");
+                    Assert.That(bounds.yMin, Is.GreaterThanOrEqualTo(centre.y - 1.5f * cell - Tolerance), $"cell {coord}");
+                    Assert.That(bounds.yMax, Is.LessThanOrEqualTo(centre.y + 1.5f * cell + Tolerance), $"cell {coord}");
                     if (x != 0 || z != 0) // the start island has its own size
                     {
-                        Assert.That(site.Radius, Is.InRange(_settings.Radius.x, _settings.Radius.y), $"cell {cell}");
-                        Assert.That(site.Peak, Is.InRange(_settings.Peak.x, _settings.Peak.y), $"cell {cell}");
+                        Assert.That(site.Radius, Is.LessThanOrEqualTo(_settings.Radius.y), $"cell {coord}");
+                        Assert.That(site.Peak, Is.InRange(_settings.Peak.x, _settings.Peak.y), $"cell {coord}");
+                        Assert.That(site.Stretch, Is.InRange(1f, _settings.Stretch), $"cell {coord}");
                     }
-                    Assert.AreEqual(cell, world.CellAt(site.Centre.x, site.Centre.y));
                 }
             }
         }
 
         [Test]
-        public void CellEdges_AreTheSeabed()
+        public void OutsideItsBounds_AnIslandIsTheSeabed()
         {
             var world = new WorldGenerator(Seed, _settings);
-            float half = _settings.CellSize * 0.5f;
+            const int Around = 64;
 
-            for (int x = -Span; x <= Span; x++)
+            for (int x = -6; x <= 6; x++)
             {
-                for (float along = -half; along < half; along += 10f)
+                for (int z = -6; z <= 6; z++)
                 {
-                    float edge = x * _settings.CellSize + half - 0.01f;
-                    Assert.AreEqual(_settings.Seabed, world.HeightAt(edge, along), Tolerance);
-                    Assert.AreEqual(_settings.Seabed, world.HeightAt(along, edge), Tolerance);
+                    if (!world.TryGetIsland(new CellCoord(x, z), out IslandSite site))
+                    {
+                        continue;
+                    }
+                    Rect b = site.Bounds;
+                    for (int i = 0; i < Around; i++)
+                    {
+                        float t = (float)i / Around;
+                        Assert.AreEqual(_settings.Seabed, world.IslandHeight(site, Mathf.Lerp(b.xMin, b.xMax, t), b.yMin), Tolerance);
+                        Assert.AreEqual(_settings.Seabed, world.IslandHeight(site, Mathf.Lerp(b.xMin, b.xMax, t), b.yMax), Tolerance);
+                        Assert.AreEqual(_settings.Seabed, world.IslandHeight(site, b.xMin, Mathf.Lerp(b.yMin, b.yMax, t)), Tolerance);
+                        Assert.AreEqual(_settings.Seabed, world.IslandHeight(site, b.xMax, Mathf.Lerp(b.yMin, b.yMax, t)), Tolerance);
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void StartClearing_IsOpenWater([Values(1, 777, -42, 2024)] int seed)
+        {
+            var world = new WorldGenerator(seed, _settings);
+            const int Around = 72;
+
+            for (float r = 80f; r < _settings.StartClearing; r += 10f)
+            {
+                for (int i = 0; i < Around; i++)
+                {
+                    float angle = i * Mathf.PI * 2f / Around;
+                    Assert.AreEqual(_settings.Seabed, world.HeightAt(r * Mathf.Cos(angle), r * Mathf.Sin(angle)), Tolerance, $"at {r} m");
                 }
             }
         }

@@ -4,8 +4,8 @@ namespace Game.Gameplay.World
     using UnityEngine;
 
     /// <summary>
-    /// Builds an island's mesh from <see cref="WorldGenerator.IslandHeight"/>: a square grid over
-    /// the island's reach, in the island's local space (its centre at the origin, the waterline at
+    /// Builds an island's mesh from <see cref="WorldGenerator.IslandHeight"/>: a grid over the
+    /// island's bounds, in the island's local space (its centre at the origin, the waterline at
     /// 0). Quads wholly in deep water are left out. Two submeshes: sand below
     /// <see cref="SandBelow"/> and grass above, by each quad's mean height. UVs are world metres.
     /// The buffers are kept, so a build allocates nothing.
@@ -13,7 +13,7 @@ namespace Game.Gameplay.World
     public sealed class IslandMeshBuilder
     {
         /// <summary>Quads along a side, the same for every island.</summary>
-        public const int Quads = 48;
+        public const int Quads = 56;
 
         /// <summary>Submesh order, matching the renderer's materials.</summary>
         public const int SandSubmesh = 0;
@@ -33,18 +33,19 @@ namespace Game.Gameplay.World
         /// <summary>Fills <paramref name="mesh"/> with the island at <paramref name="site"/>.</summary>
         public void Build(WorldGenerator world, in IslandSite site, Mesh mesh)
         {
-            float reach = world.Settings.Reach(site.Radius);
-            float step = 2f * reach / Quads;
+            Rect bounds = site.Bounds;
+            float stepX = bounds.width / Quads;
+            float stepZ = bounds.height / Quads;
             float deep = world.Settings.Seabed * DeepShare;
 
             for (int row = 0; row < Side; row++)
             {
                 for (int column = 0; column < Side; column++)
                 {
-                    float localX = column * step - reach;
-                    float localZ = row * step - reach;
-                    float x = site.Centre.x + localX;
-                    float z = site.Centre.y + localZ;
+                    float x = bounds.xMin + column * stepX;
+                    float z = bounds.yMin + row * stepZ;
+                    float localX = x - site.Centre.x;
+                    float localZ = z - site.Centre.y;
                     int i = row * Side + column;
                     _vertices[i] = new Vector3(localX, world.IslandHeight(site, x, z), localZ);
                     _uvs[i] = new Vector2(x, z);

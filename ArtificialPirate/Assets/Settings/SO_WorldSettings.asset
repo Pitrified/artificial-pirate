@@ -14,12 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.World.SO_WorldSettings
   _cellSize: 400
   _islandChance: 0.5
-  _radius: {x: 40, y: 140}
+  _radius: {x: 30, y: 110}
   _peak: {x: 4, y: 40}
-  _coastWobble: 0.25
+  _stretch: 2
+  _lobes: 2
+  _lobeSpread: 1.3
+  _lobeSize: {x: 0.35, y: 0.75}
+  _coastWobble: 0.3
+  _warp: 0.6
   _hills: 0.5
   _redistribution: 1.6
   _shelfWidth: 25
   _seabed: -20
-  _startRadius: 26
+  _startRadius: 24
   _startPeak: 8
+  _startClearing: 160

@@ -6,7 +6,7 @@ namespace Game.Gameplay.World
     /// <summary>
     /// A world drawn as map tiles, one a cell, painted from the ground's height once and kept:
     /// rows of <see cref="SO_MapStyle.TileSize"/> pixels from the cell's south-west corner. Cells
-    /// without an island share one open-sea tile. A tile is allocated the first time its island is
+    /// no island reaches share one open-sea tile. A tile is allocated the first time its island is
     /// painted. See docs/systems/world.md.
     /// </summary>
     public sealed class WorldMapTiles
@@ -45,7 +45,7 @@ namespace Game.Gameplay.World
             {
                 return true;
             }
-            if (!_world.TryGetIsland(cell, out _))
+            if (!_world.AnyIslandOver(cell))
             {
                 tile = _openSea;
                 return true;

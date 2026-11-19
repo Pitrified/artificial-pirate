@@ -26,4 +26,5 @@ status: in progress
   - gates from an empty `Library/`: compile 0 errors, 0 warnings; EditMode 182/182; PlayMode 21/21; the clone's tree unchanged;
   - `plans.py check` passes; 125 relative links in the markdown, none broken.
 - **The dev APK**: `Tools/build-android.sh dev` at `add62c0`, Build SUCCEEDED, 74,128,459 bytes (85 kB more than the ship model's); the build left git unchanged.
-- **Not measured here**: triangles and draws with islands in view. `SceneCapture -captureBudget` counts the scene in the editor, where no island is built. By count, 23 k to 36 k island triangles are loaded around the ship, and each island is two draws.
+- **A new dev APK** after phase 08 (wonkier islands): 74,159,539 bytes. The fresh-clone check was of `add62c0`, before it.
+- **Not measured here**: triangles and draws with islands in view. `SceneCapture -captureBudget` counts the scene in the editor, where no island is built. By count, 14 k to 23 k island triangles are loaded around the ship after phase 08, and each island is two draws.

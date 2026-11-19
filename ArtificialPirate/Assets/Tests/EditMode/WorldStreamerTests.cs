@@ -79,7 +79,7 @@ namespace Game.Tests.EditMode
             for (int i = 0; i < vertices.Length; i += 97)
             {
                 Vector3 v = vertices[i];
-                Assert.AreEqual(world.HeightAt(site.Centre.x + v.x, site.Centre.y + v.z), v.y, 1e-4f);
+                Assert.AreEqual(world.IslandHeight(site, site.Centre.x + v.x, site.Centre.y + v.z), v.y, 1e-4f);
             }
             Object.DestroyImmediate(mesh);
         }

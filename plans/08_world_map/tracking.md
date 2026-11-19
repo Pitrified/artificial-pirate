@@ -4,7 +4,7 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 
 ## Key decisions
 
-- Layers: seed, cells of 400 m, one island at most per cell kept inside it (a jittered grid), one height function everything samples.
+- Layers: seed, cells of 400 m, one island at most per cell, centred anywhere in it and reaching no further than the next cells, one height function everything samples.
 - Streaming in a 5 x 5 ring of cells around the ship, islands built at runtime.
 - Water follows the ship, with a runtime depth map in place of the bake.
 - Minimap on the uGUI HUD, the full map a UI Toolkit screen.
@@ -21,6 +21,7 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 | 05 | The minimap        | [`05_minimap.md`](05_minimap.md) | done |
 | 06 | The full map       | [`06_full_map.md`](06_full_map.md) | done |
 | 07 | Verify             | [`07_verify.md`](07_verify.md) | in progress |
+| 08 | Wonkier islands    | [`08_wonkier_islands.md`](08_wonkier_islands.md) | done |
 
 ## Log
 
@@ -33,3 +34,4 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 - 2026-11-19: phase 05 done: shared map tiles, the HUD minimap, `CAPTURE_HUD`.
 - 2026-11-19: phase 06 done: the full map over the paused game, opened from the minimap; `CAPTURE_MAP`.
 - 2026-11-19: phase 07: a fresh clone passes the gates, the dev APK is built; waiting on the phone.
+- 2026-11-19: the user found the first look too griddy and round: phase 08 moves islands anywhere in their cells, lets them spill into the next, and warps, stretches and lobes their shapes. A new APK.
