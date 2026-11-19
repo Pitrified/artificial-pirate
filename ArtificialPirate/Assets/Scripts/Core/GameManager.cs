@@ -6,6 +6,7 @@ namespace Game.Core
     using UnityEngine;
     using Game.Systems;
     using Game.Gameplay;
+    using Game.Gameplay.World;
     using Game.UI;
 
     /// <summary>
@@ -55,6 +56,7 @@ namespace Game.Core
         // ------------------------------------------------------------------ active scene refs
 
         private ShipController _activeShip;
+        private WorldStreamer _activeWorld;
 
         // ------------------------------------------------------------------ initializer
 
@@ -106,6 +108,43 @@ namespace Game.Core
                     "RegisterShip: restored position ({0:F1}, {1:F1}, {2:F1}) yaw {3:F1}.",
                     data.ship.x, data.ship.y, data.ship.z, data.ship.yawDeg);
             }
+        }
+
+        /// <summary>
+        /// Called by <see cref="GameSceneWiring"/> when the Game scene loads, before the ship is
+        /// wired to the world's ground. Begins the saved world with the cells explored in it, or
+        /// a world of a new random seed when there is no save (a new game).
+        /// </summary>
+        public void RegisterWorld(WorldStreamer world)
+        {
+            _activeWorld = world;
+            if (world == null)
+                return;
+
+            WorldSaveData saved = default;
+            if (SaveSystem != null && SaveSystem.HasSave)
+            {
+                saved = SaveSystem.Load<GameSaveData>(GameSaveData.CurrentVersion).world;
+            }
+
+            if (saved.seed == 0)
+            {
+                int seed = UnityEngine.Random.Range(1, int.MaxValue);
+                world.Begin(seed);
+                Log.Info(LogCat.Gameplay, "RegisterWorld: a new world, seed {0}.", seed);
+                return;
+            }
+
+            world.Begin(saved.seed);
+            if (saved.explored != null)
+            {
+                foreach (CellSaveData cell in saved.explored)
+                {
+                    world.Explored.Add(new CellCoord(cell.x, cell.z));
+                }
+            }
+            Log.Info(LogCat.Gameplay, "RegisterWorld: restored seed {0} with {1} cells explored.",
+                saved.seed, world.Explored.Count);
         }
 
         // ------------------------------------------------------------------ IGameManager public API
@@ -188,6 +227,7 @@ namespace Game.Core
 
             PersistCurrentState();
             _activeShip = null;                         // Game scene is about to unload
+            _activeWorld = null;
             UISystem?.HideScreen(ScreenId.Pause);       // clear any lingering pause overlay
             InputManager?.SetEnabled(true);             // restore input for Menu scene
             TransitionTo(GameState.Loading);
@@ -359,6 +399,17 @@ namespace Game.Core
                         z      = state.Position.z,
                         yawDeg = state.YawDeg,
                     };
+                }
+
+                if (_activeWorld != null && _activeWorld.World != null)
+                {
+                    var explored = new CellSaveData[_activeWorld.Explored.Count];
+                    int i = 0;
+                    foreach (CellCoord cell in _activeWorld.Explored.Cells)
+                    {
+                        explored[i++] = new CellSaveData { x = cell.X, z = cell.Z };
+                    }
+                    data.world = new WorldSaveData { seed = _activeWorld.World.Seed, explored = explored };
                 }
 
                 SaveSystem.Save(data, GameSaveData.CurrentVersion);

@@ -23,6 +23,7 @@ namespace Game.Tests.PlayMode
     using UnityEngine.TestTools;
     using Game.Core;
     using Game.Gameplay;
+    using Game.Gameplay.World;
 
     /// <summary>
     /// PlayMode test verifying that the save-and-restore cycle correctly
@@ -129,6 +130,49 @@ namespace Game.Tests.PlayMode
                 $"Ship position must be restored to {SavedPos} (actual={restored.transform.position}, delta={posDelta:F4} m)");
             Assert.That(yawDelta, Is.LessThan(YawEpsilon),
                 $"Ship yaw must be restored to {SavedYaw} deg (actual={restored.transform.eulerAngles.y:F4}, delta={yawDelta:F4} deg)");
+        }
+
+        /// <summary>
+        /// A new game begins a world of a random seed; the save keeps the seed and the cells
+        /// explored, and Continue begins the same world with them.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator SaveReloadContinue_RestoresTheWorld()
+        {
+            yield return SceneManager.LoadSceneAsync(SceneNames.Boot, LoadSceneMode.Single);
+            yield return WaitForState(GameState.Menu);
+
+            var startTask = GameManager.Instance.StartNewGameAsync();
+            while (!startTask.IsCompleted)
+                yield return null;
+            yield return WaitForState(GameState.Playing);
+            yield return null;
+
+            WorldStreamer world = Object.FindAnyObjectByType<WorldStreamer>();
+            Assert.IsNotNull(world, "The Game scene has a world");
+            int seed = world.World.Seed;
+            Assert.AreNotEqual(0, seed, "A new game picks a seed");
+
+            ShipController ship = Object.FindAnyObjectByType<ShipController>();
+            ship.Teleport(SavedPos * 9f, SavedYaw); // two cells away: more cells explored
+            yield return null;
+            int explored = world.Explored.Count;
+            Assert.That(explored, Is.GreaterThan(9), "The cells around the start and around the new place");
+
+            var returnTask = GameManager.Instance.ReturnToMenuAsync();
+            while (!returnTask.IsCompleted)
+                yield return null;
+            yield return WaitForState(GameState.Menu);
+
+            var continueTask = GameManager.Instance.ContinueAsync();
+            while (!continueTask.IsCompleted)
+                yield return null;
+            yield return WaitForState(GameState.Playing);
+            yield return null;
+
+            WorldStreamer restored = Object.FindAnyObjectByType<WorldStreamer>();
+            Assert.AreEqual(seed, restored.World.Seed, "The same world");
+            Assert.AreEqual(explored, restored.Explored.Count, "The same cells explored");
         }
 
         // ------------------------------------------------------------------ helpers

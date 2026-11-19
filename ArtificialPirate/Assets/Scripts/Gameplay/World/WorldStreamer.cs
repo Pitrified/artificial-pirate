@@ -7,7 +7,8 @@ namespace Game.Gameplay.World
     /// Keeps the islands around a target (the player's ship) built: the cells within
     /// <see cref="_loadRadius"/> of the target's cell are loaded, and a cell left behind is
     /// unloaded. Islands are built one a frame, nearest first, into pooled objects with a mesh
-    /// collider. See docs/systems/world.md.
+    /// collider. The cells within <see cref="_seeRadius"/> of the target's are marked explored.
+    /// See docs/systems/world.md.
     /// </summary>
     public sealed class WorldStreamer : MonoBehaviour
     {
@@ -23,6 +24,9 @@ namespace Game.Gameplay.World
         [Tooltip("Cells loaded each way from the target's cell: 2 is a 5 x 5 square.")]
         [SerializeField] private int _loadRadius = 2;
 
+        [Tooltip("Cells marked explored each way from the target's cell: 1 is a 3 x 3 square.")]
+        [SerializeField] private int _seeRadius = 1;
+
         [Tooltip("The world built when nothing hands it a seed (the scene played on its own).")]
         [SerializeField] private int _seed = 1;
 
@@ -31,6 +35,7 @@ namespace Game.Gameplay.World
         private readonly List<CellCoord> _queue = new List<CellCoord>();
         private readonly List<CellCoord> _leaving = new List<CellCoord>();
         private readonly IslandMeshBuilder _builder = new IslandMeshBuilder();
+        private readonly ExploredCells _explored = new ExploredCells();
         private Material[] _materials;
         private WorldGenerator _world;
         private CellCoord _centre;
@@ -38,6 +43,9 @@ namespace Game.Gameplay.World
 
         /// <summary>The world being built, from <see cref="Begin"/>.</summary>
         public WorldGenerator World => _world;
+
+        /// <summary>The cells the player has seen in this world.</summary>
+        public ExploredCells Explored => _explored;
 
         /// <summary>The cells with an island built, for tests.</summary>
         internal int LoadedCount => _loaded.Count;
@@ -69,7 +77,7 @@ namespace Game.Gameplay.World
             Tick();
         }
 
-        /// <summary>Starts the world of <paramref name="seed"/>, dropping any islands built before.</summary>
+        /// <summary>Starts the world of <paramref name="seed"/>, dropping the islands built and the cells explored before.</summary>
         public void Begin(int seed)
         {
             foreach (IslandTile tile in _loaded.Values)
@@ -78,6 +86,7 @@ namespace Game.Gameplay.World
             }
             _loaded.Clear();
             _queue.Clear();
+            _explored.Clear();
             _centred = false;
             _world = _settings == null ? null : new WorldGenerator(seed, _settings);
         }
@@ -111,6 +120,7 @@ namespace Game.Gameplay.World
         {
             _centre = cell;
             _centred = true;
+            _explored.Reveal(cell, _seeRadius);
 
             _leaving.Clear();
             foreach (CellCoord loaded in _loaded.Keys)

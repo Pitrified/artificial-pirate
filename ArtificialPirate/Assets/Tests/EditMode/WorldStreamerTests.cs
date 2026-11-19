@@ -7,7 +7,7 @@ namespace Game.Tests.EditMode
     /// <summary>
     /// <see cref="IslandMeshBuilder"/> and <see cref="WorldStreamer"/>: a mesh follows the height
     /// function, the streamer builds the islands around its target one a frame and drops the ones
-    /// left behind when the target sails on.
+    /// left behind when the target sails on, and it marks the cells around its target explored.
     /// </summary>
     public sealed class WorldStreamerTests
     {
@@ -112,6 +112,36 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void ExploredCells_RevealASquare_AndCountOnlyNewCells()
+        {
+            var explored = new ExploredCells();
+
+            explored.Reveal(new CellCoord(0, 0), 1);
+            Assert.AreEqual(9, explored.Count);
+            Assert.AreEqual(1, explored.Version);
+
+            explored.Reveal(new CellCoord(0, 0), 1);
+            Assert.AreEqual(1, explored.Version, "nothing new, no new version");
+
+            explored.Reveal(new CellCoord(1, 0), 1);
+            Assert.AreEqual(12, explored.Count);
+            Assert.IsTrue(explored.Contains(new CellCoord(2, -1)));
+            Assert.IsFalse(explored.Contains(new CellCoord(3, 0)));
+        }
+
+        [Test]
+        public void Streamer_MarksTheCellsAroundItsTargetExplored()
+        {
+            _streamer.Tick();
+            Assert.AreEqual(9, _streamer.Explored.Count);
+
+            _target.transform.position = new Vector3(_settings.CellSize * 2f, 0f, 0f);
+            _streamer.Tick();
+            Assert.AreEqual(15, _streamer.Explored.Count, "a column shared with the first square");
+            Assert.IsTrue(_streamer.Explored.Contains(new CellCoord(3, 1)));
+        }
+
+        [Test]
         public void Begin_AnotherSeed_StartsAgain()
         {
             RunFrames();
@@ -119,6 +149,7 @@ namespace Game.Tests.EditMode
             _streamer.Begin(Seed + 1);
 
             Assert.AreEqual(0, _streamer.LoadedCount);
+            Assert.AreEqual(0, _streamer.Explored.Count);
             Assert.AreEqual(Seed + 1, _streamer.World.Seed);
         }
     }

@@ -33,7 +33,7 @@ On the Game scene's `World` object, following the player's ship.
 - The cells within `_loadRadius` (2: a 5 x 5 square, 2 km) of the ship's cell are loaded; when the ship enters another cell, the cells left out are unloaded.
 - Islands are built one a frame, ring by ring outward, so the nearest come first.
 - An island is a pooled object: a mesh from `IslandMeshBuilder`, `M_Sand` and `M_Grass`, and a mesh collider (the floating props land on it).
-- `Begin(seed)` starts a world, dropping what was built. `Awake` begins the scene's own `_seed` until the game hands one.
+- `Begin(seed)` starts a world, dropping what was built and explored. `Awake` begins the scene's own `_seed`; `GameManager` begins the game's before the first frame.
 - `IslandMeshBuilder`: a 48 x 48 grid over the island's reach in its local space, quads wholly deeper than half the seabed left out, sand below 0.8 m and grass above by each quad's mean height, UVs in world metres; it reuses its buffers.
 - Cost: a loaded square holds 11 to 17 islands, 23 k to 36 k triangles (seeds 1 to 5), at most about 2.4 k an island; two draws an island.
 - A linear fog in the sky's ground colour, from 400 to 900 m, hides islands being built at the edge of the square.
@@ -46,6 +46,12 @@ On the `World` object, with the water, the streamer and the ship.
 - A new world (a new `WorldStreamer.World`) is drawn at once. When the ship has sailed 128 m from the map's centre, a map around it is filled 16 rows a frame into the hidden one of two textures, and swapped in whole: 16 frames, 4 096 samples a frame.
 - The centre moves in whole texels (2 m), so a texel always covers the same ground.
 - It replaces the editor bake and `T_WaterDepth.png`, which needed the ground's colliders in the scene.
+
+## Seed, exploring and the save
+
+- **Explored cells** (`ExploredCells`, on the streamer): the cells within `_seeRadius` (1: a 3 x 3 square) of the ship's cell, added when the ship enters a cell. They are kept by cell, as islands are, so later state (an island visited, looted) can be kept the same way. `Version` goes up when cells are added, so a map can tell when to redraw.
+- **The seed.** `GameSceneWiring` hands the streamer to `GameManager.RegisterWorld` before it wires the ground. With a save, the saved seed begins and the saved explored cells are added back; without one (a new game), a random seed from 1 up begins.
+- **The save** (`GameSaveData` version 3, `docs/functional-specs.md` §9) holds the seed and the explored cells; `GameManager` writes them with the ship.
 
 ## The ground under the ship
 
@@ -69,6 +75,7 @@ On the `World` object, with the water, the streamer and the ship.
 ## Tests
 
 `WorldDepthMapTests` (EditMode): a new world drawn at once, shallow over the start island and deep in the open; sailing far fills a new map over frames before showing it; another seed drawn at once; the water grid following in whole quads.
-`WorldStreamerTests` (EditMode): a mesh follows the height function; the streamer builds the islands around its target one a frame, nearest first, drops those left behind, and starts again on another seed.
+`SaveRestoreTests` (PlayMode): a new game picks a seed; the seed and the explored cells come back on Continue.
+`WorldStreamerTests` (EditMode): explored cells reveal a square and count only new cells; the streamer marks the cells around its target; a mesh follows the height function; the streamer builds the islands around its target one a frame, nearest first, drops those left behind, and starts again on another seed.
 `HullContactTests`: aground only where the leading end is over shallow ground; a ship sailed at the start island stops short of it.
 `WorldGeneratorTests` (EditMode): the same seed gives the same world in any order and another seed another; islands keep inside their cells, within the ranges; every cell's edge is the seabed; the share of cells with an island; heights between the seabed and the highest peak; the start island at the origin with the props where they belong, for several seeds.
