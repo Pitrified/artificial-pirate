@@ -19,7 +19,7 @@ A ship model in place of the box hull, general enough for several ship types. Br
 
 | #  | Phase                    | Plan                                       | Status  |
 | -- | ------------------------ | ------------------------------------------ | ------- |
-| 01 | References               | [`01_references.md`](01_references.md)     | planned |
+| 01 | References               | [`01_references.md`](01_references.md)     | done    |
 | 02 | Ship builder and sloop   | [`02_builder.md`](02_builder.md)           | planned |
 | 03 | The sloop in the game    | [`03_sloop_in_game.md`](03_sloop_in_game.md) | planned |
 | 04 | The brig                 | [`04_brig.md`](04_brig.md)                 | planned |
@@ -34,3 +34,5 @@ Append-only. Newest at the bottom.
 - 2026-11-19 : asked by the user. Branch `feat/06_ship_model` from `main` at `0ca6e7a`. Questions Q1 (scale), Q2 (one builder), Q3 (what the model has), Q4 (type data in Unity), Q5 (first types), Q6 (look), Q7 (phases) written.
 - 2026-11-19 : the user asked for clarification, no decisions yet. What scale costs went into Q1 and what 3 k triangles is into Q3. The user also said: Q2 and Q4 "keep tidy code" with no hacks; Q5 two ships to prove the generalisation early; Q6 ok; few code comments, none that list current contents.
 - 2026-11-19 : "all recommended, plan them". Five phases planned.
+- 2026-11-19 : phase 01 - Commons rate-limits a generic User-Agent; the user chose a descriptive one. Sizes: the sloop *Providence* (20.3 m) and the snow-brig *Niagara* (33.7 m), at real size.
+- 2026-11-19 : phase 01 - references kept and credited: the *Providence* side-on (public domain) and under sail, the *Niagara* broadside under full sail (both CC BY 2.0). Numbers published and measured; the two "what right looks like" lists written. The *Niagara* has a flush deck, so phase 04's quarterdeck is not needed.
