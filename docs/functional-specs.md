@@ -82,7 +82,7 @@ Ownership rules:
 | `Boot`       | Single    | First frame only      | `GameBootstrap` only                   |
 | `Persistent` | Additive  | Whole session         | GameManager, Input, Save, Audio, UIRoot |
 | `Menu`       | Single    | While in menu         | Main menu UI                           |
-| `Game`       | Additive  | While playing         | Ship, water, island, floating props, GameCamera |
+| `Game`       | Additive  | While playing         | Ship, water, the generated world, floating props, GameCamera |
 
 ---
 

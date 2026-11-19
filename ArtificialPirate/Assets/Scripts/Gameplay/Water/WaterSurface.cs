@@ -5,9 +5,11 @@ namespace Game.Gameplay.Water
 
     /// <summary>
     /// One body of water: owns the <see cref="WaveField"/> and its clock, and hands the shader
-    /// the same waves, the same time and the baked seabed depth as globals every frame, so what
-    /// floats and what is drawn agree. Things that float hold a reference to it.
-    /// Runs in the Editor too, so a scene capture sees the waves. See docs/systems/water.md.
+    /// the same waves, the same time and the seabed depth as globals every frame, so what floats
+    /// and what is drawn agree. Things that float hold a reference to it. Given a target, its grid
+    /// follows it in whole quads, and the drawn waves calm to nothing toward the grid's coarse
+    /// outer part. Runs in the Editor too, so a scene capture sees the waves.
+    /// See docs/systems/water.md.
     /// </summary>
     [ExecuteAlways]
     public sealed class WaterSurface : MonoBehaviour
@@ -26,14 +28,27 @@ namespace Game.Gameplay.Water
         private static readonly int FoamParams = Shader.PropertyToID("_WaterFoamParams");
         private static readonly int DepthMap = Shader.PropertyToID("_WaterDepthMap");
         private static readonly int DepthRectId = Shader.PropertyToID("_WaterDepthRect");
+        private static readonly int FarCalmId = Shader.PropertyToID("_WaterFarCalm");
 
         [SerializeField] private SO_WaterSettings _settings;
 
-        [Tooltip("Seabed depth under the sea level, baked by Game.Editor.WaterDepthBake: 0 at the surface, 1 at Depth Range.")]
+        [Tooltip("Seabed depth under the sea level: 0 at the surface, 1 at Depth Range. Handed over at runtime by the world.")]
         [SerializeField] private Texture2D _depthMap;
 
         [Tooltip("World area the depth map covers: x min, z min, size (m), depth range (m).")]
         [SerializeField] private Vector4 _depthRect = new Vector4(-90f, -90f, 180f, 8f);
+
+        [Tooltip("What the grid follows (the player's ship); none, and it stays put.")]
+        [SerializeField] private Transform _follow;
+
+        [Tooltip("The grid's fine quad (m): it moves by whole quads, so its waves do not swim.")]
+        [SerializeField] private float _followStep = 2f;
+
+        [Tooltip("The drawn waves calm from this distance from the grid's centre (m)...")]
+        [SerializeField] private float _farCalmStart = 100f;
+
+        [Tooltip("...to nothing at this one, inside the fine core's edge (m).")]
+        [SerializeField] private float _farCalmEnd = 124f;
 
         private WaveField _field;
         private bool _pinned;
@@ -80,7 +95,14 @@ namespace Game.Gameplay.Water
             Push();
         }
 
-        /// <summary>Points the depth map at a baked texture (the bake tool calls this).</summary>
+        /// <summary>Makes the grid follow <paramref name="target"/> in steps of <paramref name="step"/> (water built in code: tests).</summary>
+        internal void UseFollow(Transform target, float step)
+        {
+            _follow = target;
+            _followStep = step;
+        }
+
+        /// <summary>Points the depth map at <paramref name="map"/>, covering <paramref name="rect"/>.</summary>
         public void SetDepthMap(Texture2D map, Vector4 rect)
         {
             _depthMap = map;
@@ -110,10 +132,26 @@ namespace Game.Gameplay.Water
 
         private void Update()
         {
+            Follow();
             if (_settings != null)
             {
                 Push();
             }
+        }
+
+        /// <summary>Moves the grid under its target, in whole quads. Exposed internally for tests.</summary>
+        internal void Follow()
+        {
+            if (_follow == null || _followStep <= 0f)
+            {
+                return;
+            }
+            Vector3 target = _follow.position;
+            Transform grid = transform;
+            grid.position = new Vector3(
+                Mathf.Round(target.x / _followStep) * _followStep,
+                grid.position.y,
+                Mathf.Round(target.z / _followStep) * _followStep);
         }
 
         private void Push()
@@ -142,6 +180,8 @@ namespace Game.Gameplay.Water
                 Shader.SetGlobalTexture(DepthMap, _depthMap);
             }
             Shader.SetGlobalVector(DepthRectId, _depthRect);
+            Vector3 centre = transform.position;
+            Shader.SetGlobalVector(FarCalmId, new Vector4(centre.x, centre.z, _farCalmStart, _farCalmEnd));
         }
     }
 }

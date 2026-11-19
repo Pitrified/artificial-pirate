@@ -803,6 +803,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1220623506}
   - component: {fileID: 1220623505}
+  - component: {fileID: 1220623507}
   m_Layer: 0
   m_Name: World
   m_TagString: Untagged
@@ -843,6 +844,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1220623507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1220623504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea443f3a2fd752cd6a465912535a3834, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.World.WorldDepthMap
+  _water: {fileID: 5951401769955080441}
+  _streamer: {fileID: 1220623505}
+  _target: {fileID: 2907944713319663925}
+  _size: 512
+  _depthRange: 8
+  _recentreDistance: 128
+  _rowsPerFrame: 16
 --- !u!1 &1388640122
 GameObject:
   m_ObjectHideFlags: 0
@@ -2160,8 +2180,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.Water.WaterSurface
   _settings: {fileID: 11400000, guid: 6eb610956e8ed9effb31ff0cc583cc11, type: 2}
-  _depthMap: {fileID: 2800000, guid: c1ffb297c8c64665aa4166ae9d951af2, type: 3}
+  _depthMap: {fileID: 0}
   _depthRect: {x: -90, y: -90, z: 180, w: 8}
+  _follow: {fileID: 2907944713319663925}
+  _followStep: 2
+  _farCalmStart: 100
+  _farCalmEnd: 124
 --- !u!1001 &6917304948093373643
 PrefabInstance:
   m_ObjectHideFlags: 0

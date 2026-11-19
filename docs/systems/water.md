@@ -2,7 +2,7 @@
 
 ## Overview
 
-Water for a mobile game: Gerstner waves that floating things ride, shore colour and foam from a baked depth map, ripples from splashes and bobbing, a wake behind the ship.
+Water for a mobile game: Gerstner waves that floating things ride, shore colour and foam from a depth map the world makes at runtime, ripples from splashes and bobbing, a wake behind the ship.
 Decent and reactive, not photoreal; one transparent draw for the surface, no depth or opaque texture, a 256x256 ripple step per frame.
 The choice and the alternatives are in the guide, unity-setup-project's `plans/04_water/00_start.md`.
 
@@ -14,9 +14,9 @@ The choice and the alternatives are in the guide, unity-setup-project's `plans/0
 | ---- | ----- | ------------ |
 | `SO_WaterSettings` | `Game.Gameplay.Water`, `Assets/Settings/SO_WaterSettings.asset` | Sea level, four Gerstner waves, colours, foam, detail normals, calm depth |
 | `WaveField` | `Game.Gameplay.Water` | The Gerstner sum on the CPU: displacement, height at a world point, normal; no allocations |
-| `WaterSurface` | on the `Water` object | Owns the `WaveField` and the clock; hands the shader the waves, clock, colours and depth map as globals every frame; runs in the Editor too |
+| `WaterSurface` | on the `Water` object | Owns the `WaveField` and the clock; moves the grid under the ship in whole 2 m quads; hands the shader the waves, clock, colours and depth map as globals every frame; runs in the Editor too |
 | `Water.shader` | `Assets/Shaders/` | Vertex: the same Gerstner sum, calmed in the shallows. Fragment: shallow-to-deep colour, detail normals, Fresnel to the sky, sun glint, foam (waterline swash, shore bands, crests, ripples, the wake), no water over land |
-| `WaterDepthBake` | `Game.Editor` | Casts rays down over the water's area, writes `T_WaterDepth.png` (0 at the surface, 1 at the depth range) |
+| `WorldDepthMap` | `Game.Gameplay.World`, on the `World` object | Draws the seabed depth around the ship from the world's ground into a 256 x 256 map over 512 m (0 at the surface, 1 at the depth range), a few rows a frame, and hands it to `WaterSurface`; see `docs/systems/world.md` |
 | `Buoyancy` | on a Rigidbody | Floats it on a `WaterSurface` by its volume and density |
 | `WaterRipples` | on the `Water` object | A wave-equation height field and a foam channel over a square, stepped by blitting between two render textures (`WaterRippleSim.shader`); the square stays put or follows a target |
 | `RippleSource` | on anything that touches water | A splash on a fast entry, small rings while it bobs or moves |
@@ -34,14 +34,15 @@ The choice and the alternatives are in the guide, unity-setup-project's `plans/0
 - **The water receives the sun's shadows**: in shadow it loses part of its sun-lit light and its glint, not the sky's reflection (`ShadowDarkening`). The mobile renderer must let transparent surfaces receive shadows (`Mobile_Renderer`, on).
 - **Ripples and the wake live in the square.** In the Game scene it follows the ship (48 m, about 24 m each way), so its wake is always drawn; things farther away make no ripples. The square moves whole texels at a time and the step reads the field shifted by them, so ripples keep their place in the world.
 - **The drawn waves calm in water shallower than `CalmDepth`; the CPU waves do not.** A floater in very shallow water rides a little high. Keep floaters in deeper water, or add the depth map to `WaveField` if it matters.
+- **The grid follows the ship.** A fine core of 256 m (2 m quads) and coarse flat quads of 64 m out to 2.3 km, past the fog's end. It moves in whole fine quads, so its waves do not swim. The drawn waves calm to nothing from 100 to 124 m from the grid's centre (`_WaterFarCalm`), so the core's edge is flat and the coarse quads cannot crack against it; the CPU waves do not calm there, which is fine as long as floaters stay near the ship.
 
 ---
 
 ## Adding water to a scene
 
-1. A ground with colliders under the water (`ModelSetup -colliders` for a model), and a water grid mesh (`Tools/asset_builders`: `build.py water_grid`) with the `M_Water` material, at the origin.
-2. `WaterSurface` on the grid, with an `SO_WaterSettings`; set its depth rect to cover the area.
-3. Bake: `-executeMethod Game.Editor.WaterDepthBake.BakeFromCommandLine` (`docs/headless-unity.md`); bake again when the shore changes. Colliders on a Rigidbody (floating props, a kinematic ship) are passed through, so only the ground counts.
+1. A water grid mesh (`Tools/asset_builders`: `build.py water_grid`) with the `M_Water` material.
+2. `WaterSurface` on the grid, with an `SO_WaterSettings` and the ship to follow.
+3. The seabed depth: a `WorldDepthMap` with the water, the `WorldStreamer` and the ship (`docs/systems/world.md`). Without one, the shader reads whatever depth map was set last.
 4. Optional: `WaterRipples` on the same object with `M_WaterRippleSim`, centred where things happen or following the player's ship.
 5. A procedural sky whose ground colour is the far water's, or the horizon shows a band past the grid's edge.
 
@@ -74,7 +75,7 @@ Measured in the sample scene with `SceneCapture -captureBudget` (renderers in vi
 | Over the bay | 49.0 k | 16 |
 | Above the island, nearly everything | 63.7 k | 39 |
 
-Against `docs/performance-budget.md`: 150 k triangles and 80 draws. The water grid is 33.8 k of it (130 x 130 cells of 2 m, so the shortest wave should stay at 3 m or more). On the GPU per frame: one 256x256 ripple step (RGBA half: height, height a step ago, foam), the surface's fragment work (five texture reads, a handful of sin/cos in the vertex stage). The device run is what settles it.
+Against `docs/performance-budget.md`: 150 k triangles and 80 draws. The water grid is 35.3 k of it (a core of 128 x 128 quads of 2 m, so the shortest wave should stay at 3 m or more, and 1 280 coarse quads around it). On the GPU per frame: one 256x256 ripple step (RGBA half: height, height a step ago, foam), the surface's fragment work (five texture reads, a handful of sin/cos in the vertex stage). The device run is what settles it.
 
 ---
 

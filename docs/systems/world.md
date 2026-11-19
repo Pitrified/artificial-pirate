@@ -38,6 +38,15 @@ On the Game scene's `World` object, following the player's ship.
 - Cost: a loaded square holds 11 to 17 islands, 23 k to 36 k triangles (seeds 1 to 5), at most about 2.4 k an island; two draws an island.
 - A linear fog in the sky's ground colour, from 400 to 900 m, hides islands being built at the edge of the square.
 
+## The water's depth (`WorldDepthMap`)
+
+On the `World` object, with the water, the streamer and the ship.
+
+- A 256 x 256 map over 512 m around the ship: `clamp01((seaLevel - HeightAt) / 8 m)`, the encoding the water shader reads for its shore colour, foam and calm.
+- A new world (a new `WorldStreamer.World`) is drawn at once. When the ship has sailed 128 m from the map's centre, a map around it is filled 16 rows a frame into the hidden one of two textures, and swapped in whole: 16 frames, 4 096 samples a frame.
+- The centre moves in whole texels (2 m), so a texel always covers the same ground.
+- It replaces the editor bake and `T_WaterDepth.png`, which needed the ground's colliders in the scene.
+
 ## The ground under the ship
 
 `GameSceneWiring` hands the world to the player's `HullContact` (`UseGround`). A step that would put the hull's leading end (the bow ahead, the stern astern) over ground shallower than the draft is undone and the ship stops; it can turn or back away. See `docs/systems/ship-controller.md`.
@@ -59,6 +68,7 @@ On the Game scene's `World` object, following the player's ship.
 
 ## Tests
 
+`WorldDepthMapTests` (EditMode): a new world drawn at once, shallow over the start island and deep in the open; sailing far fills a new map over frames before showing it; another seed drawn at once; the water grid following in whole quads.
 `WorldStreamerTests` (EditMode): a mesh follows the height function; the streamer builds the islands around its target one a frame, nearest first, drops those left behind, and starts again on another seed.
 `HullContactTests`: aground only where the leading end is over shallow ground; a ship sailed at the start island stops short of it.
 `WorldGeneratorTests` (EditMode): the same seed gives the same world in any order and another seed another; islands keep inside their cells, within the ranges; every cell's edge is the seabed; the share of cells with an island; heights between the seabed and the highest peak; the start island at the origin with the props where they belong, for several seeds.

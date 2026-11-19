@@ -51,6 +51,7 @@ Shader "artificial-pirate/Water"
             float4 _WaterDetail;      // normal tiling, normal strength, normal scroll, deep at
             float4 _WaterFoamParams;  // shore foam depth, shore band speed, crest foam, calm depth
             float4 _WaterDepthRect;   // x min, z min, size, depth range
+            float4 _WaterFarCalm;     // grid centre x, z; the waves calm from this distance to this one
             float4 _WaterRippleRect;  // x min, z min, size (0 when no ripples), texel size in uv
 
             static const float Gravity = 9.81;
@@ -109,6 +110,9 @@ Shader "artificial-pirate/Water"
                 float2 depthUV = (rest.xz - _WaterDepthRect.xy) / _WaterDepthRect.z;
                 float depth = SAMPLE_TEXTURE2D_LOD(_WaterDepthMap, sampler_WaterDepthMap, depthUV, 0).r * _WaterDepthRect.w;
                 float calm = saturate(depth / max(_WaterFoamParams.w, 1e-3));
+                // And far from the grid's centre, so its coarse outer quads meet a flat edge.
+                float far = distance(rest.xz, _WaterFarCalm.xy);
+                calm *= 1.0 - saturate((far - _WaterFarCalm.z) / max(_WaterFarCalm.w - _WaterFarCalm.z, 1e-3));
                 offset *= calm;
                 normal = normalize(lerp(float3(0, 1, 0), normal, calm));
                 float3 positionWS = float3(rest.x + offset.x, _WaterSeaLevel + offset.y, rest.z + offset.z);
