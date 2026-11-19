@@ -1,7 +1,8 @@
 """A sailing ship from a dict of numbers, as objects: the hull with its standing rig, fittings and
 people; its flag (its own material, which waves it); and two sail states over it, `<name>Sailing`
-(trimmed to one wind, every sail set) and `<name>Anchored` (spars squared, sails furled). A game
-shows the hull, the flag and one state.
+(trimmed to one wind, every sail set, the booms swung out only as far as the lee rigging lets them)
+and `<name>Anchored` (spars squared, sails furled). A game shows the hull, the flag and one state.
+The build reports any rope that still passes through a sail.
 
 A ship type is a builder module whose PARAMS fill this dict and whose build is this one's.
 Metres, Z up, origin on the design waterline amidships. The parts are laid out bow toward +Y and
@@ -26,8 +27,15 @@ furniture) are described in builders/ship/fittings.py.
 
 from __future__ import annotations
 
-from builders.ship import fittings, hull, props, rig, rigging, sails
+from builders.ship import clearance, fittings, hull, props, rig, rigging, sails
 from builders.ship.mesh import MeshParts, make_object
+
+
+def _sailing(params: dict, masts: list[rig.Mast], trim: sails.Trim) -> MeshParts:
+    parts = MeshParts()
+    sails.sailing(parts, params, masts, trim)
+    rigging.running(parts, params, masts, trim, sails_set=True)
+    return parts
 
 
 def build(params: dict) -> None:
@@ -50,12 +58,17 @@ def build(params: dict) -> None:
     props.flag(flag, params, max(masts, key=lambda m: m.head.z).head, trim.downwind)
     make_object(f"{name}Flag", flag, preview)
 
-    sailing = MeshParts()
-    sails.sailing(sailing, params, masts, trim)
-    rigging.running(sailing, params, masts, trim, sails_set=True)
+    gaff_sails = {sails.sail_name(i, spec) for i, spec in enumerate(params["sails"]) if spec["kind"] == "gaff"}
+    sailing = _sailing(params, masts, trim)
+    while trim.boom_deg and any(c.cloth in gaff_sails for c in clearance.crossings(body.ropes + sailing.ropes, sailing)):
+        trim = trim.boom_in()
+        sailing = _sailing(params, masts, trim)
     make_object(f"{name}Sailing", sailing, preview)
 
     anchored = MeshParts()
     sails.anchored(anchored, params, masts)
     rigging.running(anchored, params, masts, sails.Trim.at_anchor(), sails_set=False)
     make_object(f"{name}Anchored", anchored, preview)
+
+    for state, parts in (("Sailing", sailing), ("Anchored", anchored)):
+        clearance.report(f"{name}{state}", clearance.crossings(body.ropes + parts.ropes, parts))

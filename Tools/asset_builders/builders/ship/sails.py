@@ -7,18 +7,20 @@ hollow between their corners.
 
 from __future__ import annotations
 
+import dataclasses
 import itertools
 import math
 from dataclasses import dataclass
 
 from mathutils import Vector
 
-from builders.ship.mesh import MeshParts, frame, pole
+from builders.ship.mesh import Cloth, MeshParts, frame, pole
 from builders.ship.rig import Mast, boom_ends, bowsprit, gaff_ends, spars, yard_ends
 
 WIND_FROM_DEG = 130.0  # the one wind for now: from the starboard quarter, degrees clockwise from the bow
 MAX_BRACE_DEG = 40.0
 GAFF_TWIST = 1.2
+BOOM_IN_STEP_DEG = 1.0
 JIB_SHEET = 0.6
 
 ROWS = 6
@@ -67,6 +69,11 @@ class Trim:
             downwind=Vector((math.sin(to), math.cos(to), 0.0)),
         )
 
+    def boom_in(self) -> Trim:
+        """The boom and gaff a step closer to the centreline."""
+        boom = math.copysign(max(0.0, abs(self.boom_deg) - BOOM_IN_STEP_DEG), self.boom_deg)
+        return dataclasses.replace(self, boom_deg=boom, gaff_deg=boom * GAFF_TWIST)
+
     @classmethod
     def at_anchor(cls) -> Trim:
         return cls(0.0, 0.0, 0.0, 0.0, Vector((0.0, 1.0, 0.0)))
@@ -91,7 +98,12 @@ _GAFF = _Cut(FORE_AND_AFT_DRAFT, False, 0.0, LEECH_SAG, 0.0)
 _JIB = _Cut(FORE_AND_AFT_DRAFT, True, FOOT_SAG, LEECH_SAG, 0.0)
 
 
-def _sheet(parts: MeshParts, corners: tuple[Vector, Vector, Vector, Vector], cut: _Cut, downwind: Vector) -> None:
+def sail_name(index: int, spec: dict) -> str:
+    return f"sail {index} ({spec['kind']}, mast {spec['mast']})"
+
+
+def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, Vector], cut: _Cut,
+           downwind: Vector) -> None:
     """A two-sided sail over (tack or clew, clew, head end, head start): u runs luff to leech, v foot to head."""
     a, b, c, d = corners
     normal = (b - a).cross(d - a).normalized()
@@ -116,6 +128,7 @@ def _sheet(parts: MeshParts, corners: tuple[Vector, Vector, Vector, Vector], cut
             uvs.append((u * chord, v * height))
 
     width = COLUMNS + 1
+    first = len(parts.faces)
     for side in (0, 1):
         s = parts.add_verts(grid, uvs)
         for row in range(ROWS):
@@ -123,6 +136,8 @@ def _sheet(parts: MeshParts, corners: tuple[Vector, Vector, Vector, Vector], cut
                 q = (s + row * width + col, s + row * width + col + 1,
                      s + (row + 1) * width + col + 1, s + (row + 1) * width + col)
                 parts.add_face(q if side == 0 else tuple(reversed(q)), "SailCloth", smooth=True)
+        if side == 0:
+            parts.cloths.append(Cloth(name, range(first, len(parts.faces))))
 
 
 def jib_corners(p: dict, mast: Mast, spec: dict, sheet_deg: float) -> tuple[Vector, Vector, Vector]:
@@ -146,18 +161,19 @@ def square_corners(mast: Mast, spec: dict, brace_deg: float) -> tuple[Vector, Ve
 def sailing(parts: MeshParts, p: dict, all_masts: list[Mast], trim: Trim) -> None:
     """The spars trimmed to the wind and every sail set."""
     spars(parts, all_masts, trim.brace_deg, trim.boom_deg, trim.gaff_deg - trim.boom_deg)
-    for spec in p["sails"]:
+    for i, spec in enumerate(p["sails"]):
+        name = sail_name(i, spec)
         mast = all_masts[spec["mast"]]
         kind = spec["kind"]
         if kind == "square":
-            _sheet(parts, square_corners(mast, spec, trim.brace_deg), _SQUARE, trim.downwind)
+            _sheet(parts, name, square_corners(mast, spec, trim.brace_deg), _SQUARE, trim.downwind)
         elif kind == "gaff":
             tack, clew = boom_ends(mast, trim.boom_deg)
             throat, peak = gaff_ends(mast, trim.gaff_deg)
-            _sheet(parts, (tack, clew, peak, throat), _GAFF, trim.downwind)
+            _sheet(parts, name, (tack, clew, peak, throat), _GAFF, trim.downwind)
         elif kind == "jib":
             tack, clew, head = jib_corners(p, mast, spec, trim.jib_deg)
-            _sheet(parts, (tack, clew, head, head), _JIB, trim.downwind)
+            _sheet(parts, name, (tack, clew, head, head), _JIB, trim.downwind)
         else:
             msg = f"unknown sail kind '{kind}'"
             raise ValueError(msg)
@@ -166,8 +182,8 @@ def sailing(parts: MeshParts, p: dict, all_masts: list[Mast], trim: Trim) -> Non
 # ---------------------------------------------------------------- furled
 
 
-def _furl(parts: MeshParts, start: Vector, end: Vector, height: float, offset: Vector) -> None:
-    """A furled sail: a bundle along the spar, tied by gaskets that pinch it, bulging and folded
+def _furl(parts: MeshParts, name: str, start: Vector, end: Vector, height: float, rests: Vector) -> None:
+    """A furled sail: a bundle resting on the spar on its `rests` side, tied by gaskets that pinch it, bulging and folded
     between them, swelling to the middle and sagging under its weight. Its UVs run along it and
     round it, so the canvas's seams wrap it like folds."""
     trim = (end - start) * (1 - FURL_OF_SPAR) / 2
@@ -185,7 +201,7 @@ def _furl(parts: MeshParts, start: Vector, end: Vector, height: float, offset: V
         return middle * (1 - FURL_SWELL * (1 - math.sin(math.pi * s))) * lump * pinch
 
     def centre(s: float) -> Vector:
-        return a.lerp(b, s) + offset.normalized() * middle - Vector((0.0, 0.0, FURL_SAG * middle * math.sin(math.pi * s)))
+        return a.lerp(b, s) + rests.normalized() * middle - Vector((0.0, 0.0, FURL_SAG * middle * math.sin(math.pi * s)))
 
     angles = [2 * math.pi * k / FURL_SIDES for k in range(FURL_SIDES + 1)]
     rings = []
@@ -201,6 +217,7 @@ def _furl(parts: MeshParts, start: Vector, end: Vector, height: float, offset: V
         if tied:
             d = 2 * r * GASKET_OUT
             pole(parts, c - axis * GASKET_WIDTH / 2, c + axis * GASKET_WIDTH / 2, d, d, GASKET_SIDES, "Tar", caps=False)
+    first = len(parts.faces)
     for r0, r1 in itertools.pairwise(rings):
         for k in range(FURL_SIDES):
             parts.add_face((r0 + k, r1 + k, r1 + k + 1, r0 + k + 1), "FurledCloth", smooth=True)
@@ -209,23 +226,31 @@ def _furl(parts: MeshParts, start: Vector, end: Vector, height: float, offset: V
         for k in range(FURL_SIDES):
             tri = (ring + k + 1, ring + k, tip) if flip else (ring + k, ring + k + 1, tip)
             parts.add_face(tri, "FurledCloth", smooth=True)
+    parts.cloths.append(Cloth(name, range(first, len(parts.faces))))
 
 
 def anchored(parts: MeshParts, p: dict, all_masts: list[Mast]) -> None:
-    """The spars squared and every sail rolled up on its yard, boom or bowsprit."""
+    """The spars squared and every sail rolled up: on top of and before its yard, on its boom, or
+    stowed along the bowsprit, the jibs each in their own stretch of it, innermost tack first."""
     spars(parts, all_masts, 0.0, 0.0, 0.0)
-    above = Vector((0.0, 0.0, 0.6))
-    for spec in p["sails"]:
+    start, end = bowsprit(p)
+    jibs = sorted((spec["tack"], i) for i, spec in enumerate(p["sails"]) if spec["kind"] == "jib")
+    stretch = {i: k for k, (_, i) in enumerate(jibs)}
+    above = Vector((0.0, 0.0, 1.0))
+    before = Vector((0.0, 1.0, 1.0))
+    for i, spec in enumerate(p["sails"]):
+        name = sail_name(i, spec)
         mast = all_masts[spec["mast"]]
         kind = spec["kind"]
         if kind == "square":
             foot_l, _, top_r, top_l = square_corners(mast, spec, 0.0)
-            _furl(parts, top_l, top_r, top_l.z - foot_l.z, above)
+            _furl(parts, name, top_l, top_r, top_l.z - foot_l.z, before)
         elif kind == "gaff":
             tack, clew = boom_ends(mast, 0.0)
             throat, _ = gaff_ends(mast, 0.0)
-            _furl(parts, tack, clew, throat.z - tack.z, above)
+            _furl(parts, name, tack, clew, throat.z - tack.z, above)
         elif kind == "jib":
-            start, end = bowsprit(p)
+            k = stretch[i]
             tack = start.lerp(end, spec["tack"])
-            _furl(parts, tack.lerp(start, 0.5), tack, spec["head_z"] - tack.z, above)
+            _furl(parts, name, start.lerp(end, k / len(jibs)), start.lerp(end, (k + 1) / len(jibs)),
+                  spec["head_z"] - tack.z, above)

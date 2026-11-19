@@ -12,9 +12,29 @@ DEFAULT_PREVIEW = (0.5, 0.5, 0.5)
 LINE_SIDES = 3
 
 
+@dataclass(frozen=True)
+class Rope:
+    """A rope laid as a line, kept so the sails can be checked against it."""
+
+    kind: str
+    start: Vector
+    end: Vector
+    thickness: float
+    sail: str | None = None  # the sail it carries or sheets, which it meets along its edge
+
+
+@dataclass(frozen=True)
+class Cloth:
+    """A sail's faces among the parts' faces."""
+
+    name: str
+    faces: range
+
+
 @dataclass
 class MeshParts:
-    """Vertices with UVs (in metres), faces with their slot and shading, and sharp edges."""
+    """Vertices with UVs (in metres), faces with their slot and shading, and sharp edges; the ropes and
+    cloths among them, by name."""
 
     verts: list[Vector] = field(default_factory=list)
     uvs: list[tuple[float, float]] = field(default_factory=list)
@@ -22,6 +42,8 @@ class MeshParts:
     slots: list[str] = field(default_factory=list)
     smooth: list[bool] = field(default_factory=list)
     sharp: set[tuple[int, int]] = field(default_factory=set)
+    ropes: list[Rope] = field(default_factory=list)
+    cloths: list[Cloth] = field(default_factory=list)
 
     def add_verts(self, points: list[Vector], uvs: list[tuple[float, float]] | None = None) -> int:
         start = len(self.verts)

@@ -52,7 +52,9 @@ Several objects of one kind share one builder, and each type is a module of numb
 The package `builders/ship/` builds a ship from a dict, and `builders/sloop.py` is the sloop's `PARAMS` with `ship.build`, so `build.py sloop` writes `Sloop.fbx`.
 Its modules are the parts: `hull`, `rig`, `sails`, `rigging`, `fittings`, `props`, with `mesh` for the primitives.
 A ship is four objects: the hull, its flag, and two sail states (`<Name>Sailing`, `<Name>Anchored`), of which the game shows one. `build.py` prints the triangles per object, and `--hide <object>` leaves one out of the probe.
-A new type is a new parameter set (`sloop.py`, `brig.py`). When it needs a part the builder lacks, the part is added to `ship.py` as a parameter, never named after the type: the brig brought `brace_deg`, yards turned round the mast, without which square sails are edge-on from the side.
+A new type is a new parameter set (`sloop.py`, `brig.py`). When it needs a part the builder lacks, the part is added to the package as a parameter, never named after the type.
+The ropes are led as a ship's are, so they stay clear of the sails: braces forward to the mast ahead, the lee running backstay let go, the booms swung out only as far as the lee rigging lets them, a jib's stay made fast high enough above the yard behind it.
+`clearance.py` checks it on every build: it prints, per sail state, any rope that passes through a sail or a furl (`clearance SloopSailing: 0 ropes through sails`). A new type, or a new trim, should leave it at 0.
 
 Ships break two of the props' conventions:
 - The origin is on the design waterline amidships, not at the base, because a hull is placed by its waterline.

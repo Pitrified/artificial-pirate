@@ -13,7 +13,6 @@ from builders.ship.mesh import MeshParts, pole
 MAST_SIDES = 8
 SPAR_SIDES = 6
 SPAR_OF_MAST = 0.45
-SAIL_CLEARANCE = 0.3
 
 
 @dataclass
@@ -62,7 +61,7 @@ def yard_forward(brace_deg: float) -> Vector:
 
 def yard_ends(mast: Mast, yard: dict, brace_deg: float) -> tuple[Vector, Vector]:
     forward = yard_forward(brace_deg)
-    centre = mast.at(yard["z"]) + forward * SAIL_CLEARANCE
+    centre = mast.at(yard["z"]) + forward * ((mast.spec["diameter"] + mast.spar_diameter) / 2)
     half = Vector((forward.y, -forward.x, 0.0)) * (yard["length"] / 2)
     return centre - half, centre + half
 

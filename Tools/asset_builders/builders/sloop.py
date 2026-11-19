@@ -37,7 +37,7 @@ PARAMS = {
         {"kind": "gaff", "mast": 0},
         {"kind": "square", "mast": 0, "top": 1, "bottom": 0},
         {"kind": "square", "mast": 0, "top": 2, "bottom": 1},
-        {"kind": "jib", "mast": 0, "head_z": 25.5, "tack": 1.0, "clew_aft": 11.0, "clew_z": 5.5},
+        {"kind": "jib", "mast": 0, "head_z": 28.0, "tack": 1.0, "clew_aft": 11.0, "clew_z": 5.5},
         {"kind": "jib", "mast": 0, "head_z": 16.5, "tack": 0.0, "clew_aft": 6.5, "clew_z": 4.8},
     ],
     "wales": [1.25],

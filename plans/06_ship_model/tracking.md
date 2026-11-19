@@ -26,6 +26,7 @@ A ship model in place of the box hull, general enough for several ship types. Br
 | 05 | Verify                   | [`05_verify.md`](05_verify.md)             | planned |
 | 06 | Detail and look          | [`06_detail.md`](06_detail.md)             | done    |
 | 07 | Furled sails             | [`07_furls.md`](07_furls.md)               | done    |
+| 08 | Rigging clear of sails   | [`08_rig_clearance.md`](08_rig_clearance.md) | done    |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -46,3 +47,5 @@ Append-only. Newest at the bottom.
 - 2026-11-19 : phone report of the detail build: 60 fps held, 147.5 MB, 0.1 kB allocated a frame, no problems. The user: "Brillant results". Phase 06 closed.
 - 2026-11-19 : the user: "all lovely". A note for references and scale: the waves are giant, a quite choppy sea (not a problem now). Phase 07 added: the furled sails read as flat white cylinders. No fresh-clone gate run for now.
 - 2026-11-19 : phase 07 - furled sails as bundles pinched by their ties, folded between, in a greyer FurledCloth. Gates green.
+- 2026-11-19 : the user: rigging intersects the sails sometimes. Phase 08 added: a build-time check, rigging routed as a ship's is, the cloth giving way to ropes. Runtime cloth not now.
+- 2026-11-19 : phase 08 - a build-time check of ropes through sails (sloop 6 and 3, brig 9 and 22 at first); the rigging routed as a ship's (yards clear of the mast, lifts, braces to the mast ahead, running backstays, stays above the yards, jib sheets, furls); the sloop's boom brought in to 14 deg by its lee braces. 0 crossings. The cloth push was built, changed nothing once the routing held, and was taken out. Gates green.
