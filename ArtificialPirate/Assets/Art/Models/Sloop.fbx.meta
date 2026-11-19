@@ -17,6 +17,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: FurledCloth
+    second: {fileID: 2100000, guid: b9261eb53b78c6eb5ac4e79069847c0c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Gilt
     second: {fileID: 2100000, guid: 208ac0209c7960290a581d5e2c8a2c4d, type: 2}
   - first:

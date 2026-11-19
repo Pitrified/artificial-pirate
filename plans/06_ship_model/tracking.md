@@ -25,6 +25,7 @@ A ship model in place of the box hull, general enough for several ship types. Br
 | 04 | The brig                 | [`04_brig.md`](04_brig.md)                 | done    |
 | 05 | Verify                   | [`05_verify.md`](05_verify.md)             | planned |
 | 06 | Detail and look          | [`06_detail.md`](06_detail.md)             | done    |
+| 07 | Furled sails             | [`07_furls.md`](07_furls.md)               | done    |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -43,3 +44,5 @@ Append-only. Newest at the bottom.
 - 2026-11-19 : the user on the ships: correct but they read as toys. Phase 06 added: rigging and tops, sails for one wind and furled, sail sag and texture, hull detail, props, flags, shadows, a wet band; each benchmarked with a screenshot. Phase 05 (verify) runs after it.
 - 2026-11-19 : phase 06 - sail trim and furling, sail sag, canvas, rigging and tops, hull detail, crew and cannons from a palette texture, a waving flag shader, the sun's shadows on decks and water, a wet band. Scene 64.7 k triangles and 48 slots in view. Gates green, dev APK; waiting on the phone.
 - 2026-11-19 : phone report of the detail build: 60 fps held, 147.5 MB, 0.1 kB allocated a frame, no problems. The user: "Brillant results". Phase 06 closed.
+- 2026-11-19 : the user: "all lovely". A note for references and scale: the waves are giant, a quite choppy sea (not a problem now). Phase 07 added: the furled sails read as flat white cylinders. No fresh-clone gate run for now.
+- 2026-11-19 : phase 07 - furled sails as bundles pinched by their ties, folded between, in a greyer FurledCloth. Gates green.

@@ -7,12 +7,13 @@ hollow between their corners.
 
 from __future__ import annotations
 
+import itertools
 import math
 from dataclasses import dataclass
 
 from mathutils import Vector
 
-from builders.ship.mesh import MeshParts, pole
+from builders.ship.mesh import MeshParts, frame, pole
 from builders.ship.rig import Mast, boom_ends, bowsprit, gaff_ends, spars, yard_ends
 
 WIND_FROM_DEG = 130.0  # the one wind for now: from the starboard quarter, degrees clockwise from the bow
@@ -32,6 +33,16 @@ FURL_SIDES = 8
 FURL_OF_HEIGHT = 0.08
 FURL_MIN_DIAMETER = 0.35
 FURL_OF_SPAR = 0.9
+FURL_SWELL = 0.5
+FURL_LUMP = 0.12
+FURL_FOLDS = 3
+FURL_FOLD_DEPTH = 0.12
+FURL_SAG = 0.35
+GASKET_STEP = 1.6
+GASKET_PINCH = 0.7
+GASKET_WIDTH = 0.12
+GASKET_OUT = 1.04
+GASKET_SIDES = 6
 
 
 @dataclass(frozen=True)
@@ -156,9 +167,48 @@ def sailing(parts: MeshParts, p: dict, all_masts: list[Mast], trim: Trim) -> Non
 
 
 def _furl(parts: MeshParts, start: Vector, end: Vector, height: float, offset: Vector) -> None:
-    d = max(FURL_MIN_DIAMETER, height * FURL_OF_HEIGHT)
+    """A furled sail: a bundle along the spar, tied by gaskets that pinch it, bulging and folded
+    between them, swelling to the middle and sagging under its weight. Its UVs run along it and
+    round it, so the canvas's seams wrap it like folds."""
     trim = (end - start) * (1 - FURL_OF_SPAR) / 2
-    pole(parts, start + trim + offset * d, end - trim + offset * d, d, d, FURL_SIDES, "SailCloth")
+    a, b = start + trim, end - trim
+    length = (b - a).length
+    axis = (b - a).normalized()
+    side, up = frame(axis)
+    middle = max(FURL_MIN_DIAMETER, height * FURL_OF_HEIGHT) / 2
+    phase = a.x * 1.7 + a.y * 0.3 + a.z * 1.1  # a fixed seed per furl, so each bunches differently
+    ties = max(2, round(length / GASKET_STEP))
+
+    def radius(s: float, tied: bool) -> float:
+        lump = 1 + FURL_LUMP * math.sin(2 * math.pi * 2.3 * s + phase)
+        pinch = GASKET_PINCH if tied else 1.0
+        return middle * (1 - FURL_SWELL * (1 - math.sin(math.pi * s))) * lump * pinch
+
+    def centre(s: float) -> Vector:
+        return a.lerp(b, s) + offset.normalized() * middle - Vector((0.0, 0.0, FURL_SAG * middle * math.sin(math.pi * s)))
+
+    angles = [2 * math.pi * k / FURL_SIDES for k in range(FURL_SIDES + 1)]
+    rings = []
+    for i in range(2 * ties + 1):
+        s = i / (2 * ties)
+        tied = i % 2 == 0 and 0 < i < 2 * ties
+        c, r = centre(s), radius(s, tied)
+        folds = 0.0 if tied else FURL_FOLD_DEPTH
+        twist = phase + i * 1.3  # each bulge folds a different way
+        ring = [c + (side * math.cos(t) + up * math.sin(t)) * (r * (1 + folds * math.sin(FURL_FOLDS * t + twist)))
+                for t in angles]
+        rings.append(parts.add_verts(ring, [(s * length, t * middle) for t in angles]))
+        if tied:
+            d = 2 * r * GASKET_OUT
+            pole(parts, c - axis * GASKET_WIDTH / 2, c + axis * GASKET_WIDTH / 2, d, d, GASKET_SIDES, "Tar", caps=False)
+    for r0, r1 in itertools.pairwise(rings):
+        for k in range(FURL_SIDES):
+            parts.add_face((r0 + k, r1 + k, r1 + k + 1, r0 + k + 1), "FurledCloth", smooth=True)
+    for ring, s, flip in ((rings[0], 0.0, True), (rings[-1], 1.0, False)):
+        tip = parts.add_verts([centre(s) + axis * (radius(s, False) * (-0.5 if flip else 0.5))], [(s * length, 0.0)])
+        for k in range(FURL_SIDES):
+            tri = (ring + k + 1, ring + k, tip) if flip else (ring + k, ring + k + 1, tip)
+            parts.add_face(tri, "FurledCloth", smooth=True)
 
 
 def anchored(parts: MeshParts, p: dict, all_masts: list[Mast]) -> None:

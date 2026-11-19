@@ -55,7 +55,8 @@ def axis_box(parts: MeshParts, centre: Vector, size: Vector, slot: str, uv: UV |
     box(parts, corners, slot, uv)
 
 
-def _frame(axis: Vector) -> tuple[Vector, Vector]:
+def frame(axis: Vector) -> tuple[Vector, Vector]:
+    """Two unit vectors square to the axis and to each other."""
     side = axis.cross(Vector((0, 0, 1)))
     if side.length < 1e-3:
         side = axis.cross(Vector((1, 0, 0)))
@@ -67,7 +68,7 @@ def pole(parts: MeshParts, start: Vector, end: Vector, d0: float, d1: float, sid
          caps: bool = True, uv: UV | None = None) -> None:
     """A tapered pole between two points."""
     axis = (end - start).normalized()
-    side, up = _frame(axis)
+    side, up = frame(axis)
     rings = []
     for centre, d in ((start, d0), (end, d1)):
         ring = [centre + (side * math.cos(a) + up * math.sin(a)) * d / 2
