@@ -36,3 +36,4 @@ Append-only. Newest at the bottom.
 - 2026-11-19 : the look on the phone: the ship bobs right, the barrels are pushed by it; the wake is a chain of circles. Phase 06 added: the ripple square follows the ship, the hull stamps every step, a foam trail in the ripple field.
 - 2026-11-19 : phase 06 - the capture sails the ship; the ripple square follows it; `WakeSource` replaces the hull's rings with a dent and foam every frame; foam channel in the ripple field. Gates green, dev APK. Waiting on the phone.
 - 2026-11-19 : the user on the wake captures: "Looks neat", then "looks good, complete this effort". Phases 05 and 06 and the plan closed. The wake build's device run was not reported: the frame rate with the RGBA ripple step and the wake's strength are left to the next phone session.
+- 2026-11-19 : phone report of the wake build: 60 fps held, 147.5 MB, 0.1 kB allocated a frame, no problems.
