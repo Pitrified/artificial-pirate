@@ -17,11 +17,8 @@ namespace Game.Gameplay
         [Tooltip("The child that carries the hull's mesh and collider; it heaves, pitches and rolls.")]
         [SerializeField] private Transform _hull;
 
-        [Tooltip("Distance from the centre to the bow and to the stern sample points (m).")]
-        [SerializeField] private float _halfLength = 1f;
-
-        [Tooltip("Distance from the centre to the port and starboard sample points (m).")]
-        [SerializeField] private float _halfBeam = 0.5f;
+        [Tooltip("The hull's size: the water is sampled at its bow, stern, port and starboard.")]
+        [SerializeField] private SO_ShipType _type;
 
         [Tooltip("Height of the hull's centre above the mean water surface (m); negative sits it lower.")]
         [SerializeField] private float _waterlineOffset = 0f;
@@ -39,12 +36,11 @@ namespace Game.Gameplay
         internal Vector3 HeavePitchRoll => new Vector3(_heave, _pitchDeg, _rollDeg);
 
         /// <summary>Wires the water and the hull (ships built in code: tests).</summary>
-        internal void Configure(WaterSurface water, Transform hull, float halfLength, float halfBeam, float response)
+        internal void Configure(WaterSurface water, Transform hull, SO_ShipType type, float response)
         {
             _water = water;
             _hull = hull;
-            _halfLength = halfLength;
-            _halfBeam = halfBeam;
+            _type = type;
             _response = response;
             _started = false;
         }
@@ -70,7 +66,7 @@ namespace Game.Gameplay
         /// </summary>
         internal void Tick(float dt)
         {
-            if (_water == null || _hull == null)
+            if (_water == null || _hull == null || _type == null)
             {
                 return;
             }
@@ -80,8 +76,10 @@ namespace Game.Gameplay
             }
 
             Vector3 centre = _transform.position;
-            Vector3 forward = _transform.forward * _halfLength;
-            Vector3 right = _transform.right * _halfBeam;
+            float halfLength = _type.HalfLength;
+            float halfBeam = _type.HalfBeam;
+            Vector3 forward = _transform.forward * halfLength;
+            Vector3 right = _transform.right * halfBeam;
             float bow = _water.HeightAt(centre + forward);
             float stern = _water.HeightAt(centre - forward);
             float starboard = _water.HeightAt(centre + right);
@@ -89,8 +87,8 @@ namespace Game.Gameplay
 
             // Bow up is a negative rotation about the local x axis; starboard up a positive one about z.
             float targetHeave = (bow + stern + starboard + port) * 0.25f + _waterlineOffset;
-            float targetPitch = Mathf.Atan2(stern - bow, 2f * _halfLength) * Mathf.Rad2Deg;
-            float targetRoll = Mathf.Atan2(starboard - port, 2f * _halfBeam) * Mathf.Rad2Deg;
+            float targetPitch = Mathf.Atan2(stern - bow, 2f * halfLength) * Mathf.Rad2Deg;
+            float targetRoll = Mathf.Atan2(starboard - port, 2f * halfBeam) * Mathf.Rad2Deg;
 
             float k = _started ? 1f - Mathf.Exp(-_response * dt) : 1f;
             _started = true;

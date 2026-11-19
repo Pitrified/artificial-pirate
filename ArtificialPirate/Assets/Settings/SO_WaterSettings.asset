@@ -15,16 +15,16 @@ MonoBehaviour:
   _seaLevel: -0.35
   _waves:
   - directionDeg: 20
-    wavelength: 12
-    steepness: 0.1
+    wavelength: 40
+    steepness: 0.12
   - directionDeg: 60
-    wavelength: 7.5
-    steepness: 0.09
+    wavelength: 24
+    steepness: 0.1
   - directionDeg: -15
-    wavelength: 4.5
+    wavelength: 13
     steepness: 0.08
   - directionDeg: 100
-    wavelength: 3.4
+    wavelength: 7
     steepness: 0.06
   _shallow: {r: 0.2, g: 0.62, b: 0.62, a: 1}
   _deep: {r: 0.03, g: 0.2, b: 0.33, a: 1}

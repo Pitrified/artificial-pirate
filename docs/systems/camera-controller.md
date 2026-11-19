@@ -9,7 +9,7 @@ Third-person chase camera. Follows the ship from a fixed offset with smoothing.
 ## Responsibilities
 
 - Follow target Transform
-- Maintain a configurable offset in target-local space
+- Maintain an offset in target-local space, given with the target
 - Smooth position and rotation
 - Optional look-at on the target
 
@@ -24,19 +24,19 @@ Third-person chase camera. Follows the ship from a fixed offset with smoothing.
 
 ## Tunable data (serialized)
 
-- `Vector3 LocalOffset` (default `(0, 3, -6)`)
 - `float PositionLerp` (per-second, e.g. `5`)
 - `float RotationLerp` (per-second, e.g. `5`)
 - `bool LookAtTarget` (default `true`)
 
 Overridable via a `SO_CameraTuning` ScriptableObject in `Assets/Settings/`.
+Where it sits and what it looks at are the followed ship's: `SO_ShipType.CameraOffset` and `CameraLookAt`, handed over by `GameSceneWiring` with the target. A 20 m ship needs the camera far back, and a look point above the deck keeps its sails in view.
 
 ---
 
 ## Public interface
 
 ```
-void SetTarget(Transform target)
+void SetTarget(Transform target, Vector3 offset, Vector3 lookAt)
 void SnapToTarget()              // teleport, used after scene load
 ```
 

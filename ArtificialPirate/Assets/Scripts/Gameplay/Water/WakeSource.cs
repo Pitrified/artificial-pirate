@@ -23,17 +23,14 @@ namespace Game.Gameplay.Water
 
         [SerializeField] private WaterRipples _ripples;
 
-        [Tooltip("Distance from the centre to the bow and to the stern (m).")]
-        [SerializeField] private float _halfLength = 1f;
-
-        [Tooltip("Distance from the centre to either side (m).")]
-        [SerializeField] private float _halfBeam = 0.5f;
+        [Tooltip("The hull's size, which sets where the foam goes and how wide the dent is.")]
+        [SerializeField] private SO_ShipType _type;
 
         [Tooltip("Speed in m/s under which it leaves no wake.")]
         [SerializeField] private float _minSpeed = 0.5f;
 
-        [Tooltip("Radius of the dent it pushes into the ripples (m).")]
-        [SerializeField] private float _dentRadius = 0.6f;
+        [Tooltip("Radius of the dent it pushes into the ripples, in half beams.")]
+        [SerializeField] private float _dentRadiusHalfBeams = 1.2f;
 
         [Tooltip("Dent depth per m/s of speed, per second.")]
         [SerializeField] private float _dentStrength = 0.03f;
@@ -46,11 +43,10 @@ namespace Game.Gameplay.Water
         private bool _hasLast;
 
         /// <summary>Wires the ripples and the hull's size (sources made at runtime: tests).</summary>
-        internal void Configure(WaterRipples ripples, float halfLength, float halfBeam)
+        internal void Configure(WaterRipples ripples, SO_ShipType type)
         {
             _ripples = ripples;
-            _halfLength = halfLength;
-            _halfBeam = halfBeam;
+            _type = type;
             _hasLast = false;
         }
 
@@ -72,7 +68,7 @@ namespace Game.Gameplay.Water
         /// <summary>One frame of <paramref name="dt"/> seconds. Exposed internally for tests.</summary>
         internal void Tick(float dt)
         {
-            if (_ripples == null || dt <= 0f)
+            if (_ripples == null || _type == null || dt <= 0f)
             {
                 return;
             }
@@ -96,15 +92,16 @@ namespace Game.Gameplay.Water
                 return;
             }
 
-            Vector3 forward = _transform.forward * _halfLength;
-            Vector3 right = _transform.right * _halfBeam;
-            _ripples.AddImpulse(position, _dentRadius, -speed * _dentStrength * dt);
+            float halfBeam = _type.HalfBeam;
+            Vector3 forward = _transform.forward * _type.HalfLength;
+            Vector3 right = _transform.right * halfBeam;
+            _ripples.AddImpulse(position, halfBeam * _dentRadiusHalfBeams, -speed * _dentStrength * dt);
 
             float foam = speed * _foamRate * dt;
-            _ripples.AddFoam(position - forward, _halfBeam * SternFoamRadius, foam);
+            _ripples.AddFoam(position - forward, halfBeam * SternFoamRadius, foam);
             Vector3 shoulder = position + forward * ShoulderAhead;
-            _ripples.AddFoam(shoulder + right, _halfBeam * ShoulderFoamRadius, foam);
-            _ripples.AddFoam(shoulder - right, _halfBeam * ShoulderFoamRadius, foam);
+            _ripples.AddFoam(shoulder + right, halfBeam * ShoulderFoamRadius, foam);
+            _ripples.AddFoam(shoulder - right, halfBeam * ShoulderFoamRadius, foam);
         }
     }
 }

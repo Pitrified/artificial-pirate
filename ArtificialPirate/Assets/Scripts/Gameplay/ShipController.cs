@@ -11,7 +11,7 @@ namespace Game.Gameplay
     {
         private const float DriftWarnDistanceSq = 10000f * 10000f;
 
-        [SerializeField] private SO_ShipTuning _tuning;
+        [SerializeField] private SO_ShipType _type;
 
         /// <summary>World-space Y position the ship is locked to (sea surface). Constant in v0.2.</summary>
         [SerializeField] private float _seaSurfaceY = 0f;
@@ -41,6 +41,9 @@ namespace Game.Gameplay
         }
 
         // ------------------------------------------------------------------ public API
+
+        /// <summary>The kind of ship this is.</summary>
+        public SO_ShipType Type => _type;
 
         /// <summary>
         /// Wires the input source. Called by the scene wiring script after the Game scene loads.
@@ -106,23 +109,23 @@ namespace Game.Gameplay
             if (_transform == null)
                 _transform = transform;
 
-            if (_tuning == null)
+            if (_type == null)
                 return;
 
             float targetSpeed = _throttleInput >= 0f
-                ? _tuning.MaxSpeed * _throttleInput
-                : _tuning.MaxSpeed * _tuning.ReverseFactor * _throttleInput;
+                ? _type.MaxSpeed * _throttleInput
+                : _type.MaxSpeed * _type.ReverseFactor * _throttleInput;
 
-            _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed, _tuning.Acceleration * dt);
+            _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed, _type.Acceleration * dt);
 
-            _smoothedSteering = Mathf.Lerp(_smoothedSteering, _steeringInput, _tuning.SteeringResponseLerp * dt);
+            _smoothedSteering = Mathf.Lerp(_smoothedSteering, _steeringInput, _type.SteeringResponseLerp * dt);
 
             Vector3 pos = _transform.position;
             pos += _transform.forward * (_currentSpeed * dt);
             pos.y = _seaSurfaceY;
             _transform.position = pos;
 
-            _transform.Rotate(Vector3.up, _tuning.YawRateDeg * _smoothedSteering * dt);
+            _transform.Rotate(Vector3.up, _type.YawRateDeg * _smoothedSteering * dt);
 
             if (pos.sqrMagnitude > DriftWarnDistanceSq)
             {

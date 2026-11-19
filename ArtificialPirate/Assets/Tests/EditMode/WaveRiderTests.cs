@@ -15,6 +15,8 @@ namespace Game.Tests.EditMode
         private const float SeaLevel = -0.35f;
         private const float HalfLength = 1f;
         private const float HalfBeam = 0.5f;
+        private const float Draft = 0.5f;
+        private const float Freeboard = 0.5f;
         private const float Response = 4f;
         private const float Tolerance = 1e-3f;
 
@@ -24,6 +26,7 @@ namespace Game.Tests.EditMode
         private GameObject _ship;
         private Transform _hull;
         private WaveRider _rider;
+        private SO_ShipType _type;
 
         [SetUp]
         public void SetUp()
@@ -35,7 +38,9 @@ namespace Game.Tests.EditMode
             _hull = new GameObject("Hull").transform;
             _hull.SetParent(_ship.transform, false);
             _rider = _ship.AddComponent<WaveRider>();
-            _rider.Configure(_water, _hull, HalfLength, HalfBeam, Response);
+            _type = ScriptableObject.CreateInstance<SO_ShipType>();
+            _type.SetHull(HalfLength, HalfBeam, Draft, Freeboard);
+            _rider.Configure(_water, _hull, _type, Response);
         }
 
         [TearDown]
@@ -44,6 +49,7 @@ namespace Game.Tests.EditMode
             Object.DestroyImmediate(_ship);
             Object.DestroyImmediate(_waterObject);
             Object.DestroyImmediate(_settings);
+            Object.DestroyImmediate(_type);
         }
 
         private void UseWaves(params GerstnerWave[] waves)
@@ -80,7 +86,7 @@ namespace Game.Tests.EditMode
             for (int i = 0; i < 40; i++)
             {
                 _ship.transform.position = new Vector3(i * 0.5f, 0f, 0f);
-                _rider.Configure(_water, _hull, HalfLength, HalfBeam, Response); // each pose placed at once
+                _rider.Configure(_water, _hull, _type, Response); // each pose placed at once
                 _rider.Tick(0.1f);
 
                 Vector3 centre = _ship.transform.position;
@@ -110,7 +116,7 @@ namespace Game.Tests.EditMode
             for (int i = 0; i < 20 && !rolled; i++)
             {
                 _ship.transform.position = new Vector3(i * 0.5f, 0f, 0f);
-                _rider.Configure(_water, _hull, HalfLength, HalfBeam, Response);
+                _rider.Configure(_water, _hull, _type, Response);
                 _rider.Tick(0.1f);
                 rolled = Mathf.Abs(_hull.right.y) > 0.05f;
                 Assert.AreEqual(0f, _hull.forward.y, 0.01f, "no pitch");

@@ -1,7 +1,8 @@
 """A sailing ship from a dict of numbers: a lofted hull with a deck and bulwark, masts, spars and sails.
 
 A ship type is a builder module whose PARAMS fill this dict and whose build is this one's.
-Metres, Z up, origin on the design waterline amidships, bow toward +Y, starboard +X.
+Metres, Z up, origin on the design waterline amidships. The parts are laid out bow toward +Y and
+the finished ship turned half round, so the bow faces -Y: the FBX export makes that Unity's +Z.
 Five material slots: HullBottom, Topsides, Trim, ShipWood and SailCloth.
 
 Hull keys: length (on deck), beam, draft, freeboard (amidships, to the rail), sheer_bow and
@@ -147,8 +148,8 @@ def _hull(parts: MeshParts, p: dict) -> None:
             parts.mark_sharp(a + k, b + k)
 
     stern, bow = loops[0], loops[-1]
-    parts.add_face(tuple(stern + k for k in range(n)), TOPSIDES)
-    parts.add_face(tuple(bow + k for k in reversed(range(n))), TOPSIDES)
+    parts.add_face(tuple(stern + k for k in reversed(range(n))), TOPSIDES)
+    parts.add_face(tuple(bow + k for k in range(n)), TOPSIDES)
     for k in range(n):
         parts.mark_sharp(stern + k, stern + (k + 1) % n)
         parts.mark_sharp(bow + k, bow + (k + 1) % n)
@@ -347,7 +348,7 @@ def build(params: dict) -> None:
 
     name = params["name"]
     mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata([tuple(v) for v in parts.verts], [], parts.faces)
+    mesh.from_pydata([(-v.x, -v.y, v.z) for v in parts.verts], [], parts.faces)
     mesh.update()
     for poly, slot in zip(mesh.polygons, parts.slots):
         poly.material_index = slot

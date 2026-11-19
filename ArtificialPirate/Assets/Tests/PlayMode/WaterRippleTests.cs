@@ -6,6 +6,7 @@ namespace Game.Tests.PlayMode
     using UnityEngine;
     using UnityEngine.Rendering;
     using UnityEngine.TestTools;
+    using Game.Gameplay;
     using Game.Gameplay.Water;
 
     /// <summary>
@@ -138,8 +139,10 @@ namespace Game.Tests.PlayMode
             ship.SetPositionAndRotation(Origin + new Vector3(-10f, 0f, 0f), Quaternion.Euler(0f, 90f, 0f)); // heading +x
             var ripples = _host.AddComponent<WaterRipples>();
             ripples.Configure(_simulation, new Vector2(Origin.x, Origin.z), gameSize, Resolution, 0f, ship);
+            var hull = ScriptableObject.CreateInstance<SO_ShipType>();
+            hull.SetHull(1f, 0.5f, 0.5f, 0.5f);
             var wake = ship.gameObject.AddComponent<WakeSource>();
-            wake.Configure(ripples, 1f, 0.5f);
+            wake.Configure(ripples, hull);
 
             for (int i = 0; i < 45; i++) // 1.5 s, 12 m
             {
@@ -161,6 +164,7 @@ namespace Game.Tests.PlayMode
             Assert.That(behind, Is.GreaterThan(0f), "ripples behind");
             Assert.That(ahead, Is.LessThan(behind * 0.1f), "faster than the ripples travel: almost none ahead");
             Object.Destroy(ship.gameObject);
+            Object.Destroy(hull);
         }
 
         [UnityTest]

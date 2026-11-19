@@ -4,8 +4,9 @@ namespace Game.Gameplay
     using Game.Systems;
 
     /// <summary>
-    /// Third-person chase camera. Follows a target Transform from a configurable local-space
-    /// offset using framerate-independent smoothing. Attach to the Game scene's MainCamera.
+    /// Third-person chase camera. Follows a target Transform from an offset in the target's local
+    /// space and looks at a point in it, using framerate-independent smoothing. Attach to the Game
+    /// scene's MainCamera.
     /// </summary>
     public sealed class CameraController : MonoBehaviour
     {
@@ -13,6 +14,8 @@ namespace Game.Gameplay
 
         private Transform _transform;
         private Transform _target;
+        private Vector3 _offset;
+        private Vector3 _lookAt;
         private bool _nullWarningLogged;
 
         // ------------------------------------------------------------------ lifecycle
@@ -30,13 +33,16 @@ namespace Game.Gameplay
         // ------------------------------------------------------------------ public API
 
         /// <summary>
-        /// Sets the Transform the camera will follow.
+        /// Sets the Transform the camera will follow, from <paramref name="offset"/> and looking at
+        /// <paramref name="lookAt"/>, both in its local space.
         /// Call this after the Game scene loads and the ship is ready.
         /// Pass <c>null</c> to detach.
         /// </summary>
-        public void SetTarget(Transform target)
+        public void SetTarget(Transform target, Vector3 offset, Vector3 lookAt)
         {
             _target = target;
+            _offset = offset;
+            _lookAt = lookAt;
             _nullWarningLogged = false;
         }
 
@@ -61,11 +67,10 @@ namespace Game.Gameplay
 
             _nullWarningLogged = false;
 
-            Vector3 desiredPos = _target.TransformPoint(_tuning != null ? _tuning.LocalOffset : new Vector3(0f, 3f, -6f));
-            _transform.position = desiredPos;
+            _transform.position = _target.TransformPoint(_offset);
 
             if (_tuning == null || _tuning.LookAtTarget)
-                _transform.LookAt(_target.position);
+                _transform.LookAt(_target.TransformPoint(_lookAt));
         }
 
         // ------------------------------------------------------------------ internal (testable)
@@ -95,13 +100,13 @@ namespace Game.Gameplay
 
             _nullWarningLogged = false;
 
-            Vector3 desiredPos = _target.TransformPoint(_tuning.LocalOffset);
+            Vector3 desiredPos = _target.TransformPoint(_offset);
             float tPos = 1f - Mathf.Exp(-_tuning.PositionLerp * dt);
             _transform.position = Vector3.Lerp(_transform.position, desiredPos, tPos);
 
             if (_tuning.LookAtTarget)
             {
-                Vector3 lookDir = _target.position - _transform.position;
+                Vector3 lookDir = _target.TransformPoint(_lookAt) - _transform.position;
                 if (lookDir.sqrMagnitude > 0.0001f)
                 {
                     Quaternion desiredRot = Quaternion.LookRotation(lookDir);

@@ -15,7 +15,8 @@ namespace Game.Tests.EditMode
         private SO_CameraTuning _tuning;
         private GameObject _targetGo;
 
-        // SO_CameraTuning defaults: LocalOffset=(0,3,-6), PositionLerp=5, RotationLerp=5, LookAtTarget=true
+        // SO_CameraTuning defaults: PositionLerp=5, RotationLerp=5, LookAtTarget=true
+        private static readonly Vector3 Offset = new Vector3(0f, 3f, -6f);
 
         [SetUp]
         public void SetUp()
@@ -44,14 +45,14 @@ namespace Game.Tests.EditMode
         // SnapToTarget
 
         [Test]
-        public void SnapToTarget_WithTargetAtOrigin_PlacesCameraAtLocalOffset()
+        public void SnapToTarget_WithTargetAtOrigin_PlacesCameraAtOffset()
         {
             // Target at world origin with identity rotation.
-            // LocalOffset (0, 3, -6) → world position (0, 3, -6).
+            // Offset (0, 3, -6) → world position (0, 3, -6).
             _targetGo.transform.position = Vector3.zero;
             _targetGo.transform.rotation = Quaternion.identity;
 
-            _camera.SetTarget(_targetGo.transform);
+            _camera.SetTarget(_targetGo.transform, Offset, Vector3.zero);
             _camera.SnapToTarget();
 
             Vector3 pos = _cameraGo.transform.position;
@@ -68,7 +69,7 @@ namespace Game.Tests.EditMode
             _targetGo.transform.position = new Vector3(10f, 0f, 10f);
             _targetGo.transform.rotation = Quaternion.identity;
 
-            _camera.SetTarget(_targetGo.transform);
+            _camera.SetTarget(_targetGo.transform, Offset, Vector3.zero);
             _camera.SnapToTarget();
 
             Vector3 pos = _cameraGo.transform.position;
@@ -119,7 +120,7 @@ namespace Game.Tests.EditMode
             _targetGo.transform.rotation = Quaternion.identity;
             // Desired world pos = (10, 3, 4)
 
-            _camera.SetTarget(_targetGo.transform);
+            _camera.SetTarget(_targetGo.transform, Offset, Vector3.zero);
             _camera.Tick(100f); // t = 1 - exp(-5*100) ≈ 1.0
 
             Vector3 pos = _cameraGo.transform.position;
@@ -136,7 +137,7 @@ namespace Game.Tests.EditMode
             _targetGo.transform.rotation = Quaternion.identity;
             // Desired world pos = (0, 3, 4). Camera starts at (0, 0, 0).
 
-            _camera.SetTarget(_targetGo.transform);
+            _camera.SetTarget(_targetGo.transform, Offset, Vector3.zero);
             _camera.Tick(0.016f); // one frame at ~60fps
 
             Vector3 pos = _cameraGo.transform.position;
@@ -153,12 +154,12 @@ namespace Game.Tests.EditMode
         public void SetTarget_ToNull_CameraHoldsPositionOnTick()
         {
             _targetGo.transform.position = new Vector3(0f, 0f, 10f);
-            _camera.SetTarget(_targetGo.transform);
+            _camera.SetTarget(_targetGo.transform, Offset, Vector3.zero);
             _camera.Tick(100f); // snap to near offset
 
             Vector3 posBeforeNull = _cameraGo.transform.position;
 
-            _camera.SetTarget(null);
+            _camera.SetTarget(null, Vector3.zero, Vector3.zero);
             _camera.Tick(1f);
 
             Vector3 posAfterNull = _cameraGo.transform.position;

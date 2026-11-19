@@ -18,19 +18,29 @@ no Rigidbody forces.
 
 ## Ownership & Lifetime
 
-- Component on the `PF_Ship` prefab.
+- Component on the `PF_Ship` prefab; each kind of ship is a variant of it (`PF_Ship_Sloop`).
 - Lives only inside the Game scene.
 
 ---
 
-## Tunable data (serialized → `SO_ShipTuning`)
+## Ship types (`SO_ShipType`)
+
+A ship's kind is an `SO_ShipType` in `Assets/Settings/` (`SO_Ship_Sloop`), set on its prefab variant's `ShipController`, `WaveRider` and `WakeSource`.
+It holds:
+- **the hull**: half length and half beam at the waterline, draft and freeboard. They are the model's numbers (`Tools/asset_builders/builders/<type>.py`), and `BuiltModelTests` checks them against the imported model. The variant's box collider is sized from them.
+- **the handling**: the fields below;
+- **the camera's offset**, handed to the camera by `GameSceneWiring`.
+
+A new type is a model from the ship builder (`docs/building_assets.md`), an `SO_ShipType`, and a variant of `PF_Ship` carrying both.
+
+## Tunable data (serialized → `SO_ShipType`)
 
 | Field            | Default | Notes                                       |
 | ---------------- | ------- | ------------------------------------------- |
 | `MaxSpeed`       | 8 m/s   |                                             |
 | `Acceleration`   | 4 m/s²  | Approach `MaxSpeed` from current speed      |
 | `ReverseFactor`  | 0.3     | Multiplier on `MaxSpeed` for negative throttle |
-| `YawRateDeg`     | 60 °/s  | At full steering input                      |
+| `YawRateDeg`     | 60 °/s  | At full steering input; the sloop has 30    |
 | `SteeringResponseLerp` | 6 | Per-second smoothing of steering input    |
 
 ---
@@ -50,8 +60,8 @@ No forces, no `MovePosition`, no physics queries. The root keeps yaw only, so `f
 
 The ship stays kinematic and rides the water without physics (`plans/05_from_guide`, Q1).
 
-- `PF_Ship`'s root carries `ShipController`, `WaveRider`, a `WakeSource` (its wake, `docs/systems/water.md`) and a kinematic `Rigidbody`; a `Hull` child carries the mesh and the box collider.
-- Each `LateUpdate`, `WaveRider` samples the water (`WaterSurface.HeightAt`, the same waves the shader draws) at the bow, stern, port and starboard, `_halfLength` and `_halfBeam` from the centre, and eases the hull's height, pitch and roll toward them at `_response` per second; `Start` places it at once. `_waterlineOffset` raises or sinks the hull's centre against the mean surface.
+- `PF_Ship`'s root carries `ShipController`, `WaveRider`, a `WakeSource` (its wake, `docs/systems/water.md`) and a kinematic `Rigidbody`; a `Hull` child carries the box collider and, on a variant, the model.
+- Each `LateUpdate`, `WaveRider` samples the water (`WaterSurface.HeightAt`, the same waves the shader draws) at the bow, stern, port and starboard, the type's half length and half beam from the centre, and eases the hull's height, pitch and roll toward them at `_response` per second; `Start` places it at once. `_waterlineOffset` raises or sinks the hull's centre against the mean surface.
 - The camera follows the root, so it does not bob; the save reads the root, so saves are unchanged.
 - The kinematic `Rigidbody` makes the hull a moving collider: floating props are pushed out of it rather than passing through. The depth bake passes through it, as through anything on a Rigidbody.
 - The water is wired on the scene's instance (`_water` on `WaveRider`, `_ripples` on `WakeSource`); the water's `WaterRipples` follows the ship.

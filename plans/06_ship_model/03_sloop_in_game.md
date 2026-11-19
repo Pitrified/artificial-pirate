@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 03 - The sloop in the game
@@ -45,3 +45,39 @@ status: planned
 - The dev APK builds.
 
 ## What the implementation found
+
+- 2026-11-19. **`SO_ShipType`**:
+  - `SO_ShipTuning` became `SO_ShipType` through `git mv`, so the script and its asset (now `SO_Ship_Sloop`) keep their GUIDs.
+  - It holds the hull (half length, half beam, draft, freeboard), the handling, and the camera's offset and look point.
+  - No waterline offset: every ship model has its origin on the waterline, so `WaveRider`'s own `_waterlineOffset` stays at 0.
+  - The asset's YAML still carries the old `m_EditorClassIdentifier`. It is editor-only, Unity resolves the script by GUID, and YAML is not edited by hand.
+- **Readers**:
+  - `ShipController` reads the type (`Type` is public for the wiring).
+  - `WaveRider` and `WakeSource` read the half length and beam from it. `WakeSource`'s dent radius is now `_dentRadiusHalfBeams` (1.2), so its dent and foam scale with the hull.
+  - `CameraController.SetTarget(target, offset, lookAt)`: `SO_CameraTuning` lost its offset, and `GameSceneWiring` hands the camera the ship type's offset and look point.
+  - **The look point is new to the plan.** Looking at the waterline from far enough back for a 20 m ship cut the sails off the top of the frame.
+- **Prefabs and scene**, through a throwaway editor script, deleted:
+  - `PF_Ship` is the base: its `Hull` keeps the box collider and lost the cube and its scale.
+  - `PF_Ship_Sloop` is a variant with the `Sloop` model under `Hull`, the collider 6.2 x 4.9 x 20.3 m from the type, and the type on its three components.
+  - The scene's ship was swapped with `ReplacePrefabAssetOfPrefabInstance`, which keeps its wiring to the water, the ripples and the camera; it keeps the name `Ship`.
+- **Sloop type**:
+  - hull 10.15 / 3.1 / 2.4 / 2.5 m;
+  - handling as before, except a yaw rate of 30 °/s instead of 60, so a 20 m hull no longer turns in less than its own length;
+  - camera at (0, 12, -42), looking at (0, 9, 12).
+  These are first values, for the phone to tune.
+- **Bow direction.** `BuiltModelTests.Ship_BowFacesPlusZ` failed on the first model: Blender's +Y comes out as Unity's -Z. `ship.py` now turns the finished ship half round so the bow faces Blender's -Y; the probe's starboard view is `--view 270 5`. `docs/building_assets.md` says so.
+- **The hull's end caps faced inward**, and back-face culling hid the transom in Unity: the first chase capture saw the deck through an open stern. Their windings are fixed. The Blender probe renders both faces, so only a Unity view shows this.
+- **Waves.** `SO_WaterSettings`' four waves went from 12 / 7.5 / 4.5 / 3.4 m to 40 / 24 / 13 / 7 m, with steepness 0.12 / 0.1 / 0.08 / 0.06. The longest is about 0.75 m high. The depth map is unchanged, since it does not depend on the waves.
+- **Captures** (`~/.cache/claude-verify/ship/`):
+  - `chase_before`: old camera and waves, the sloop small at the bottom of the frame, sails cut off;
+  - `chase_after`: full throttle with a turn; the whole rig in view and the hull on a visible swell;
+  - `side`: the sloop at 30% throttle from the side, pitching and rolling with the swell; the hull, band and sails read as on the reference.
+- **The wake** scales with the beam: the foam trail is now about 6 m wide and solid white. Its strength is still the phone session's to tune (`_foamRate`, `_WakeFoam`).
+- **Palette**: the preview colours from `sloop.py` (white topsides, red trim, black bottom, brown wood, off-white sails) were set with no measured pass, as the user asked for less detail; they read as on the reference.
+- **Not changed**: the ripple square stays 48 m, about 2.4 ship lengths, and the ship still sails onto the island.
+- **Tests**:
+  - `BuiltModelTests` has props (size, pivot at the base) and ships (waterline extents against the type, keel at the draft, bow toward +Z); both get transforms and materials.
+  - `ShipControllerTests`, `WaveRiderTests`, `WaterRippleTests` and `CameraControllerTests` moved to the type and the new `SetTarget`.
+- **Docs**: `ship-controller.md` (ship types), `camera-controller.md` (offset and look point from the type), `water.md` (the wake's radii in half beams).
+- **Gates**: compile 0 warnings, EditMode 141/141, PlayMode 19/19.
+- **Dev APK**: 73,711,286 bytes; the build left git unchanged.

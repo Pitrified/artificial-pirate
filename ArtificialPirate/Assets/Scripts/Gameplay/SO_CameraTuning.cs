@@ -3,20 +3,17 @@ namespace Game.Gameplay
     using UnityEngine;
 
     /// <summary>
-    /// Designer-tunable data for the third-person chase camera.
+    /// Designer-tunable data for the third-person chase camera. Where it sits comes from the
+    /// followed ship's type (<see cref="SO_ShipType.CameraOffset"/>).
     /// Create an instance via Assets > Create > artificial-pirate > Camera Tuning
     /// and assign it to the CameraController on MainCamera.
     /// </summary>
     [CreateAssetMenu(menuName = "artificial-pirate/Camera Tuning", fileName = "SO_CameraTuning")]
     public sealed class SO_CameraTuning : ScriptableObject
     {
-        [SerializeField] private Vector3 _localOffset = new Vector3(0f, 3f, -6f);
         [SerializeField] private float _positionLerp = 5f;
         [SerializeField] private float _rotationLerp = 5f;
         [SerializeField] private bool _lookAtTarget = true;
-
-        /// <summary>Camera offset in the target's local space.</summary>
-        public Vector3 LocalOffset => _localOffset;
 
         /// <summary>Per-second position smoothing coefficient for framerate-independent Lerp.</summary>
         public float PositionLerp => _positionLerp;

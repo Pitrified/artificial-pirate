@@ -54,7 +54,8 @@ The choice and the alternatives are in the guide, unity-setup-project's `plans/0
 
 ## A wake
 
-A `WakeSource` on whatever moves the hull on the plane (the ship's root), with the ripples and the hull's half length and beam.
+A `WakeSource` on whatever moves the hull on the plane (the ship's root), with the ripples and the ship's `SO_ShipType` for the hull's half length and beam.
+The dent's radius (`_dentRadiusHalfBeams`) and the foam's are in half beams, so one setting suits every size of ship.
 It replaces a `RippleSource` on a hull: rings dropped at intervals read as a chain of circles behind a moving ship.
 Stamped every frame, the dents merge; ripples in the field travel at about 4 m/s (0.71 texel a step, 0.1875 m texels, 30 steps/s), so a hull faster than that leaves a V of them, about 30 degrees each side at 8 m/s.
 The foam it stamps fades (`_foamFade`, halved in about 1.5 s) and spreads (`_foamSpread`), so the trail widens and breaks up behind the stern.

@@ -12,9 +12,9 @@ namespace Game.Tests.EditMode
     {
         private GameObject _go;
         private ShipController _controller;
-        private SO_ShipTuning _tuning;
+        private SO_ShipType _type;
 
-        // SO_ShipTuning defaults: MaxSpeed=8, Acceleration=4, ReverseFactor=0.3,
+        // SO_ShipType defaults: MaxSpeed=8, Acceleration=4, ReverseFactor=0.3,
         //                         YawRateDeg=60, SteeringResponseLerp=6
 
         [SetUp]
@@ -23,18 +23,18 @@ namespace Game.Tests.EditMode
             _go = new GameObject("Ship");
             _controller = _go.AddComponent<ShipController>();
 
-            _tuning = ScriptableObject.CreateInstance<SO_ShipTuning>();
-            var tuningField = typeof(ShipController).GetField(
-                "_tuning",
+            _type = ScriptableObject.CreateInstance<SO_ShipType>();
+            var typeField = typeof(ShipController).GetField(
+                "_type",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            tuningField.SetValue(_controller, _tuning);
+            typeField.SetValue(_controller, _type);
         }
 
         [TearDown]
         public void TearDown()
         {
             Object.DestroyImmediate(_go);
-            Object.DestroyImmediate(_tuning);
+            Object.DestroyImmediate(_type);
         }
 
         // ------------------------------------------------------------------

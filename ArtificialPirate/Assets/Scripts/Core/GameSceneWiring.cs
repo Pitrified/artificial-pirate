@@ -38,9 +38,13 @@ namespace Game.Core
             {
                 Log.Warn(LogCat.Gameplay, "GameSceneWiring: CameraController not assigned");
             }
+            else if (_ship != null && _ship.Type == null)
+            {
+                Log.Warn(LogCat.Gameplay, "GameSceneWiring: the ship has no type - camera not wired");
+            }
             else if (_ship != null)
             {
-                _camera.SetTarget(_ship.transform);
+                _camera.SetTarget(_ship.transform, _ship.Type.CameraOffset, _ship.Type.CameraLookAt);
                 _camera.SnapToTarget();
                 Log.Info(LogCat.Gameplay, "GameSceneWiring: CameraController wired to ship");
             }

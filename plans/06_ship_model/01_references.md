@@ -34,6 +34,7 @@ status: done
 - Nothing in `ArtificialPirate/` changes. No gates are needed beyond `plans.py check`.
 
 ## What the implementation found
+
 - 2026-11-19. **Downloads**: Wikimedia answers 429 to the generic User-Agent after one file and keeps refusing for more than 8 minutes, on thumbnails and originals alike. Originals redirect fine (`Special:FilePath`); thumbnails are generated on request and were refused first. The user chose a descriptive User-Agent, per Wikimedia's bot policy.
 - **Sizes** (the user, 2026-11-19: "Providence + Niagara"). The only usable period sloop replica on Commons is the *Providence* (1976), at 20.3 m on deck, not the plan's 12 m. *Lady Washington* (brig, 1989) is also 20 m. The brig is the *Niagara* (snow-brig, rebuilt 1988), 33.7 m between perpendiculars. Real numbers at face value: the camera and the wake scale to a 20 m ship.
   - *Providence*: LOA 34 m, LOD 20.3 m, LWL 17.98 m, beam 6.16 m, draft 2.41 m ([classicsailboats.org](https://classicsailboats.org/?p=32729)).

@@ -54,7 +54,7 @@ A new type is a new parameter set. When it needs a part the builder lacks, the p
 
 Ships break two of the props' conventions:
 - The origin is on the design waterline amidships, not at the base, because a hull is placed by its waterline.
-- The bow points to +Y in Blender. The probe's `--view 90 5` shows the starboard side, bow to the right.
+- The bow points to -Y in Blender, which the FBX export turns into Unity's +Z, the ship's forward; `BuiltModelTests` checks it. The probe's `--view 270 5` shows the starboard side, bow to the right.
 
 The five slots `HullBottom`, `Topsides`, `Trim`, `ShipWood` and `SailCloth` are shared by every ship. A type with its own paint gets a material override on its prefab variant.
 

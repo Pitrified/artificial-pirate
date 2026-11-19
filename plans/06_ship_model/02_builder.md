@@ -42,6 +42,7 @@ status: done
 - `docs/building_assets.md` has the ship origin and the shared builder pattern.
 
 ## What the implementation found
+
 - 2026-11-19. **`builders/ship.py`**:
   - **Hull.** 21 stations, each a loop: deck, bulwark, rail, trim band, topsides, boot top, then 5 points down a superellipse bilge to the keel, and the other side mirrored.
     - Toward the ends the underwater sections narrow into a V. The keel sweeps up at the forefoot.
