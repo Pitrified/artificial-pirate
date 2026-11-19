@@ -20,7 +20,7 @@ A ship model in place of the box hull, general enough for several ship types. Br
 | #  | Phase                    | Plan                                       | Status  |
 | -- | ------------------------ | ------------------------------------------ | ------- |
 | 01 | References               | [`01_references.md`](01_references.md)     | done    |
-| 02 | Ship builder and sloop   | [`02_builder.md`](02_builder.md)           | planned |
+| 02 | Ship builder and sloop   | [`02_builder.md`](02_builder.md)           | done    |
 | 03 | The sloop in the game    | [`03_sloop_in_game.md`](03_sloop_in_game.md) | planned |
 | 04 | The brig                 | [`04_brig.md`](04_brig.md)                 | planned |
 | 05 | Verify                   | [`05_verify.md`](05_verify.md)             | planned |
@@ -36,3 +36,4 @@ Append-only. Newest at the bottom.
 - 2026-11-19 : "all recommended, plan them". Five phases planned.
 - 2026-11-19 : phase 01 - Commons rate-limits a generic User-Agent; the user chose a descriptive one. Sizes: the sloop *Providence* (20.3 m) and the snow-brig *Niagara* (33.7 m), at real size.
 - 2026-11-19 : phase 01 - references kept and credited: the *Providence* side-on (public domain) and under sail, the *Niagara* broadside under full sail (both CC BY 2.0). Numbers published and measured; the two "what right looks like" lists written. The *Niagara* has a flush deck, so phase 04's quarterdeck is not needed.
+- 2026-11-19 : phase 02 - `ship.py` and `sloop.py`; the sloop reads as the Providence in one probe round; 1,358 triangles, 5 slots; `Sloop.fbx` identical on a rebuild.

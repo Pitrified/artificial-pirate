@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 02 - The ship builder and the sloop
@@ -42,3 +42,23 @@ status: planned
 - `docs/building_assets.md` has the ship origin and the shared builder pattern.
 
 ## What the implementation found
+- 2026-11-19. **`builders/ship.py`**:
+  - **Hull.** 21 stations, each a loop: deck, bulwark, rail, trim band, topsides, boot top, then 5 points down a superellipse bilge to the keel, and the other side mirrored.
+    - Toward the ends the underwater sections narrow into a V. The keel sweeps up at the forefoot.
+    - The transom is a flat, raked cap; the stem is a narrow cap.
+  - **Masts** are tapered 8-sided poles raked aft. Yards, boom, gaff and bowsprit are 6-sided.
+  - **Sails** are 4 x 4 grids bellied in the middle, two-sided as separate copies, so they show from both sides with back-face culling.
+    - Square sails hang between two yards.
+    - A gaff sail fills the gaff and the boom.
+    - A jib runs from the mast to a point on the bowsprit.
+  - Slots: `HullBottom`, `Topsides`, `Trim`, `ShipWood`, `SailCloth`. The plan's `HullWood`/`DeckWood`/`Spar` became `ShipWood` for the deck and spars, and `Topsides`, because both ships paint the hull in two colours above a dark bottom.
+- **`builders/sloop.py`**: round numbers from phase 01; `build` is `ship.build`.
+- **Probe passes**, one round, as the user asked for less detail:
+  - side-on against `providence_side.jpg`: the hull's length, low freeboard and sheer, the mast's place and height (1.4 times the hull), the long boom and the steeved bowsprit read as in the photograph;
+  - three-quarter against `providence_sail.jpg`: the gaff main, two square sails above it, and two jibs.
+  - From the side the square sails are edge-on, as in any side view of a square rig.
+  - Probes are in `~/.cache/claude-verify/ship/`.
+- **Budget**: 1,358 triangles, of which 910 are the hull and 320 the sails; 5 slots. Size 12 x 34 x 30 m, with the boom and bowsprit included.
+- `build.py sloop` writes `Sloop.fbx`, byte-identical on a rebuild. `ruff` is clean.
+- `docs/building_assets.md`: "Families of objects: ships" covers the shared builder, the waterline origin, the bow toward +Y and the five slots. Which way the bow faces in Unity is checked in phase 03.
+- The FBX is committed in phase 03 with the `.meta` that `ModelSetup` writes, so its GUID is fixed from the first commit.
