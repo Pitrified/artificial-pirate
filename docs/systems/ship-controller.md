@@ -50,11 +50,11 @@ No forces, no `MovePosition`, no physics queries. The root keeps yaw only, so `f
 
 The ship stays kinematic and rides the water without physics (`plans/05_from_guide`, Q1).
 
-- `PF_Ship`'s root carries `ShipController`, `WaveRider` and a kinematic `Rigidbody`; a `Hull` child carries the mesh, the box collider and a `RippleSource`.
+- `PF_Ship`'s root carries `ShipController`, `WaveRider`, a `WakeSource` (its wake, `docs/systems/water.md`) and a kinematic `Rigidbody`; a `Hull` child carries the mesh and the box collider.
 - Each `LateUpdate`, `WaveRider` samples the water (`WaterSurface.HeightAt`, the same waves the shader draws) at the bow, stern, port and starboard, `_halfLength` and `_halfBeam` from the centre, and eases the hull's height, pitch and roll toward them at `_response` per second; `Start` places it at once. `_waterlineOffset` raises or sinks the hull's centre against the mean surface.
 - The camera follows the root, so it does not bob; the save reads the root, so saves are unchanged.
 - The kinematic `Rigidbody` makes the hull a moving collider: floating props are pushed out of it rather than passing through. The depth bake passes through it, as through anything on a Rigidbody.
-- The water is wired on the scene's instance (`_water` on `WaveRider`, `_water` and `_ripples` on the hull's `RippleSource`).
+- The water is wired on the scene's instance (`_water` on `WaveRider`, `_ripples` on `WakeSource`); the water's `WaterRipples` follows the ship.
 - `WaveRiderTests` (EditMode): level at the sea on flat water, nose up where the water rises toward the bow, roll with crests along the hull, eased after the first step.
 
 ---

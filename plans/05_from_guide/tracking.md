@@ -17,6 +17,7 @@ The guide's diagnostics, asset pipeline and water, brought into the game, and th
 | 03 | Water              | [`03_water.md`](03_water.md)           | done    |
 | 04 | Ship on the water  | [`04_ship.md`](04_ship.md)             | done    |
 | 05 | Verify             | [`05_verify.md`](05_verify.md)         | in progress |
+| 06 | The ship's wake    | [`06_wake.md`](06_wake.md)             | in progress |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -32,3 +33,5 @@ Append-only. Newest at the bottom.
 - 2026-11-19 : phase 04 - the ship rides the waves kinematically (`WaveRider`, a `Hull` child, a kinematic collider); a start splash fixed in `RippleSource`. Gates green, dev APK.
 - 2026-11-19 : phase 05 - fresh clone green; the APK goes to the phone. Waiting on the device run.
 - 2026-11-19 : phone report: 60 fps held, 147 MB, no per-frame allocation, no problems. The look not yet reported.
+- 2026-11-19 : the look on the phone: the ship bobs right, the barrels are pushed by it; the wake is a chain of circles. Phase 06 added: the ripple square follows the ship, the hull stamps every step, a foam trail in the ripple field.
+- 2026-11-19 : phase 06 - the capture sails the ship; the ripple square follows it; `WakeSource` replaces the hull's rings with a dent and foam every frame; foam channel in the ripple field. Gates green, dev APK. Waiting on the phone.

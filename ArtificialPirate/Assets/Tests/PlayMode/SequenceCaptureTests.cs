@@ -14,9 +14,10 @@ namespace Game.Tests.PlayMode
     /// <summary>
     /// Plays the Game scene for a few seconds of fixed-step time and, when asked, writes frames
     /// from a camera pose: the sequence capture of docs/headless-unity.md, for things a still
-    /// cannot show (waves, bobbing, ripples). Without the environment variables it is a plain
-    /// test that the scene plays through without an error logged.
+    /// cannot show (waves, bobbing, ripples, the wake). Without the environment variables it is a
+    /// plain test that the scene plays through without an error logged.
     /// Environment: CAPTURE_SEQUENCE_DIR (writes frames there), CAPTURE_SECONDS (default 4),
+    /// CAPTURE_THROTTLE and CAPTURE_STEERING (-1 to 1, held on the ship from the start; default 0),
     /// CAPTURE_FPS (frames written per second, default 10), CAPTURE_EYE and CAPTURE_TARGET
     /// ("x,y,z"; default: the game's own chase camera), CAPTURE_SIZE ("960x540").
     /// Run alone with <c>-testFilter Game.Tests.PlayMode.SequenceCaptureTests</c>.
@@ -28,6 +29,7 @@ namespace Game.Tests.PlayMode
         private const float DefaultSeconds = 4f;
         private const float DefaultCaptureFps = 10f;
         private const float WarmUpSeconds = 0.5f;
+        private const float MinSailedMetres = 1f;
 
         [SetUp]
         public void SetUp()
@@ -63,6 +65,17 @@ namespace Game.Tests.PlayMode
             float captureFps = EnvFloat("CAPTURE_FPS", DefaultCaptureFps);
             int every = Mathf.Max(1, Mathf.RoundToInt(SimulationFps / captureFps));
 
+            ShipController ship = UnityEngine.Object.FindAnyObjectByType<ShipController>();
+            Assert.IsNotNull(ship, "The Game scene has a ship");
+            float throttle = EnvFloat("CAPTURE_THROTTLE", 0f);
+            float steering = EnvFloat("CAPTURE_STEERING", 0f);
+            if (throttle != 0f || steering != 0f)
+            {
+                ship.Inject(null); // the held input below, not the (idle) input system
+                ship.SetInput(throttle, steering);
+            }
+            Vector3 startPosition = ship.transform.position;
+
             Camera camera = SetUpCamera();
             RenderTexture target = null;
             Texture2D image = null;
@@ -93,6 +106,12 @@ namespace Game.Tests.PlayMode
             }
 
             Assert.AreEqual(GameState.Playing, GameManager.Instance.CurrentState, "The game kept playing");
+            float sailed = Vector3.Distance(startPosition, ship.transform.position);
+            if (throttle != 0f)
+            {
+                Assert.That(sailed, Is.GreaterThan(MinSailedMetres), "The ship sailed under the held throttle");
+            }
+            Debug.Log($"SequenceCapture: the ship moved {sailed:F1} m");
             if (target != null)
             {
                 File.WriteAllText(Path.Combine(dir, "sequence.json"),

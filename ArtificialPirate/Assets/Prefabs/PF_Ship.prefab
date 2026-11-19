@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 5632879970085773604}
   - component: {fileID: 5921116447206325526}
   - component: {fileID: 2550578009648268646}
-  - component: {fileID: 2295776495859707503}
   m_Layer: 0
   m_Name: Hull
   m_TagString: Untagged
@@ -113,27 +112,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2295776495859707503
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1157457654834069435}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f37f78d4b9672d26d86e704fc41ac405, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.Water.RippleSource
-  _water: {fileID: 0}
-  _ripples: {fileID: 0}
-  _reach: 0.5
-  _ringRadius: 0.6
-  _interval: 0.25
-  _minSpeed: 0.25
-  _strength: 0.02
-  _splashSpeed: 2
-  _splashStrength: 0.012
 --- !u!1 &4700440681567757610
 GameObject:
   m_ObjectHideFlags: 0
@@ -146,6 +124,7 @@ GameObject:
   - component: {fileID: 6889234294984935923}
   - component: {fileID: 4157943036615421541}
   - component: {fileID: 7477652006582932171}
+  - component: {fileID: 4541559287504695063}
   m_Layer: 0
   m_Name: PF_Ship
   m_TagString: Untagged
@@ -228,3 +207,22 @@ MonoBehaviour:
   _halfBeam: 0.5
   _waterlineOffset: 0
   _response: 4
+--- !u!114 &4541559287504695063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4700440681567757610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b10e26f018208137cabdaa4f3868a736, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.Water.WakeSource
+  _ripples: {fileID: 0}
+  _halfLength: 1
+  _halfBeam: 0.5
+  _minSpeed: 0.5
+  _dentRadius: 0.6
+  _dentStrength: 0.03
+  _foamRate: 1

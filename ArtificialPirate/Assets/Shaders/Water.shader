@@ -9,6 +9,7 @@ Shader "artificial-pirate/Water"
         [NoScaleOffset] _NormalMap ("Detail normal map (tiling)", 2D) = "bump" {}
         _RippleStrength ("Ripple normal strength", Float) = 0.6
         _RippleFoam ("Ripple foam", Float) = 4
+        _WakeFoam ("Wake foam", Float) = 1
     }
 
     SubShader
@@ -38,6 +39,7 @@ Shader "artificial-pirate/Water"
             CBUFFER_START(UnityPerMaterial)
                 float _RippleStrength;
                 float _RippleFoam;
+                float _WakeFoam;
             CBUFFER_END
 
             // Globals from WaterSurface (and WaterRipples).
@@ -139,18 +141,22 @@ Shader "artificial-pirate/Water"
                 float2 bend = (n1.xy + n2.xy) * _WaterDetail.y;
 
                 // Ripples: a height field around the action; its slope bends the normal, its height foams.
+                // Its foam channel is the wake a ship leaves.
                 float ripple = 0;
+                float wake = 0;
                 if (_WaterRippleRect.z > 0)
                 {
                     float2 rippleUV = (i.positionWS.xz - _WaterRippleRect.xy) / _WaterRippleRect.z;
                     float t = _WaterRippleRect.w;
-                    float h = SAMPLE_TEXTURE2D(_WaterRipples, sampler_WaterRipples, rippleUV).r;
+                    float3 field = SAMPLE_TEXTURE2D(_WaterRipples, sampler_WaterRipples, rippleUV).rgb;
+                    float h = field.r;
                     float hx = SAMPLE_TEXTURE2D(_WaterRipples, sampler_WaterRipples, rippleUV + float2(t, 0)).r;
                     float hz = SAMPLE_TEXTURE2D(_WaterRipples, sampler_WaterRipples, rippleUV + float2(0, t)).r;
                     float edge = saturate(min(min(rippleUV.x, rippleUV.y), min(1 - rippleUV.x, 1 - rippleUV.y)) * 10);
                     float texelWorld = t * _WaterRippleRect.z;
                     bend -= float2(hx - h, hz - h) / texelWorld * _RippleStrength * edge;
                     ripple = abs(h) * _RippleFoam * edge;
+                    wake = saturate(field.b * _WakeFoam) * edge;
                 }
                 float3 n = normalize(float3(i.normalWS.x + bend.x, i.normalWS.y, i.normalWS.z + bend.y));
 
@@ -180,7 +186,9 @@ Shader "artificial-pirate/Water"
                 float swash = 0.5 + 0.5 * sin(_WaterTime * 1.1 + i.restXZ.x * 0.15 + i.restXZ.y * 0.11);
                 float waterline = 1.0 - smoothstep(0.0, 0.08 + 0.14 * swash, depth);
                 float crestFoam = smoothstep(0.85, 1.0, i.crest) * _WaterFoamParams.z * smoothstep(0.55, 0.9, breakup);
-                float foam = saturate(max(max(bands, waterline), max(crestFoam, saturate(ripple))));
+                // The wake's foam breaks up where it thins out, solid where it is fresh.
+                float wakeFoam = wake * smoothstep(0.2, 0.6, breakup + wake * 0.6 - 0.2);
+                float foam = saturate(max(max(bands, waterline), max(max(crestFoam, wakeFoam), saturate(ripple))));
                 colour = lerp(colour, _WaterFoam.rgb * (0.6 + 0.4 * nl), foam);
 
                 // Shallow water is see-through to the sand; deep is nearly opaque; none over land.
