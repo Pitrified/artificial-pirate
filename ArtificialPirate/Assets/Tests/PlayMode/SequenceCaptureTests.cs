@@ -20,7 +20,8 @@ namespace Game.Tests.PlayMode
     /// CAPTURE_THROTTLE and CAPTURE_STEERING (-1 to 1, held on the ship from the start; default 0),
     /// CAPTURE_START ("x,z,yaw": where the ship starts; default: where the scene has it),
     /// CAPTURE_FPS (frames written per second, default 10), CAPTURE_EYE and CAPTURE_TARGET
-    /// ("x,y,z"; default: the game's own chase camera), CAPTURE_SIZE ("960x540").
+    /// ("x,y,z"; default: the game's own chase camera), CAPTURE_SIZE ("960x540"), CAPTURE_HUD
+    /// (any value: the HUD drawn through the capture camera, which an overlay canvas is not).
     /// Run alone with <c>-testFilter Game.Tests.PlayMode.SequenceCaptureTests</c>.
     /// </summary>
     public sealed class SequenceCaptureTests
@@ -84,6 +85,10 @@ namespace Game.Tests.PlayMode
             Vector3 startPosition = ship.transform.position;
 
             Camera camera = SetUpCamera();
+            if (Environment.GetEnvironmentVariable("CAPTURE_HUD") != null)
+            {
+                ShowHud(camera);
+            }
             RenderTexture target = null;
             Texture2D image = null;
             if (!string.IsNullOrEmpty(dir))
@@ -145,6 +150,21 @@ namespace Game.Tests.PlayMode
             camera.transform.position = ParseVector(eye);
             camera.transform.LookAt(ParseVector(Environment.GetEnvironmentVariable("CAPTURE_TARGET") ?? "0,0,0"));
             return camera;
+        }
+
+        private const float HudPlaneDistance = 1f;
+
+        private static void ShowHud(Camera camera)
+        {
+            foreach (Canvas canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude))
+            {
+                if (canvas.isRootCanvas && canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                {
+                    canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                    canvas.worldCamera = camera;
+                    canvas.planeDistance = HudPlaneDistance;
+                }
+            }
         }
 
         private static void WriteFrame(Camera camera, RenderTexture target, Texture2D image, string path)

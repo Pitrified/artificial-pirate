@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eab7315d3173fa5b787c4918668f3285, type: 3}
+  m_Name: SO_MapStyle
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.World.SO_MapStyle
+  _tileSize: 48
+  _deep:
+    serializedVersion: 2
+    rgba: 4284235286
+  _shallow:
+    serializedVersion: 2
+    rgba: 4288714310
+  _shallowDepth: 8
+  _sand:
+    serializedVersion: 2
+    rgba: 4288070870
+  _grass:
+    serializedVersion: 2
+    rgba: 4283596896
+  _rock:
+    serializedVersion: 2
+    rgba: 4285563020
+  _sandTop: 0.8
+  _rockAbove: 20
+  _unexplored:
+    serializedVersion: 2
+    rgba: 4280557084

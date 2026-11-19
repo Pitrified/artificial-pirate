@@ -2,7 +2,9 @@
     "name": "Game.UI",
     "rootNamespace": "",
     "references": [
-        "GUID:b3b417d5ab3c401287c3100131b57be7"
+        "GUID:b3b417d5ab3c401287c3100131b57be7",
+        "GUID:aee793a488ff40c49115e2d02831a794",
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

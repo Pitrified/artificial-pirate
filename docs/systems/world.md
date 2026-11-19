@@ -53,6 +53,13 @@ On the `World` object, with the water, the streamer and the ship.
 - **The seed.** `GameSceneWiring` hands the streamer to `GameManager.RegisterWorld` before it wires the ground. With a save, the saved seed begins and the saved explored cells are added back; without one (a new game), a random seed from 1 up begins.
 - **The save** (`GameSaveData` version 3, `docs/functional-specs.md` §9) holds the seed and the explored cells; `GameManager` writes them with the ship.
 
+## The maps
+
+- **`WorldMapTiles`**: a cell drawn once as a tile of `SO_MapStyle.TileSize` (48) pixels, coloured by height (deep to shallow water, sand, grass, rock), and kept. Cells without an island share one open-sea tile; an island's tile is allocated the first time it is painted (9 KB).
+- **`WorldMap`**, on the `World` object: the streamer's world in tiles; `Compose` draws any rectangle of cells into a pixel buffer, the cells not explored in `SO_MapStyle.Unexplored`, painting at most a budget of new tiles. Both maps compose from it, so a cell is painted once.
+- **`Minimap`** (`Game.UI`, on the HUD, top right, 220 px): north up, the 3 x 3 cells around the ship in a 144 px texture, recomposed when the ship enters a cell or more is explored, one new tile a frame. The image shows a window two cells wide centred on the ship (`RawImage.uvRect`), and the ship's arrow (a texture made in code) turns with its heading. Tapping it raises `Clicked`.
+- The HUD is uGUI, as the joystick and pause button are; `Game.UI` now references `Game.Gameplay` and uGUI.
+
 ## The ground under the ship
 
 `GameSceneWiring` hands the world to the player's `HullContact` (`UseGround`). A step that would put the hull's leading end (the bow ahead, the stern astern) over ground shallower than the draft is undone and the ship stops; it can turn or back away. See `docs/systems/ship-controller.md`.
@@ -74,6 +81,7 @@ On the `World` object, with the water, the streamer and the ship.
 
 ## Tests
 
+`WorldMapTests` (EditMode): explored cells drawn by height and the rest dark; new island tiles painted within a budget, open sea free; the minimap drawing around the ship, centring its window, turning its arrow and raising `Clicked`.
 `WorldDepthMapTests` (EditMode): a new world drawn at once, shallow over the start island and deep in the open; sailing far fills a new map over frames before showing it; another seed drawn at once; the water grid following in whole quads.
 `SaveRestoreTests` (PlayMode): a new game picks a seed; the seed and the explored cells come back on Continue.
 `WorldStreamerTests` (EditMode): explored cells reveal a square and count only new cells; the streamer marks the cells around its target; a mesh follows the height function; the streamer builds the islands around its target one a frame, nearest first, drops those left behind, and starts again on another seed.
