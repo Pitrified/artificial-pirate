@@ -18,6 +18,7 @@ namespace Game.Tests.PlayMode
     /// plain test that the scene plays through without an error logged.
     /// Environment: CAPTURE_SEQUENCE_DIR (writes frames there), CAPTURE_SECONDS (default 4),
     /// CAPTURE_THROTTLE and CAPTURE_STEERING (-1 to 1, held on the ship from the start; default 0),
+    /// CAPTURE_START ("x,z,yaw": where the ship starts; default: where the scene has it),
     /// CAPTURE_FPS (frames written per second, default 10), CAPTURE_EYE and CAPTURE_TARGET
     /// ("x,y,z"; default: the game's own chase camera), CAPTURE_SIZE ("960x540").
     /// Run alone with <c>-testFilter Game.Tests.PlayMode.SequenceCaptureTests</c>.
@@ -69,6 +70,12 @@ namespace Game.Tests.PlayMode
             Assert.IsNotNull(ship, "The Game scene has a ship");
             float throttle = EnvFloat("CAPTURE_THROTTLE", 0f);
             float steering = EnvFloat("CAPTURE_STEERING", 0f);
+            string shipStart = Environment.GetEnvironmentVariable("CAPTURE_START");
+            if (shipStart != null)
+            {
+                Vector3 pose = ParseVector(shipStart);
+                ship.Teleport(new Vector3(pose.x, 0f, pose.y), pose.z);
+            }
             if (throttle != 0f || steering != 0f)
             {
                 ship.Inject(null); // the held input below, not the (idle) input system

@@ -4,7 +4,8 @@ namespace Game.Gameplay
     using Game.Systems;
 
     /// <summary>
-    /// Kinematic ship controller. Moves the Transform directly; no Rigidbody or physics queries.
+    /// Kinematic ship controller. Moves the Transform directly, not by physics forces; where its
+    /// hull meets another ship's, its <see cref="HullContact"/> moves it out and shares a ram.
     /// Reads movement input from an injected <see cref="IInputManager"/> each frame.
     /// </summary>
     public sealed class ShipController : MonoBehaviour
@@ -12,6 +13,9 @@ namespace Game.Gameplay
         private const float DriftWarnDistanceSq = 10000f * 10000f;
 
         [SerializeField] private SO_ShipType _type;
+
+        [Tooltip("This ship's hull against other ships' hulls; none sails through them.")]
+        [SerializeField] private HullContact _contact;
 
         /// <summary>World-space Y position the ship is locked to (sea surface). Constant in v0.2.</summary>
         [SerializeField] private float _seaSurfaceY = 0f;
@@ -126,6 +130,12 @@ namespace Game.Gameplay
             _transform.position = pos;
 
             _transform.Rotate(Vector3.up, _type.YawRateDeg * _smoothedSteering * dt);
+
+            if (_contact != null)
+            {
+                Vector3 forward = _transform.forward;
+                _currentSpeed = Vector3.Dot(_contact.Collide(forward * _currentSpeed), forward);
+            }
 
             if (pos.sqrMagnitude > DriftWarnDistanceSq)
             {

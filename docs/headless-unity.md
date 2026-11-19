@@ -55,7 +55,7 @@ xvfb-run -a -s "-screen 0 1280x1024x24" "$EDITOR" -batchmode -force-vulkan \
 | PlayMode tests | `-runTests -testPlatform PlayMode -testResults <xml>` | exit 0; the XML root has `failed="0"` |
 | `dev` APK | `Tools/build-android.sh dev`, itself under `xvfb-run -a` | `Build SUCCEEDED`; the APK under `ArtificialPirate/Build/dev/` |
 | Capture | `-executeMethod Game.Editor.SceneCapture.CaptureFromCommandLine -captureOut shot.png [-captureEye x,y,z -captureTarget x,y,z] [-captureBudget]` | the PNG looks right, and measures right where the change is visual; `-captureBudget` logs triangles and material slots in view |
-| Sequence | `-runTests -testPlatform PlayMode -testFilter Game.Tests.PlayMode.SequenceCaptureTests` with `CAPTURE_SEQUENCE_DIR=<dir>` (and `CAPTURE_SECONDS`, `CAPTURE_FPS`, `CAPTURE_EYE`, `CAPTURE_TARGET`; `CAPTURE_THROTTLE` and `CAPTURE_STEERING` sail the ship) | frames over time in Play mode, read with `measure.py sheet / gif / motion / track` |
+| Sequence | `-runTests -testPlatform PlayMode -testFilter Game.Tests.PlayMode.SequenceCaptureTests` with `CAPTURE_SEQUENCE_DIR=<dir>` (and `CAPTURE_SECONDS`, `CAPTURE_FPS`, `CAPTURE_EYE`, `CAPTURE_TARGET`; `CAPTURE_THROTTLE` and `CAPTURE_STEERING` sail the ship, from `CAPTURE_START` "x,z,yaw" if given) | frames over time in Play mode, read with `measure.py sheet / gif / motion / track` |
 
 `Tools/gates.sh [compile|edit|play|all]` runs the first three gates this way and exits non-zero on any `error CS`, `warning CS` or failed test, naming the failed tests; logs and results go to `ArtificialPirate/Logs/gates/`.
 

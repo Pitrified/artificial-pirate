@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1034272622327642354}
   - component: {fileID: 2550578009648268646}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Hull
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -66,6 +66,7 @@ GameObject:
   - component: {fileID: 4157943036615421541}
   - component: {fileID: 7477652006582932171}
   - component: {fileID: 4541559287504695063}
+  - component: {fileID: 996484746544028862}
   m_Layer: 0
   m_Name: PF_Ship
   m_TagString: Untagged
@@ -102,6 +103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.ShipController
   _type: {fileID: 0}
+  _contact: {fileID: 996484746544028862}
   _seaSurfaceY: 0
 --- !u!54 &4157943036615421541
 Rigidbody:
@@ -165,3 +167,21 @@ MonoBehaviour:
   _dentRadiusHalfBeams: 1.2
   _dentStrength: 0.03
   _foamRate: 1
+--- !u!114 &996484746544028862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4700440681567757610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af9e16ac2a27e5f638e18924051d9948, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.HullContact
+  _type: {fileID: 0}
+  _hull: {fileID: 2550578009648268646}
+  _ships:
+    serializedVersion: 2
+    m_Bits: 64
+  _driftDamping: 0.5

@@ -15,7 +15,7 @@ namespace Game.Gameplay.Water
     [RequireComponent(typeof(Rigidbody))]
     public sealed class Buoyancy : MonoBehaviour
     {
-        private const float WaterDensity = 1000f; // kg per cubic metre
+        internal const float WaterDensity = 1000f; // kg per cubic metre
         private const float Gravity = 9.81f;
 
         [SerializeField] private WaterSurface _water;
