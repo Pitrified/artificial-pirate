@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 06 - Detail and look
@@ -137,3 +137,11 @@ What gives the most for the least, so far, by eye:
 - **Props through the palette** cost triangles (cannons and crew: 1,540 on the brig) but one slot. The crew give the scale.
 - **Draw calls are where it would hurt**: the slots grew from 5 to 12 a ship, and the shadows double the casters. Folding the flat-coloured slots (`Tar`, `Gilt`, `ShipWood`, `HullBottom`) into the palette, and the textured ones into an atlas, would bring a ship to about 3 draws.
 - **Gates**: compile 0 warnings, EditMode 146/146, PlayMode 19/19. **Dev APK** 74,043,547 bytes, 330 kB more than before the detail; the build left git unchanged. The frame rate with shadows and the detail is the phone's to measure.
+- 2026-11-19, **the phone report** (Pixel 7 Pro, build `dev 04533e7+dirty` of 14:22:38Z: the detail tree, built before its commit `14de774`):
+  - 137.6 s, about 131 s of it playing (4.8 to 135.5 s).
+  - Frame time 16.8 ms at p05, median and p95; over the last 60 s at most 16.8 ms at p95 (one 133 ms frame at the pause). **60 fps held** with shadows, both detailed ships and the waving flag.
+  - Memory 147.5 MB, as before the detail. Heap 9.7 to 10.5 MB. `gc alloc kB` 0.1 a frame at p05, median and p95. 8 collections.
+  - 5 slow frames (0.06%): the boot and the Game scene's load among them.
+  - No problems.
+  - The user: "Brillant results".
+- So on this phone the detail and the shadows fit at 60 fps. The draw-call fold (palette and atlas) is not needed for now; it is the first thing to do if more ships or a weaker phone push the frame time.
