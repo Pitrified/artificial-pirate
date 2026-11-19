@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Style src="Map.uss" />
+    <!--
+        map-overlay: full-screen backdrop over the paused game.
+        safe-area-container: receives dynamic padding from UISystem.ApplySafeArea().
+        map-frame: the space the map fits in; MapPanel keeps map-image square inside it.
+        map-ship: the ship's arrow, placed and turned by MapPanel.
+        btn-close-map: wired by UISystem to fire OnMapCloseRequested.
+    -->
+    <ui:VisualElement name="map-overlay" class="map-overlay">
+        <ui:VisualElement name="safe-area-container" class="safe-area-container">
+            <ui:VisualElement name="map-frame" class="map-frame">
+                <ui:VisualElement name="map-image" class="map-image">
+                    <ui:VisualElement name="map-ship" class="map-ship" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Button name="btn-close-map" class="map-close" text="Close" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

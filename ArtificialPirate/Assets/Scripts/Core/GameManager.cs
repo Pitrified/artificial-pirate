@@ -79,6 +79,7 @@ namespace Game.Core
 
             UISystem.OnResumeRequested       += ResumeGame;
             UISystem.OnReturnToMenuRequested += HandleReturnToMenuRequested;
+            UISystem.OnMapCloseRequested     += CloseMap;
 
             // Expose current state to the debug overlay via the Log utility.
             Log.GetGameState = () => CurrentState.ToString();
@@ -228,6 +229,7 @@ namespace Game.Core
             PersistCurrentState();
             _activeShip = null;                         // Game scene is about to unload
             _activeWorld = null;
+            UISystem?.HideScreen(ScreenId.Map);
             UISystem?.HideScreen(ScreenId.Pause);       // clear any lingering pause overlay
             InputManager?.SetEnabled(true);             // restore input for Menu scene
             TransitionTo(GameState.Loading);
@@ -274,6 +276,44 @@ namespace Game.Core
             TransitionTo(GameState.Playing);
         }
 
+        /// <summary>
+        /// Opens the full map of <paramref name="map"/>'s explored cells with
+        /// <paramref name="ship"/> on it, and pauses the game as the pause screen does.
+        /// </summary>
+        public void OpenMap(WorldMap map, Transform ship)
+        {
+            if (CurrentState != GameState.Playing)
+            {
+                Log.Warn(LogCat.Boot, "OpenMap called from invalid state '{0}'. Ignoring.", CurrentState);
+                return;
+            }
+            if (map == null || ship == null || map.World == null)
+            {
+                Log.Warn(LogCat.Gameplay, "OpenMap: no world or no ship - the map is not shown.");
+                return;
+            }
+
+            Vector3 at = ship.position;
+            Texture2D picture = map.ComposeExplored(map.World.CellAt(at.x, at.z), out Rect area);
+            var shipUv = new Vector2((at.x - area.x) / area.width, (at.z - area.y) / area.height);
+            InputManager?.SetEnabled(false);
+            UISystem?.ShowMap(picture, shipUv, ship.eulerAngles.y);
+            TransitionTo(GameState.Paused);
+        }
+
+        private void CloseMap()
+        {
+            if (CurrentState != GameState.Paused)
+            {
+                Log.Warn(LogCat.Boot, "CloseMap called from invalid state '{0}'. Ignoring.", CurrentState);
+                return;
+            }
+
+            UISystem?.HideScreen(ScreenId.Map);
+            InputManager?.SetEnabled(true);
+            TransitionTo(GameState.Playing);
+        }
+
         /// <inheritdoc/>
         public void QuitGame()
         {
@@ -310,6 +350,7 @@ namespace Game.Core
             {
                 UISystem.OnResumeRequested       -= ResumeGame;
                 UISystem.OnReturnToMenuRequested -= HandleReturnToMenuRequested;
+                UISystem.OnMapCloseRequested     -= CloseMap;
             }
 
             Log.GetGameState = null;

@@ -19,7 +19,7 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 | 03 | Water that follows | [`03_water.md`](03_water.md) | done |
 | 04 | Seed and save      | [`04_seed_and_save.md`](04_seed_and_save.md) | done |
 | 05 | The minimap        | [`05_minimap.md`](05_minimap.md) | done |
-| 06 | The full map       | -    | pending |
+| 06 | The full map       | [`06_full_map.md`](06_full_map.md) | done |
 | 07 | Verify             | -    | pending |
 
 ## Log
@@ -31,3 +31,4 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 - 2026-11-19: phase 03 done: the water follows the ship out to 2.3 km, the depth map is made at runtime, the bake and the hand-made island are gone. Open: a sun streak on the calm far water.
 - 2026-11-19: phase 04 done: a random seed on a new game, the seed and explored cells saved (version 3) and restored.
 - 2026-11-19: phase 05 done: shared map tiles, the HUD minimap, `CAPTURE_HUD`.
+- 2026-11-19: phase 06 done: the full map over the paused game, opened from the minimap; `CAPTURE_MAP`.

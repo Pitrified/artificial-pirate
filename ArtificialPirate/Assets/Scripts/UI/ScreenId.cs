@@ -11,5 +11,8 @@ namespace Game.UI
 
         /// <summary>The diagnostics report panel (Copy, Share, Previous session).</summary>
         Diagnostics,
+
+        /// <summary>The full map, over the paused game; shown through <see cref="IUISystem.ShowMap"/>.</summary>
+        Map,
     }
 }

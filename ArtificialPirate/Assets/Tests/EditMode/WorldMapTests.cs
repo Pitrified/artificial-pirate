@@ -75,6 +75,26 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void ComposeExplored_FitsTheExploredCells_OrCapsAroundTheShip()
+        {
+            _streamer.Explored.Reveal(new CellCoord(0, 0), 1);
+            _streamer.Explored.Add(new CellCoord(3, 0));
+
+            Texture2D picture = _map.ComposeExplored(new CellCoord(0, 0), out Rect area);
+
+            float cell = _worldSettings.CellSize;
+            Assert.AreEqual(5 * Size, picture.width, "x from -1 to 3: five cells, a square");
+            Assert.AreEqual(-1.5f * cell, area.x, 1e-3f);
+            Assert.AreEqual(5f * cell, area.width, 1e-3f);
+            Assert.AreEqual(-2.5f * cell, area.y, 1e-3f, "the three rows centred in five");
+
+            _streamer.Explored.Add(new CellCoord(40, 0));
+            picture = _map.ComposeExplored(new CellCoord(40, 0), out area);
+            Assert.AreEqual(21 * Size, picture.width, "capped");
+            Assert.AreEqual(30f * cell - cell / 2f, area.x, 1e-3f, "centred on the ship's cell");
+        }
+
+        [Test]
         public void Minimap_DrawsAroundTheShip_CentresOnIt_AndTurnsItsArrow()
         {
             var hud = new GameObject("HUD");

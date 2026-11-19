@@ -59,6 +59,8 @@ On the `World` object, with the water, the streamer and the ship.
 - **`WorldMap`**, on the `World` object: the streamer's world in tiles; `Compose` draws any rectangle of cells into a pixel buffer, the cells not explored in `SO_MapStyle.Unexplored`, painting at most a budget of new tiles. Both maps compose from it, so a cell is painted once.
 - **`Minimap`** (`Game.UI`, on the HUD, top right, 220 px): north up, the 3 x 3 cells around the ship in a 144 px texture, recomposed when the ship enters a cell or more is explored, one new tile a frame. The image shows a window two cells wide centred on the ship (`RawImage.uvRect`), and the ship's arrow (a texture made in code) turns with its heading. Tapping it raises `Clicked`.
 - The HUD is uGUI, as the joystick and pause button are; `Game.UI` now references `Game.Gameplay` and uGUI.
+- **The full map.** Tapping the minimap: `GameSceneWiring` calls `GameManager.OpenMap(worldMap, ship)`, which has `WorldMap.ComposeExplored` draw the smallest square of cells holding every explored one (at most 21 a side, 1 008 px, centred on the ship when they spread wider), places the ship on it, disables input and moves to `Paused`, as the pause screen does. `UISystem.ShowMap` shows it on the `Map` document (`UI/Map.uxml`, `MapPanel`): the picture kept square, the ship's arrow placed and turned, and a Close button that raises `OnMapCloseRequested`, on which `GameManager` hides the map and resumes. `IUISystem` takes only a texture and the ship's place, so `Game.UI`'s screens need nothing of the world.
+- No pan or zoom yet; the map fits the explored area.
 
 ## The ground under the ship
 
@@ -81,7 +83,9 @@ On the `World` object, with the water, the streamer and the ship.
 
 ## Tests
 
-`WorldMapTests` (EditMode): explored cells drawn by height and the rest dark; new island tiles painted within a budget, open sea free; the minimap drawing around the ship, centring its window, turning its arrow and raising `Clicked`.
+`MapScreenTests` (PlayMode): tapping the minimap opens the map over the paused game; Close resumes.
+`GameManagerTests` (EditMode): `OpenMap` from Playing shows the map with the ship placed and pauses, the close event resumes; from elsewhere it is ignored.
+`WorldMapTests` (EditMode): the full map fits the explored cells, or caps around the ship; explored cells drawn by height and the rest dark; new island tiles painted within a budget, open sea free; the minimap drawing around the ship, centring its window, turning its arrow and raising `Clicked`.
 `WorldDepthMapTests` (EditMode): a new world drawn at once, shallow over the start island and deep in the open; sailing far fills a new map over frames before showing it; another seed drawn at once; the water grid following in whole quads.
 `SaveRestoreTests` (PlayMode): a new game picks a seed; the seed and the explored cells come back on Continue.
 `WorldStreamerTests` (EditMode): explored cells reveal a square and count only new cells; the streamer marks the cells around its target; a mesh follows the height function; the streamer builds the islands around its target one a frame, nearest first, drops those left behind, and starts again on another seed.

@@ -11,7 +11,7 @@ handling, and screen routing.
 
 - Provide a persistent UI root (so loading screen survives scene swaps)
 - Apply safe-area insets to all panels
-- Route between screens (Loading, Menu, Pause)
+- Route between screens (Loading, Menu, Pause, Diagnostics, Map: the full map over the paused game, `docs/systems/world.md`)
 - Provide a uniform way to show/hide modal overlays
 
 ---
@@ -45,7 +45,8 @@ handling, and screen routing.
 ## Public interface (conceptual)
 
 - `ShowLoading()` / `HideLoading()`
-- `ShowScreen(ScreenId id)` - Menu, Pause
+- `ShowScreen(ScreenId id)` - Menu, Pause, Diagnostics; `HideScreen(ScreenId id)`
+- `ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg)`, hidden with `HideScreen(ScreenId.Map)`; `OnMapCloseRequested`
 - `IsAnyOverlayOpen { get; }`
 
 ---
@@ -57,6 +58,7 @@ handling, and screen routing.
 | Loading  | `Loading.uxml`        | Persistent   |
 | Menu     | `Menu.uxml`           | Menu scene   |
 | Pause    | `Pause.uxml`          | Persistent (overlay) |
+| Map      | `Map.uxml`            | Persistent (overlay) |
 
 ---
 

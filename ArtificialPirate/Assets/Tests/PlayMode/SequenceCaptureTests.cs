@@ -10,6 +10,7 @@ namespace Game.Tests.PlayMode
     using UnityEngine.TestTools;
     using Game.Core;
     using Game.Gameplay;
+    using Game.Gameplay.World;
 
     /// <summary>
     /// Plays the Game scene for a few seconds of fixed-step time and, when asked, writes frames
@@ -21,7 +22,8 @@ namespace Game.Tests.PlayMode
     /// CAPTURE_START ("x,z,yaw": where the ship starts; default: where the scene has it),
     /// CAPTURE_FPS (frames written per second, default 10), CAPTURE_EYE and CAPTURE_TARGET
     /// ("x,y,z"; default: the game's own chase camera), CAPTURE_SIZE ("960x540"), CAPTURE_HUD
-    /// (any value: the HUD drawn through the capture camera, which an overlay canvas is not).
+    /// (any value: the HUD drawn through the capture camera, which an overlay canvas is not),
+    /// CAPTURE_MAP (a PNG path: the full map's picture of the cells explored, at the end).
     /// Run alone with <c>-testFilter Game.Tests.PlayMode.SequenceCaptureTests</c>.
     /// </summary>
     public sealed class SequenceCaptureTests
@@ -124,6 +126,15 @@ namespace Game.Tests.PlayMode
                 Assert.That(sailed, Is.GreaterThan(MinSailedMetres), "The ship sailed under the held throttle");
             }
             Debug.Log($"SequenceCapture: the ship moved {sailed:F1} m");
+            string mapPath = Environment.GetEnvironmentVariable("CAPTURE_MAP");
+            if (mapPath != null)
+            {
+                WorldMap map = UnityEngine.Object.FindAnyObjectByType<WorldMap>();
+                Vector3 at = ship.transform.position;
+                Texture2D picture = map.ComposeExplored(map.World.CellAt(at.x, at.z), out Rect area);
+                File.WriteAllBytes(mapPath, picture.EncodeToPNG());
+                Debug.Log($"SequenceCapture: the map of {map.Explored.Count} cells over {area} -> {mapPath}");
+            }
             if (target != null)
             {
                 File.WriteAllText(Path.Combine(dir, "sequence.json"),

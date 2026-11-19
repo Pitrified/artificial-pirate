@@ -4,18 +4,21 @@ namespace Game.Core
     using Game.Systems;
     using Game.Gameplay;
     using Game.Gameplay.World;
+    using Game.UI;
 
     /// <summary>
     /// Wires Game scene components (ShipController, CameraController) with Persistent scene
     /// systems (InputManager); hands the world to GameManager to begin its seed, then wires the
-    /// ship to the world's ground. Place this on any root object
-    /// in Game.unity and assign the serialized references in the Inspector.
+    /// ship to the world's ground, and opens the map when the minimap is tapped. Place this on
+    /// any root object in Game.unity and assign the serialized references in the Inspector.
     /// </summary>
     public sealed class GameSceneWiring : MonoBehaviour
     {
         [SerializeField] private ShipController _ship;
         [SerializeField] private CameraController _camera;
         [SerializeField] private WorldStreamer _world;
+        [SerializeField] private WorldMap _worldMap;
+        [SerializeField] private Minimap _minimap;
 
         private void Start()
         {
@@ -25,6 +28,10 @@ namespace Game.Core
                 gm.RegisterWorld(_world);
             }
             WireGround();
+            if (_minimap != null)
+            {
+                _minimap.Clicked += OpenMap;
+            }
 
             if (gm == null)
             {
@@ -56,6 +63,22 @@ namespace Game.Core
                 _camera.SetTarget(_ship.transform, _ship.Type.CameraOffset, _ship.Type.CameraLookAt);
                 _camera.SnapToTarget();
                 Log.Info(LogCat.Gameplay, "GameSceneWiring: CameraController wired to ship");
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_minimap != null)
+            {
+                _minimap.Clicked -= OpenMap;
+            }
+        }
+
+        private void OpenMap()
+        {
+            if (GameManager.Instance != null && _ship != null)
+            {
+                GameManager.Instance.OpenMap(_worldMap, _ship.transform);
             }
         }
 

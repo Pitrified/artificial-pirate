@@ -19,6 +19,7 @@ namespace Game.Tests.EditMode
     using NUnit.Framework;
     using UnityEngine;
     using Game.Core;
+    using Game.Gameplay.World;
     using Game.Systems;
     using Game.UI;
 
@@ -88,6 +89,15 @@ namespace Game.Tests.EditMode
         public event Action OnReturnToMenuRequested;
         public void FireResumeRequested() => OnResumeRequested?.Invoke();
         public void FireReturnToMenuRequested() => OnReturnToMenuRequested?.Invoke();
+        public Texture2D ShownMap { get; private set; }
+        public Vector2 ShownShipUv { get; private set; }
+        public void ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg)
+        {
+            ShownMap = map;
+            ShownShipUv = shipUv;
+        }
+        public event Action OnMapCloseRequested;
+        public void FireMapCloseRequested() => OnMapCloseRequested?.Invoke();
     }
 
     // ======================================================================
@@ -258,6 +268,60 @@ namespace Game.Tests.EditMode
             _gm.ResumeGame(); // invalid from Menu
 
             Assert.AreEqual(before, _gm.CurrentState);
+        }
+
+        // ------------------------------------------------------------------ OpenMap / close
+
+        [Test]
+        public async Task OpenMap_From_Playing_ShowsTheMapAndPauses_CloseResumes()
+        {
+            await BootToPlayingAsync();
+            var worldSettings = ScriptableObject.CreateInstance<SO_WorldSettings>();
+            var style = ScriptableObject.CreateInstance<SO_MapStyle>();
+            var ship = new GameObject("Ship");
+            var world = new GameObject("World");
+            try
+            {
+                ship.transform.position = new Vector3(0f, 0f, 100f);
+                WorldStreamer streamer = world.AddComponent<WorldStreamer>();
+                streamer.Configure(worldSettings, ship.transform, null, null, 1);
+                streamer.Begin(1);
+                streamer.Tick(); // the 3 x 3 cells around the ship explored
+                WorldMap map = world.AddComponent<WorldMap>();
+                map.Configure(streamer, style);
+
+                _gm.OpenMap(map, ship.transform);
+
+                Assert.AreEqual(GameState.Paused, _gm.CurrentState);
+                Assert.IsNotNull(_fakeUI.ShownMap);
+                Assert.AreEqual(3 * style.TileSize, _fakeUI.ShownMap.width, "the 3 x 3 cells explored");
+                float side = 3f * worldSettings.CellSize;
+                Assert.AreEqual(0.5f, _fakeUI.ShownShipUv.x, 1e-4f);
+                Assert.AreEqual((100f + side / 2f) / side, _fakeUI.ShownShipUv.y, 1e-4f);
+
+                _fakeUI.FireMapCloseRequested();
+
+                Assert.AreEqual(GameState.Playing, _gm.CurrentState);
+                Assert.AreEqual(ScreenId.Map, _fakeUI.LastHiddenScreen);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(world);
+                UnityEngine.Object.DestroyImmediate(ship);
+                UnityEngine.Object.DestroyImmediate(worldSettings);
+                UnityEngine.Object.DestroyImmediate(style);
+            }
+        }
+
+        [Test]
+        public void OpenMap_NotPlaying_IsIgnored()
+        {
+            BootToMenu();
+
+            _gm.OpenMap(null, null);
+
+            Assert.AreEqual(GameState.Menu, _gm.CurrentState);
+            Assert.IsNull(_fakeUI.ShownMap);
         }
 
         // ------------------------------------------------------------------ PauseGame / ResumeGame

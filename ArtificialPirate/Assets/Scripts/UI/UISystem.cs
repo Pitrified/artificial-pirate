@@ -25,6 +25,7 @@ namespace Game.UI
         [SerializeField] private UIDocument _loadingDocument;
         [SerializeField] private UIDocument _pauseDocument;
         [SerializeField] private UIDocument _diagnosticsDocument;
+        [SerializeField] private UIDocument _mapDocument;
         [SerializeField] private DiagnosticsRecorder _diagnosticsRecorder;
 
         // --------------------------------------------------------------------- private state
@@ -32,11 +33,14 @@ namespace Game.UI
         private VisualElement _loadingRoot;
         private VisualElement _pauseRoot;
         private VisualElement _diagnosticsRoot;
+        private VisualElement _mapRoot;
         private DiagnosticsPanel _diagnostics;
+        private MapPanel _map;
 
         private bool _loadingVisible;
         private bool _pauseVisible;
         private bool _diagnosticsVisible;
+        private bool _mapVisible;
 
         private Rect       _lastSafeArea;
         private Vector2Int _lastScreenSize;
@@ -50,10 +54,16 @@ namespace Game.UI
         public event Action OnReturnToMenuRequested;
 
         /// <inheritdoc/>
-        public bool IsAnyOverlayOpen => _loadingVisible || _pauseVisible || _diagnosticsVisible;
+        public event Action OnMapCloseRequested;
+
+        /// <inheritdoc/>
+        public bool IsAnyOverlayOpen => _loadingVisible || _pauseVisible || _diagnosticsVisible || _mapVisible;
 
         /// <summary>The diagnostics panel, for tests.</summary>
         internal DiagnosticsPanel Diagnostics => _diagnostics;
+
+        /// <summary>The map document's root, for tests.</summary>
+        internal VisualElement MapRoot => _mapRoot;
 
         // --------------------------------------------------------------------- Unity lifecycle
 
@@ -62,6 +72,7 @@ namespace Game.UI
             _loadingRoot = BindDocument(_loadingDocument, "Loading");
             _pauseRoot   = BindDocument(_pauseDocument,   "Pause");
             _diagnosticsRoot = BindDocument(_diagnosticsDocument, "Diagnostics");
+            _mapRoot = BindDocument(_mapDocument, "Map");
 
             RegisterPauseButtons();
             if (_diagnosticsRoot != null)
@@ -69,16 +80,27 @@ namespace Game.UI
                 _diagnostics = new DiagnosticsPanel(_diagnosticsRoot, _diagnosticsRecorder, new PlatformDiagnosticsExport());
                 _diagnostics.CloseRequested += () => HideScreen(ScreenId.Diagnostics);
             }
+            if (_mapRoot != null)
+            {
+                _map = new MapPanel(_mapRoot);
+                _map.CloseRequested += () => OnMapCloseRequested?.Invoke();
+            }
 
             SetVisible(_loadingRoot, false);
             SetVisible(_pauseRoot,   false);
             SetVisible(_diagnosticsRoot, false);
+            SetVisible(_mapRoot, false);
 
             _lastSafeArea   = Screen.safeArea;
             _lastScreenSize = new Vector2Int(Screen.width, Screen.height);
             ApplySafeArea();
 
             Log.Info(LogCat.UI, "UISystem initialized.");
+        }
+
+        private void OnDestroy()
+        {
+            _map?.Dispose();
         }
 
         private void Update()
@@ -114,6 +136,20 @@ namespace Game.UI
         }
 
         /// <inheritdoc/>
+        public void ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg)
+        {
+            if (_map == null)
+            {
+                Log.Warn(LogCat.UI, "ShowMap: the map document is not bound.");
+                return;
+            }
+            SetVisible(_mapRoot, true);
+            _mapVisible = true;
+            _map.Show(map, shipUv, shipYawDeg);
+            Log.Info(LogCat.UI, "Map shown.");
+        }
+
+        /// <inheritdoc/>
         public void ShowScreen(ScreenId id)
         {
             switch (id)
@@ -146,6 +182,10 @@ namespace Game.UI
                 case ScreenId.Diagnostics:
                     SetVisible(_diagnosticsRoot, false);
                     _diagnosticsVisible = false;
+                    break;
+                case ScreenId.Map:
+                    SetVisible(_mapRoot, false);
+                    _mapVisible = false;
                     break;
                 default:
                     Log.Warn(LogCat.UI, "HideScreen: ScreenId {0} is not handled by UISystem.", id);
@@ -215,6 +255,7 @@ namespace Game.UI
 
             ApplySafeAreaInsets(_loadingRoot, paddingLeft, paddingRight, paddingTop, paddingBot);
             ApplySafeAreaInsets(_pauseRoot,   paddingLeft, paddingRight, paddingTop, paddingBot);
+            ApplySafeAreaInsets(_mapRoot,     paddingLeft, paddingRight, paddingTop, paddingBot);
         }
 
         private static void ApplySafeAreaInsets(

@@ -16,8 +16,6 @@ namespace Game.UI
     public sealed class Minimap : MonoBehaviour, IPointerClickHandler
     {
         private const int Cells = 3;
-        private const int ArrowSize = 32;
-        private const float ArrowSpread = 0.375f; // the arrow's half width at its base, a share of its height
 
         [SerializeField] private WorldMap _map;
 
@@ -76,7 +74,7 @@ namespace Game.UI
                 wrapMode = TextureWrapMode.Clamp,
                 filterMode = FilterMode.Bilinear,
             };
-            _arrow = MakeArrow();
+            _arrow = MapArrow.Create();
             if (_image != null)
             {
                 _image.texture = _texture;
@@ -147,25 +145,6 @@ namespace Game.UI
             {
                 _ship.rectTransform.localEulerAngles = new Vector3(0f, 0f, -_target.eulerAngles.y);
             }
-        }
-
-        /// <summary>A white arrow pointing up, on a clear ground.</summary>
-        private static Texture2D MakeArrow()
-        {
-            var arrow = new Texture2D(ArrowSize, ArrowSize, TextureFormat.RGBA32, false) { name = "MinimapArrow" };
-            var pixels = new Color32[ArrowSize * ArrowSize];
-            for (int y = 0; y < ArrowSize; y++)
-            {
-                float halfWidth = (ArrowSize - 1 - y) * ArrowSpread; // widest at the bottom, a point at the top
-                for (int x = 0; x < ArrowSize; x++)
-                {
-                    bool inside = Mathf.Abs(x - (ArrowSize - 1) * 0.5f) <= halfWidth;
-                    pixels[y * ArrowSize + x] = inside ? new Color32(255, 255, 255, 255) : new Color32(255, 255, 255, 0);
-                }
-            }
-            arrow.SetPixels32(pixels);
-            arrow.Apply(false);
-            return arrow;
         }
     }
 }

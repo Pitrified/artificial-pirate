@@ -1097,6 +1097,8 @@ MonoBehaviour:
   _ship: {fileID: 876271250}
   _camera: {fileID: 1007081538}
   _world: {fileID: 1220623505}
+  _worldMap: {fileID: 1220623508}
+  _minimap: {fileID: 1643885581}
 --- !u!4 &1575283269
 Transform:
   m_ObjectHideFlags: 0
