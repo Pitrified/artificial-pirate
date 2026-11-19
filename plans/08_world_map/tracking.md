@@ -14,7 +14,7 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 
 | #  | Phase              | Plan | Status  |
 | -- | ------------------ | ---- | ------- |
-| 01 | The generator      | -    | pending |
+| 01 | The generator      | [`01_generator.md`](01_generator.md) | done |
 | 02 | Island tiles       | -    | pending |
 | 03 | Water that follows | -    | pending |
 | 04 | Seed and save      | -    | pending |
@@ -26,3 +26,4 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 
 - 2026-11-19: folder created; research and the design in `00_start.md`; waiting on the open questions.
 - 2026-11-19: the user took every recommendation ("All ok"); execution starts.
+- 2026-11-19: phase 01 done: the generator, its tests, `docs/systems/world.md`.
