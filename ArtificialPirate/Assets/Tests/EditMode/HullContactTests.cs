@@ -5,11 +5,14 @@ namespace Game.Tests.EditMode
     using NUnit.Framework;
     using UnityEngine;
     using Game.Gameplay;
+    using Game.Gameplay.World;
 
     /// <summary>
     /// <see cref="HullContact"/> with hulls built in code on the Ship layer: a ram is shared by mass
     /// and both hulls end apart, a hull that cannot move stops it, a glancing touch and backing away
-    /// keep their speed, a crate on another layer is ignored, and a drift fades to rest.
+    /// keep their speed, a crate on another layer is ignored, and a drift fades to rest. Against the
+    /// world's start island, a ship is aground where its leading end is over ground shallower than
+    /// its draft, and one sailed at the island stops short of it.
     /// </summary>
     public sealed class HullContactTests
     {
@@ -205,6 +208,50 @@ namespace Game.Tests.EditMode
             }
 
             Assert.That(rammed.transform.position.z - start, Is.GreaterThan(1f), "the rammed ship was shoved");
+        }
+
+        private WorldGenerator StartWorld()
+        {
+            var settings = ScriptableObject.CreateInstance<SO_WorldSettings>();
+            _made.Add(settings);
+            return new WorldGenerator(1, settings);
+        }
+
+        [Test]
+        public void Aground_OnlyWhereTheLeadingEndIsOverShallowGround()
+        {
+            HullContact ship = Ship("Ship", Type(1f), new Vector3(0f, 0f, 30f));
+            ship.UseGround(StartWorld());
+
+            Assert.IsTrue(ship.Aground(Vector3.back * Speed), "the bow over the island");
+            ship.transform.position = new Vector3(0f, 0f, 90f);
+            Assert.IsFalse(ship.Aground(Vector3.back * Speed), "the bow over deep water");
+            Assert.IsFalse(ship.Aground(Vector3.zero), "a ship at rest");
+        }
+
+        [Test]
+        public void ShipController_SailedAtTheIsland_StopsShortOfIt()
+        {
+            SO_ShipType type = Type(1f);
+            HullContact contact = Ship("Ship", type, new Vector3(0f, 0f, 120f));
+            WorldGenerator world = StartWorld();
+            contact.UseGround(world);
+            ShipController controller = contact.gameObject.AddComponent<ShipController>();
+            SetField(controller, "_type", type);
+            SetField(controller, "_contact", contact);
+            controller.Teleport(new Vector3(0f, 0f, 120f), 180f);
+            controller.SetInput(1f, 0f);
+
+            const float Step = 0.02f;
+            for (int i = 0; i < 1000; i++)
+            {
+                controller.Tick(Step);
+            }
+
+            Vector3 at = contact.transform.position;
+            Assert.That(at.z, Is.LessThan(100f), "it sailed");
+            Assert.That(world.HeightAt(at.x, at.z - type.HalfLength), Is.LessThanOrEqualTo(-type.Draft), "its bow is afloat");
+            Assert.That(world.HeightAt(at.x, at.z - type.HalfLength - 1f), Is.GreaterThan(-type.Draft), "a metre on is aground");
         }
 
         private static void SetField(object target, string name, object value)

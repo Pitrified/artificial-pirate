@@ -26,6 +26,22 @@ The research and the choices are in `plans/08_world_map/00_start.md`.
 - **One height function.** Everything that needs the ground samples `HeightAt`.
 - Plain C# over `SO_WorldSettings`: no scene objects and no allocations, so it runs anywhere and is tested in EditMode.
 
+## Streaming (`WorldStreamer`)
+
+On the Game scene's `World` object, following the player's ship.
+
+- The cells within `_loadRadius` (2: a 5 x 5 square, 2 km) of the ship's cell are loaded; when the ship enters another cell, the cells left out are unloaded.
+- Islands are built one a frame, ring by ring outward, so the nearest come first.
+- An island is a pooled object: a mesh from `IslandMeshBuilder`, `M_Sand` and `M_Grass`, and a mesh collider (the floating props land on it).
+- `Begin(seed)` starts a world, dropping what was built. `Awake` begins the scene's own `_seed` until the game hands one.
+- `IslandMeshBuilder`: a 48 x 48 grid over the island's reach in its local space, quads wholly deeper than half the seabed left out, sand below 0.8 m and grass above by each quad's mean height, UVs in world metres; it reuses its buffers.
+- Cost: a loaded square holds 11 to 17 islands, 23 k to 36 k triangles (seeds 1 to 5), at most about 2.4 k an island; two draws an island.
+- A linear fog in the sky's ground colour, from 400 to 900 m, hides islands being built at the edge of the square.
+
+## The ground under the ship
+
+`GameSceneWiring` hands the world to the player's `HullContact` (`UseGround`). A step that would put the hull's leading end (the bow ahead, the stern astern) over ground shallower than the draft is undone and the ship stops; it can turn or back away. See `docs/systems/ship-controller.md`.
+
 ## Settings (`SO_WorldSettings`)
 
 | Field | Default | |
@@ -43,4 +59,6 @@ The research and the choices are in `plans/08_world_map/00_start.md`.
 
 ## Tests
 
+`WorldStreamerTests` (EditMode): a mesh follows the height function; the streamer builds the islands around its target one a frame, nearest first, drops those left behind, and starts again on another seed.
+`HullContactTests`: aground only where the leading end is over shallow ground; a ship sailed at the start island stops short of it.
 `WorldGeneratorTests` (EditMode): the same seed gives the same world in any order and another seed another; islands keep inside their cells, within the ranges; every cell's edge is the seabed; the share of cells with an island; heights between the seabed and the highest peak; the start island at the origin with the props where they belong, for several seeds.

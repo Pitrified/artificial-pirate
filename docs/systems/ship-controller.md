@@ -112,7 +112,7 @@ ShipState GetState()                            // position + yaw
 
 ## Constraints
 
-- No collision handling with the island in v0.2: the ship can sail onto it.
+- The ship stops where its leading end would be over ground shallower than its draft (`HullContact.Aground`, the world's `HeightAt`): the step is undone and the speed drops to 0. No slide along the shore.
 - No buoyancy forces: the wave response is the hull's visual ride (`WaveRider`).
 - No allocations per frame.
 - No camera, audio, or UI calls.

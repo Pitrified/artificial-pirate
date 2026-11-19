@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de22fe946b4a39628be22258fae9fb3, type: 3}
+  m_Name: SO_WorldSettings
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.World.SO_WorldSettings
+  _cellSize: 400
+  _islandChance: 0.5
+  _radius: {x: 40, y: 140}
+  _peak: {x: 4, y: 40}
+  _coastWobble: 0.25
+  _hills: 0.5
+  _redistribution: 1.6
+  _shelfWidth: 25
+  _seabed: -20
+  _startRadius: 26
+  _startPeak: 8

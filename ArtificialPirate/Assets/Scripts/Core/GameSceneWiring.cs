@@ -3,19 +3,23 @@ namespace Game.Core
     using UnityEngine;
     using Game.Systems;
     using Game.Gameplay;
+    using Game.Gameplay.World;
 
     /// <summary>
     /// Wires Game scene components (ShipController, CameraController) with Persistent scene
-    /// systems (InputManager). Place this on any root object in Game.unity and assign
-    /// the serialized references in the Inspector.
+    /// systems (InputManager), and the ship to the world's ground. Place this on any root object
+    /// in Game.unity and assign the serialized references in the Inspector.
     /// </summary>
     public sealed class GameSceneWiring : MonoBehaviour
     {
         [SerializeField] private ShipController _ship;
         [SerializeField] private CameraController _camera;
+        [SerializeField] private WorldStreamer _world;
 
         private void Start()
         {
+            WireGround();
+
             var gm = GameManager.Instance;
             if (gm == null)
             {
@@ -47,6 +51,19 @@ namespace Game.Core
                 _camera.SetTarget(_ship.transform, _ship.Type.CameraOffset, _ship.Type.CameraLookAt);
                 _camera.SnapToTarget();
                 Log.Info(LogCat.Gameplay, "GameSceneWiring: CameraController wired to ship");
+            }
+        }
+
+        private void WireGround()
+        {
+            if (_world == null || _ship == null)
+            {
+                Log.Warn(LogCat.Gameplay, "GameSceneWiring: WorldStreamer or ShipController not assigned - the ship cannot run aground");
+                return;
+            }
+            if (_ship.TryGetComponent(out HullContact contact))
+            {
+                contact.UseGround(_world.World);
             }
         }
     }

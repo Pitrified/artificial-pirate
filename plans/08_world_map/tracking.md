@@ -15,7 +15,7 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 | #  | Phase              | Plan | Status  |
 | -- | ------------------ | ---- | ------- |
 | 01 | The generator      | [`01_generator.md`](01_generator.md) | done |
-| 02 | Island tiles       | -    | pending |
+| 02 | Island tiles       | [`02_island_tiles.md`](02_island_tiles.md) | done |
 | 03 | Water that follows | -    | pending |
 | 04 | Seed and save      | -    | pending |
 | 05 | The minimap        | -    | pending |
@@ -27,3 +27,4 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 - 2026-11-19: folder created; research and the design in `00_start.md`; waiting on the open questions.
 - 2026-11-19: the user took every recommendation ("All ok"); execution starts.
 - 2026-11-19: phase 01 done: the generator, its tests, `docs/systems/world.md`.
+- 2026-11-19: phase 02 done: islands stream around the ship, the ship stops at the shore, distance fog. The far islands' slopes show past the water grid: phase 03 grows the water.

@@ -2,12 +2,15 @@ namespace Game.Gameplay
 {
     using UnityEngine;
     using Game.Gameplay.Water;
+    using Game.Gameplay.World;
 
     /// <summary>
     /// A ship's hull against other ships' hulls. A ship that moves calls <see cref="Collide"/> after
     /// each step: it is moved out of any hull it overlaps, along the water, and a ram shares its
     /// closing speed with the other ship by mass, as two hulls that stay together. The other ship
     /// takes its share as a drift, which carries its root and fades under the water's drag.
+    /// Given the world's ground (<see cref="UseGround"/>), <see cref="Aground"/> tells a ship
+    /// whose leading end would be over ground shallower than its draft.
     /// See docs/systems/ship-controller.md.
     /// </summary>
     public sealed class HullContact : MonoBehaviour
@@ -32,6 +35,7 @@ namespace Game.Gameplay
         private readonly Collider[] _overlaps = new Collider[MaxContacts];
         private Transform _transform;
         private Vector3 _drift;
+        private WorldGenerator _ground;
 
         /// <summary>The ship's displacement from its type's size, in kilograms.</summary>
         public float Mass
@@ -68,6 +72,32 @@ namespace Game.Gameplay
         private void Update()
         {
             Tick(Time.deltaTime);
+        }
+
+        /// <summary>The world whose ground the ship can run onto; none, and it never does.</summary>
+        public void UseGround(WorldGenerator ground)
+        {
+            _ground = ground;
+        }
+
+        /// <summary>
+        /// Whether the end of the hull leading along <paramref name="velocity"/> is over ground
+        /// shallower than the ship's draft: the bow going ahead, the stern going astern.
+        /// </summary>
+        public bool Aground(Vector3 velocity)
+        {
+            velocity.y = 0f;
+            if (_ground == null || _type == null || velocity.sqrMagnitude < MinPush * MinPush)
+            {
+                return false;
+            }
+            if (_transform == null)
+            {
+                _transform = transform;
+            }
+
+            Vector3 lead = _transform.position + velocity.normalized * _type.HalfLength;
+            return _ground.HeightAt(lead.x, lead.z) > -_type.Draft;
         }
 
         /// <summary>Adds <paramref name="velocity"/>, flattened to the water plane, to the drift.</summary>

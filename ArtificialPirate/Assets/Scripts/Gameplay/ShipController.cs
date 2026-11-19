@@ -5,7 +5,8 @@ namespace Game.Gameplay
 
     /// <summary>
     /// Kinematic ship controller. Moves the Transform directly, not by physics forces; where its
-    /// hull meets another ship's, its <see cref="HullContact"/> moves it out and shares a ram.
+    /// hull meets another ship's, its <see cref="HullContact"/> moves it out and shares a ram,
+    /// and where it would run aground the step is undone and it stops.
     /// Reads movement input from an injected <see cref="IInputManager"/> each frame.
     /// </summary>
     public sealed class ShipController : MonoBehaviour
@@ -124,7 +125,8 @@ namespace Game.Gameplay
 
             _smoothedSteering = Mathf.Lerp(_smoothedSteering, _steeringInput, _type.SteeringResponseLerp * dt);
 
-            Vector3 pos = _transform.position;
+            Vector3 before = _transform.position;
+            Vector3 pos = before;
             pos += _transform.forward * (_currentSpeed * dt);
             pos.y = _seaSurfaceY;
             _transform.position = pos;
@@ -135,6 +137,11 @@ namespace Game.Gameplay
             {
                 Vector3 forward = _transform.forward;
                 _currentSpeed = Vector3.Dot(_contact.Collide(forward * _currentSpeed), forward);
+                if (_contact.Aground(forward * _currentSpeed))
+                {
+                    _transform.position = before;
+                    _currentSpeed = 0f;
+                }
             }
 
             if (pos.sqrMagnitude > DriftWarnDistanceSq)
