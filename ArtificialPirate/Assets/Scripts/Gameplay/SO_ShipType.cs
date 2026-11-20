@@ -37,6 +37,22 @@ namespace Game.Gameplay
         [Tooltip("The point the chase camera looks at, in the ship's local space (m): above the deck, so the sails stay in view.")]
         [SerializeField] private Vector3 _cameraLookAt = Vector3.zero;
 
+        [Header("Damage")]
+        [Tooltip("A blow closing slower than this does no harm (m/s).")]
+        [SerializeField] private float _harmlessSpeed = 1.5f;
+
+        [Tooltip("The closing speed of a blow against a shore that sinks the hull at once (m/s); a blow takes the square of its speed over the square of this.")]
+        [SerializeField] private float _sinkingSpeed = 14f;
+
+        [Tooltip("The share of the top speed left when the hull is ruined.")]
+        [SerializeField] private float _damagedSpeedFloor = 0.4f;
+
+        [Tooltip("The share of the freeboard the hull settles by when ruined.")]
+        [SerializeField] private float _damagedSinkShare = 0.5f;
+
+        [Tooltip("The list toward the damaged side when the hull is ruined with all its damage on one side (degrees).")]
+        [SerializeField] private float _damagedListDeg = 8f;
+
         /// <summary>From the centre to the bow and to the stern at the waterline, in metres.</summary>
         public float HalfLength => _halfLength;
 
@@ -69,6 +85,21 @@ namespace Game.Gameplay
 
         /// <summary>The point the chase camera looks at, in the ship's local space, in metres.</summary>
         public Vector3 CameraLookAt => _cameraLookAt;
+
+        /// <summary>A blow closing slower than this does no harm, in m/s.</summary>
+        public float HarmlessSpeed => _harmlessSpeed;
+
+        /// <summary>The closing speed of a blow against a shore that sinks the hull at once, in m/s.</summary>
+        public float SinkingSpeed => _sinkingSpeed;
+
+        /// <summary>The share of the top speed left when the hull is ruined.</summary>
+        public float DamagedSpeedFloor => _damagedSpeedFloor;
+
+        /// <summary>The share of the freeboard the hull settles by when ruined.</summary>
+        public float DamagedSinkShare => _damagedSinkShare;
+
+        /// <summary>The list toward the damaged side when the hull is ruined all on one side, in degrees.</summary>
+        public float DamagedListDeg => _damagedListDeg;
 
         /// <summary>Sets the hull's size (types made in code: tests).</summary>
         internal void SetHull(float halfLength, float halfBeam, float draft, float freeboard)

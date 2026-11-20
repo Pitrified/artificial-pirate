@@ -1,5 +1,6 @@
 namespace Game.Gameplay
 {
+    using System;
     using UnityEngine;
     using Game.Gameplay.Water;
     using Game.Gameplay.World;
@@ -10,7 +11,8 @@ namespace Game.Gameplay
     /// closing speed with the other ship by mass, as two hulls that stay together. The other ship
     /// takes its share as a drift, which carries its root and fades under the water's drag.
     /// Given the world's ground (<see cref="UseGround"/>), <see cref="Aground"/> tells a ship
-    /// whose leading end would be over ground shallower than its draft.
+    /// whose leading end would be over ground shallower than its draft. Each ram and grounding is
+    /// reported as a blow (<see cref="Struck"/>) to the hulls it struck.
     /// See docs/systems/ship-controller.md.
     /// </summary>
     public sealed class HullContact : MonoBehaviour
@@ -55,6 +57,19 @@ namespace Game.Gameplay
         /// <summary>The velocity a ram has given this ship, on the water plane (m/s).</summary>
         public Vector3 Drift => _drift;
 
+        /// <summary>The ship's type, which sets its size.</summary>
+        public SO_ShipType Type => _type;
+
+        /// <summary>The hull's transform, which carries its model.</summary>
+        public Transform Hull => _hull != null ? _hull.transform : null;
+
+        /// <summary>
+        /// A blow on the hull: where (world), the closing speed (m/s), and the share of the blow
+        /// this hull takes: 1 against a shore or a hull that cannot move, against a ship the other's
+        /// share of the two masses.
+        /// </summary>
+        public event Action<Vector3, float, float> Struck;
+
         /// <summary>Wires the type, the hull and the layers (ships built in code: tests).</summary>
         internal void Configure(SO_ShipType type, BoxCollider hull, LayerMask ships, float driftDamping)
         {
@@ -91,13 +106,24 @@ namespace Game.Gameplay
             {
                 return false;
             }
-            if (_transform == null)
-            {
-                _transform = transform;
-            }
 
-            Vector3 lead = _transform.position + velocity.normalized * _type.HalfLength;
+            Vector3 lead = LeadingEnd(velocity);
             return _ground.HeightAt(lead.x, lead.z) > -_type.Draft;
+        }
+
+        /// <summary>
+        /// Whether the ship runs aground going at <paramref name="velocity"/> (<see cref="Aground"/>);
+        /// if it does, its leading end takes the blow.
+        /// </summary>
+        public bool RunAground(Vector3 velocity)
+        {
+            if (!Aground(velocity))
+            {
+                return false;
+            }
+            velocity.y = 0f;
+            Struck?.Invoke(LeadingEnd(velocity), velocity.magnitude, 1f);
+            return true;
         }
 
         /// <summary>Adds <paramref name="velocity"/>, flattened to the water plane, to the drift.</summary>
@@ -166,12 +192,24 @@ namespace Game.Gameplay
                 // other's share of the two masses.
                 float ownShare = otherShip == null ? 1f : otherShip.Mass / (Mass + otherShip.Mass);
                 velocity += normal * (closing * ownShare);
+                Vector3 point = Physics.ClosestPoint(hull.position, other, otherTransform.position, otherTransform.rotation);
+                Struck?.Invoke(point, closing, ownShare);
                 if (otherShip != null)
                 {
                     otherShip.Push(-normal * (closing * (1f - ownShare)));
+                    otherShip.Struck?.Invoke(point, closing, 1f - ownShare);
                 }
             }
             return velocity;
+        }
+
+        private Vector3 LeadingEnd(Vector3 velocity)
+        {
+            if (_transform == null)
+            {
+                _transform = transform;
+            }
+            return _transform.position + velocity.normalized * _type.HalfLength;
         }
 
         /// <summary>Carries the root by the drift and fades it. Exposed internally for tests.</summary>

@@ -18,6 +18,7 @@ Context: [`00_start.md`](00_start.md), depends on [`01_hull_damage.md`](01_hull_
 
 - The bar: a uGUI `Image` (filled) on the HUD canvas with a small `HullBar` script reading the player's `ShipDamage`, wired by `GameSceneWiring`. It updates on `Damaged`, not each frame. Colour from green to red, from a style asset like the minimap's.
   Added to the scene by a throwaway editor script.
+- `ShipDamage` keeps its hits in the hull's local space (point and amount, a fixed array, the oldest dropped when full) and the damage on each side, and can be restored from them.
 - The save: `GameSaveData` version 4 with a `damage` block (health, the hits in hull space); `GameManager` writes and restores it with the ship's pose. A version 3 save resets, as the save system does on a mismatch.
 - Tests: EditMode, the bar's fill and colour from health; PlayMode, damage restored on Continue.
 - Docs: `save-system.md` and `functional-specs.md` §9 (the schema), `ui-system.md` (the bar).

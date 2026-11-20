@@ -23,7 +23,8 @@ namespace Game.Tests.PlayMode
     /// CAPTURE_FPS (frames written per second, default 10), CAPTURE_EYE and CAPTURE_TARGET
     /// ("x,y,z"; default: the game's own chase camera), CAPTURE_SIZE ("960x540"), CAPTURE_HUD
     /// (any value: the HUD drawn through the capture camera, which an overlay canvas is not),
-    /// CAPTURE_MAP (a PNG path: the full map's picture of the cells explored, at the end).
+    /// CAPTURE_MAP (a PNG path: the full map's picture of the cells explored, at the end),
+    /// CAPTURE_DAMAGE (0 to 1: health the ship's hull loses at the start, struck on its starboard side).
     /// Run alone with <c>-testFilter Game.Tests.PlayMode.SequenceCaptureTests</c>.
     /// </summary>
     public sealed class SequenceCaptureTests
@@ -83,6 +84,11 @@ namespace Game.Tests.PlayMode
             {
                 ship.Inject(null); // the held input below, not the (idle) input system
                 ship.SetInput(throttle, steering);
+            }
+            float damage = EnvFloat("CAPTURE_DAMAGE", 0f);
+            if (damage > 0f)
+            {
+                ship.GetComponent<ShipDamage>().Hit(ship.transform.position + ship.transform.right, damage);
             }
             Vector3 startPosition = ship.transform.position;
 

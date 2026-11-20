@@ -67,6 +67,7 @@ GameObject:
   - component: {fileID: 7477652006582932171}
   - component: {fileID: 4541559287504695063}
   - component: {fileID: 996484746544028862}
+  - component: {fileID: 4209681522950572463}
   m_Layer: 0
   m_Name: PF_Ship
   m_TagString: Untagged
@@ -104,6 +105,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.ShipController
   _type: {fileID: 0}
   _contact: {fileID: 996484746544028862}
+  _damage: {fileID: 4209681522950572463}
   _seaSurfaceY: 0
 --- !u!54 &4157943036615421541
 Rigidbody:
@@ -148,6 +150,7 @@ MonoBehaviour:
   _hull: {fileID: 1034272622327642354}
   _type: {fileID: 0}
   _waterlineOffset: 0
+  _damage: {fileID: 4209681522950572463}
   _response: 4
 --- !u!114 &4541559287504695063
 MonoBehaviour:
@@ -185,3 +188,16 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   _driftDamping: 0.5
+--- !u!114 &4209681522950572463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4700440681567757610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 617ef2ed2fa1889f28bf01e906daa720, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.ShipDamage
+  _contact: {fileID: 996484746544028862}

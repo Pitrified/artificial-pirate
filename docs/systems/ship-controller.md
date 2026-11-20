@@ -71,7 +71,22 @@ Kinematic bodies never collide with each other in PhysX, so ships meet through a
   - Moving away, or sliding along a side, costs no speed.
 - **The drift** moves the root each frame and fades at `_driftDamping` (0.5 per second), so a drift of `v` glides about `2v` metres.
 - The push is along the water only: a pushed ship drifts, it does not turn. A drifting ship does not check for hulls itself.
+- Each ram is a **blow** to both hulls (`Struck`: the point, the closing speed, and each hull's share, the other's share of the two masses); running aground (`RunAground`) is a blow at the leading end with a share of 1.
 - `HullContactTests` (EditMode): a ram shared by mass with both hulls ending apart, a heavier ship pushed less, a hull that cannot move stopping the rammer, backing away and sliding at full speed, a crate on another layer ignored, a drift fading to rest, and a held throttle shoving the other ship without passing through it.
+
+## Damage (`ShipDamage`)
+
+- Every ship's root carries a `ShipDamage` wired to its `HullContact`: the hull's health, from 1 (whole) to 0.
+- **A blow** closing at `v`, of which the hull takes `share`, costs `share * (v^2 - h^2) / s^2` of health, nothing below `h`. The type sets `h` (`HarmlessSpeed`, 1.5 m/s) and `s` (`SinkingSpeed`, 14 m/s: a blow against a shore at that speed ruins the hull).
+  - A full-speed grounding (8 m/s) takes about 31%.
+  - The sloop ramming the brig at 8 m/s takes about 25% and the brig about 7%.
+  - Pushing on against a shore or a hull rebuilds only a frame's acceleration of closing speed, below `h`, so a blow lands once.
+- **`Hit(point, amount)`** takes health directly: what a weapon will call. `Damaged` reports each hit that did harm.
+- **What damage does**, by the type's numbers:
+  - `ShipController`'s top speed is `MaxSpeed` times `SpeedFactor`, from 1 down to `DamagedSpeedFloor` (0.4) when ruined;
+  - `WaveRider` settles the hull by `Sink`, up to `DamagedSinkShare` (0.5) of the freeboard;
+  - and lists it toward the side the damage landed on, `ListDeg`: `DamagedListDeg` (8 degrees) times the starboard damage less the port damage.
+- `ShipDamageTests` (EditMode): a ram shared by mass, a nudge doing no harm, one blow for a grounding with the throttle held, health stopping at 0, the speed, sink and list from the damage, a ruined hull sailing at the floor speed. `WaveRiderTests`: a damaged hull settled lower and listing toward the side hit.
 
 ---
 
@@ -79,7 +94,7 @@ Kinematic bodies never collide with each other in PhysX, so ships meet through a
 
 The ship stays kinematic and rides the water without physics (`plans/05_from_guide`, Q1).
 
-- `PF_Ship`'s root carries `ShipController`, `WaveRider`, a `WakeSource` (its wake, `docs/systems/water.md`), a `HullContact` and a kinematic `Rigidbody`; a `Hull` child, on the `Ship` layer, carries the box collider and, on a variant, the model.
+- `PF_Ship`'s root carries `ShipController`, `WaveRider`, a `WakeSource` (its wake, `docs/systems/water.md`), a `HullContact`, a `ShipDamage` and a kinematic `Rigidbody`; a `Hull` child, on the `Ship` layer, carries the box collider and, on a variant, the model.
 - Each `LateUpdate`, `WaveRider` samples the water (`WaterSurface.HeightAt`, the same waves the shader draws) at the bow, stern, port and starboard, the type's half length and half beam from the centre, and eases the hull's height, pitch and roll toward them at `_response` per second; `Start` places it at once. `_waterlineOffset` raises or sinks the hull's centre against the mean surface.
 - The camera follows the root, so it does not bob; the save reads the root, so saves are unchanged.
 - The kinematic `Rigidbody` makes the hull a moving collider: floating props are pushed out of it rather than passing through. The depth bake passes through it, as through anything on a Rigidbody.
@@ -112,7 +127,7 @@ ShipState GetState()                            // position + yaw
 
 ## Constraints
 
-- The ship stops where its leading end would be over ground shallower than its draft (`HullContact.Aground`, the world's `HeightAt`): the step is undone and the speed drops to 0. No slide along the shore.
+- The ship stops where its leading end would be over ground shallower than its draft (`HullContact.RunAground`, the world's `HeightAt`): the hull takes the blow, the step is undone and the speed drops to 0. No slide along the shore.
 - No buoyancy forces: the wave response is the hull's visual ride (`WaveRider`).
 - No allocations per frame.
 - No camera, audio, or UI calls.

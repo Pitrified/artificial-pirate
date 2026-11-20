@@ -7,7 +7,8 @@ namespace Game.Gameplay
     /// Makes a kinematic ship ride the waves without physics. Its object (the ship's root) keeps
     /// moving on the plane with yaw only, as <see cref="ShipController"/> drives it; each frame
     /// this sets the hull child's height, pitch and roll from the water under the bow, stern,
-    /// port and starboard, eased toward them so a short wave does not shake the hull.
+    /// port and starboard, eased toward them so a short wave does not shake the hull. A damaged
+    /// hull (<see cref="ShipDamage"/>) settles lower and lists.
     /// See docs/systems/ship-controller.md.
     /// </summary>
     public sealed class WaveRider : MonoBehaviour
@@ -23,6 +24,9 @@ namespace Game.Gameplay
         [Tooltip("Height of the hull's centre above the mean water surface (m); negative sits it lower.")]
         [SerializeField] private float _waterlineOffset = 0f;
 
+        [Tooltip("The hull's damage, which settles it lower and lists it; none, and it rides as built.")]
+        [SerializeField] private ShipDamage _damage;
+
         [Tooltip("How fast the hull follows the water (1/s): higher follows short waves more closely.")]
         [SerializeField] private float _response = 4f;
 
@@ -35,13 +39,14 @@ namespace Game.Gameplay
         /// <summary>The hull's world height, pitch and roll (degrees) as eased so far, for tests.</summary>
         internal Vector3 HeavePitchRoll => new Vector3(_heave, _pitchDeg, _rollDeg);
 
-        /// <summary>Wires the water and the hull (ships built in code: tests).</summary>
-        internal void Configure(WaterSurface water, Transform hull, SO_ShipType type, float response)
+        /// <summary>Wires the water, the hull and its damage (ships built in code: tests).</summary>
+        internal void Configure(WaterSurface water, Transform hull, SO_ShipType type, float response, ShipDamage damage = null)
         {
             _water = water;
             _hull = hull;
             _type = type;
             _response = response;
+            _damage = damage;
             _started = false;
         }
 
@@ -89,6 +94,11 @@ namespace Game.Gameplay
             float targetHeave = (bow + stern + starboard + port) * 0.25f + _waterlineOffset;
             float targetPitch = Mathf.Atan2(stern - bow, 2f * halfLength) * Mathf.Rad2Deg;
             float targetRoll = Mathf.Atan2(starboard - port, 2f * halfBeam) * Mathf.Rad2Deg;
+            if (_damage != null)
+            {
+                targetHeave -= _damage.Sink;
+                targetRoll -= _damage.ListDeg;
+            }
 
             float k = _started ? 1f - Mathf.Exp(-_response * dt) : 1f;
             _started = true;

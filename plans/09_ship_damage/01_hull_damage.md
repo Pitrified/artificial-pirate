@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 01 - Hull damage and handling
@@ -39,3 +39,13 @@ Context: [`00_start.md`](00_start.md).
 ## Done when
 
 - The tests pass; the gates pass; a capture of a damaged sloop sitting low and listing.
+
+## What the implementation found
+- 2026-11-20. Review before the code: holding the throttle against a shore or a hull rebuilds only one frame's acceleration of closing speed (about 0.08 m/s), below the harmless speed, so "once per grounding" needs no state of its own; the threshold does it.
+- A blow costs `share * (v^2 - h^2) / s^2`, `share` being the other's share of the two masses (1 against a shore), the same share `HullContact` already used for the speeds. So the damage numbers are speeds (`HarmlessSpeed` 1.5, `SinkingSpeed` 14 m/s), not energies: a full-speed grounding takes about 31%, the sloop ramming the brig at 8 m/s about 25% and the brig about 7%.
+- `HullContact` raises `Struck` on both hulls of a ram and, through `RunAground`, on a grounding; the point is the closest point on the other hull (`Physics.ClosestPoint` with its pose, no transform sync needed).
+- The list needs only the damage taken on each side, two numbers; keeping each hit's point is left to phase 03 (the save) and 04 (the marks), where something reads them.
+- The sink is a share of the type's freeboard (0.5), so no per-type number; the type's other damage numbers are defaults shared by the sloop and the brig, the mass doing the rest.
+- `ShipDamage` on `PF_Ship`'s root, wired to the controller and the rider, by a throwaway editor script (deleted); the variants and the scene's brig inherit it.
+- The sequence capture takes `CAPTURE_DAMAGE`: whole against 90% damage from the chase camera, the sloop listing to starboard and lower in the water.
+- Gates: compile 0 errors 0 warnings, EditMode 202/202, PlayMode 22/22.

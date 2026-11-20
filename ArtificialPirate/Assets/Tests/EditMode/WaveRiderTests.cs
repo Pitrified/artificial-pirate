@@ -8,7 +8,8 @@ namespace Game.Tests.EditMode
     /// <summary>
     /// <see cref="WaveRider"/> on water built in code with its clock pinned: level at the sea on
     /// flat water, nose up where the water rises toward the bow, no roll when the crests run across
-    /// the ship, and eased rather than snapped after the first step. The root it rides on is never moved.
+    /// the ship, and eased rather than snapped after the first step; a damaged hull settles lower and
+    /// lists toward the side hit. The root it rides on is never moved.
     /// </summary>
     public sealed class WaveRiderTests
     {
@@ -73,6 +74,27 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(SeaLevel, _hull.position.y, Tolerance);
             Assert.That(Quaternion.Angle(_hull.rotation, _ship.transform.rotation), Is.LessThan(0.01f), "level, heading with the ship");
             Assert.AreEqual(0f, _ship.transform.position.y, 0f, "the root is not moved");
+        }
+
+        [Test]
+        public void DamagedHull_SettlesLower_AndListsTowardTheSideHit()
+        {
+            UseWaves();
+            BoxCollider box = _hull.gameObject.AddComponent<BoxCollider>();
+            HullContact contact = _ship.AddComponent<HullContact>();
+            contact.Configure(_type, box, 0, 0f);
+            ShipDamage damage = _ship.AddComponent<ShipDamage>();
+            damage.Configure(contact);
+            damage.Hit(_ship.transform.position + _ship.transform.right, 0.5f);
+            _rider.Configure(_water, _hull, _type, Response, damage);
+
+            _rider.Tick(0.1f);
+
+            Assert.That(damage.Sink, Is.GreaterThan(0f));
+            Assert.That(damage.ListDeg, Is.GreaterThan(0f));
+            Assert.AreEqual(SeaLevel - damage.Sink, _hull.position.y, Tolerance);
+            Assert.That(_hull.right.y, Is.LessThan(0f), "starboard down");
+            Assert.AreEqual(damage.ListDeg, Vector3.Angle(_hull.right, _ship.transform.right), 0.01f);
         }
 
         [Test]

@@ -6,7 +6,8 @@ namespace Game.Gameplay
     /// <summary>
     /// Kinematic ship controller. Moves the Transform directly, not by physics forces; where its
     /// hull meets another ship's, its <see cref="HullContact"/> moves it out and shares a ram,
-    /// and where it would run aground the step is undone and it stops.
+    /// and where it would run aground the step is undone and it stops. A damaged hull
+    /// (<see cref="ShipDamage"/>) lowers its top speed.
     /// Reads movement input from an injected <see cref="IInputManager"/> each frame.
     /// </summary>
     public sealed class ShipController : MonoBehaviour
@@ -17,6 +18,9 @@ namespace Game.Gameplay
 
         [Tooltip("This ship's hull against other ships' hulls; none sails through them.")]
         [SerializeField] private HullContact _contact;
+
+        [Tooltip("The hull's damage, which lowers the top speed; none, and it sails at full speed.")]
+        [SerializeField] private ShipDamage _damage;
 
         /// <summary>World-space Y position the ship is locked to (sea surface). Constant in v0.2.</summary>
         [SerializeField] private float _seaSurfaceY = 0f;
@@ -117,9 +121,10 @@ namespace Game.Gameplay
             if (_type == null)
                 return;
 
+            float maxSpeed = _type.MaxSpeed * (_damage != null ? _damage.SpeedFactor : 1f);
             float targetSpeed = _throttleInput >= 0f
-                ? _type.MaxSpeed * _throttleInput
-                : _type.MaxSpeed * _type.ReverseFactor * _throttleInput;
+                ? maxSpeed * _throttleInput
+                : maxSpeed * _type.ReverseFactor * _throttleInput;
 
             _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed, _type.Acceleration * dt);
 
@@ -137,7 +142,7 @@ namespace Game.Gameplay
             {
                 Vector3 forward = _transform.forward;
                 _currentSpeed = Vector3.Dot(_contact.Collide(forward * _currentSpeed), forward);
-                if (_contact.Aground(forward * _currentSpeed))
+                if (_contact.RunAground(forward * _currentSpeed))
                 {
                     _transform.position = before;
                     _currentSpeed = 0f;
