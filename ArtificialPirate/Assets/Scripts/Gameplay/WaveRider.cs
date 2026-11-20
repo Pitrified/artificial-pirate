@@ -8,7 +8,7 @@ namespace Game.Gameplay
     /// moving on the plane with yaw only, as <see cref="ShipController"/> drives it; each frame
     /// this sets the hull child's height, pitch and roll from the water under the bow, stern,
     /// port and starboard, eased toward them so a short wave does not shake the hull. A damaged
-    /// hull (<see cref="ShipDamage"/>) settles lower and lists.
+    /// hull (<see cref="ShipDamage"/>) settles lower and lists, and a sinking one goes under.
     /// See docs/systems/ship-controller.md.
     /// </summary>
     public sealed class WaveRider : MonoBehaviour
@@ -96,7 +96,8 @@ namespace Game.Gameplay
             float targetRoll = Mathf.Atan2(starboard - port, 2f * halfBeam) * Mathf.Rad2Deg;
             if (_damage != null)
             {
-                targetHeave -= _damage.Sink;
+                targetHeave -= _damage.Settle + _damage.SinkDepth;
+                targetPitch += _damage.SinkPitchDeg;
                 targetRoll -= _damage.ListDeg;
             }
 

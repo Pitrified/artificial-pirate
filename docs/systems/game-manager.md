@@ -30,7 +30,7 @@ coordination**. Owns references to all systems.
 ## Game states
 
 ```
-enum GameState { Boot, Loading, Menu, Playing, Paused }
+enum GameState { Boot, Loading, Menu, Playing, Paused, GameOver }
 ```
 
 ### Allowed transitions
@@ -44,7 +44,15 @@ Playing  → Paused
 Paused   → Playing
 Paused   → Loading       (returning to menu)
 Playing  → Loading       (returning to menu)
+Playing  → GameOver      (the player's ship has sunk)
+Paused   → GameOver      (it went under with the game paused)
+GameOver → Loading       (returning to menu)
 ```
+
+**Game over.** `RegisterShip` listens to the ship's `ShipDamage.Sunk` (`docs/systems/ship-controller.md`).
+When it fires, the save is deleted (the menu offers no Continue), the pause and map screens are hidden, input is turned off and the game over screen is shown.
+Its Main Menu button raises `OnReturnToMenuRequested`, and `ReturnToMenuAsync` goes back without saving.
+
 
 Any other transition is rejected with a logged warning.
 
@@ -82,6 +90,7 @@ event Action<GameState, GameState> StateChanged;   // (previous, next)
 
 - `OnApplicationPause(true)` while `Playing` → auto-PauseGame and Save.
 - `OnApplicationQuit` → Save if `Playing` or `Paused`.
+- A save needs a registered ship: quitting from the menu writes nothing.
 - Focus loss on mobile counts as pause.
 
 ---

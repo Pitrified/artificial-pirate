@@ -17,5 +17,7 @@ namespace Game.Core
 
         /// <summary>Gameplay is suspended by the pause overlay.</summary>
         Paused,
+        /// <summary>The player's ship has sunk; the game over screen leads back to the menu.</summary>
+        GameOver,
     }
 }

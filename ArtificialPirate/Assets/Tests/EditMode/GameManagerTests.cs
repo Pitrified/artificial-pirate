@@ -13,12 +13,14 @@
 namespace Game.Tests.EditMode
 {
     using System;
+    using System.Collections.Generic;
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
     using UnityEngine;
     using Game.Core;
+    using Game.Gameplay;
     using Game.Gameplay.World;
     using Game.Systems;
     using Game.UI;
@@ -80,11 +82,12 @@ namespace Game.Tests.EditMode
     internal sealed class FakeUISystem : IUISystem
     {
         public bool IsAnyOverlayOpen => false;
-        public ScreenId? LastHiddenScreen { get; private set; }
+        public List<ScreenId> HiddenScreens { get; } = new List<ScreenId>();
         public void ShowLoading() { }
         public void HideLoading() { }
-        public void ShowScreen(ScreenId id) { }
-        public void HideScreen(ScreenId id) { LastHiddenScreen = id; }
+        public ScreenId? LastShownScreen { get; private set; }
+        public void ShowScreen(ScreenId id) { LastShownScreen = id; }
+        public void HideScreen(ScreenId id) { HiddenScreens.Add(id); }
         public event Action OnResumeRequested;
         public event Action OnReturnToMenuRequested;
         public void FireResumeRequested() => OnResumeRequested?.Invoke();
@@ -116,6 +119,8 @@ namespace Game.Tests.EditMode
         private FakeInputManager _fakeInput;
         private FakeAudioManager _fakeAudio;
         private FakeUISystem    _fakeUI;
+        private GameObject      _sinkable;
+        private SO_ShipType     _sinkableType;
 
         [SetUp]
         public void SetUp()
@@ -153,6 +158,8 @@ namespace Game.Tests.EditMode
                     ?.Invoke(_gm, null);
             }
             UnityEngine.Object.DestroyImmediate(_go);
+            UnityEngine.Object.DestroyImmediate(_sinkable);
+            UnityEngine.Object.DestroyImmediate(_sinkableType);
         }
 
         // Helper: drives through OnBootComplete to reach Menu.
@@ -305,7 +312,7 @@ namespace Game.Tests.EditMode
                 _fakeUI.FireMapCloseRequested();
 
                 Assert.AreEqual(GameState.Playing, _gm.CurrentState);
-                Assert.AreEqual(ScreenId.Map, _fakeUI.LastHiddenScreen);
+                CollectionAssert.Contains(_fakeUI.HiddenScreens, ScreenId.Map);
             }
             finally
             {
@@ -473,6 +480,82 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(before, _gm.CurrentState);
         }
 
+        // ------------------------------------------------------------------ game over
+
+        /// <summary>A ship with a hull that can sink, registered as the player's.</summary>
+        private ShipDamage RegisterSinkableShip()
+        {
+            var type = ScriptableObject.CreateInstance<SO_ShipType>();
+            var root = new GameObject("Ship");
+            var hull = new GameObject("Hull");
+            hull.transform.SetParent(root.transform, false);
+            HullContact contact = root.AddComponent<HullContact>();
+            contact.Configure(type, hull.AddComponent<BoxCollider>(), 0, 0f);
+            ShipDamage damage = root.AddComponent<ShipDamage>();
+            damage.Configure(contact);
+            ShipController ship = root.AddComponent<ShipController>();
+            typeof(ShipController).GetField("_type", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(ship, type);
+            typeof(ShipController).GetField("_damage", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(ship, damage);
+            _gm.RegisterShip(ship);
+            _sinkable = root;
+            _sinkableType = type;
+            return damage;
+        }
+
+        [Test]
+        public async Task ShipSunk_WhilePlaying_GameOver_TheSaveDeleted()
+        {
+            await BootToPlayingAsync();
+            _fakeSave.Save(new GameSaveData(), GameSaveData.CurrentVersion);
+            ShipDamage damage = RegisterSinkableShip();
+
+            damage.Hit(Vector3.zero, 1f);
+            Assert.AreEqual(GameState.Playing, _gm.CurrentState, "still going under");
+            damage.Tick(_sinkableType.SinkSeconds);
+
+            Assert.AreEqual(GameState.GameOver, _gm.CurrentState);
+            Assert.AreEqual(ScreenId.GameOver, _fakeUI.LastShownScreen);
+            Assert.IsFalse(_fakeSave.HasSave, "no Continue after a game over");
+            Assert.IsFalse(_fakeInput.IsEnabled);
+        }
+
+        [Test]
+        public async Task ShipSunk_WhilePaused_GameOver()
+        {
+            await BootToPausedAsync();
+            ShipDamage damage = RegisterSinkableShip();
+
+            damage.Hit(Vector3.zero, 1f);
+            damage.Tick(_sinkableType.SinkSeconds);
+
+            Assert.AreEqual(GameState.GameOver, _gm.CurrentState);
+        }
+
+        [Test]
+        public async Task ReturnToMenuAsync_FromGameOver_ToMenu_WithoutSaving()
+        {
+            await BootToPlayingAsync();
+            ShipDamage damage = RegisterSinkableShip();
+            damage.Hit(Vector3.zero, 1f);
+            damage.Tick(_sinkableType.SinkSeconds);
+
+            await _gm.ReturnToMenuAsync();
+
+            Assert.AreEqual(GameState.Menu, _gm.CurrentState);
+            Assert.IsFalse(_fakeSave.HasSave);
+            CollectionAssert.Contains(_fakeUI.HiddenScreens, ScreenId.GameOver);
+        }
+
+        [Test]
+        public void QuitGame_FromTheMenu_WritesNoSave()
+        {
+            BootToMenu();
+
+            _gm.QuitGame();
+
+            Assert.IsFalse(_fakeSave.HasSave);
+        }
+
         // ------------------------------------------------------------------ UISystem event wiring
 
         [Test]
@@ -593,7 +676,7 @@ namespace Game.Tests.EditMode
 
             await _gm.ReturnToMenuAsync();
 
-            Assert.AreEqual(ScreenId.Pause, _fakeUI.LastHiddenScreen);
+            CollectionAssert.Contains(_fakeUI.HiddenScreens, ScreenId.Pause);
         }
 
         [Test]

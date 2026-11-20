@@ -7,7 +7,7 @@ namespace Game.Gameplay
     /// Kinematic ship controller. Moves the Transform directly, not by physics forces; where its
     /// hull meets another ship's, its <see cref="HullContact"/> moves it out and shares a ram,
     /// and where it would run aground the step is undone and it stops. A damaged hull
-    /// (<see cref="ShipDamage"/>) lowers its top speed.
+    /// (<see cref="ShipDamage"/>) lowers its top speed, and a sinking one no longer answers the helm.
     /// Reads movement input from an injected <see cref="IInputManager"/> each frame.
     /// </summary>
     public sealed class ShipController : MonoBehaviour
@@ -53,6 +53,9 @@ namespace Game.Gameplay
 
         /// <summary>The kind of ship this is.</summary>
         public SO_ShipType Type => _type;
+
+        /// <summary>The hull's damage; null for a ship that takes none.</summary>
+        public ShipDamage Damage => _damage;
 
         /// <summary>
         /// Wires the input source. Called by the scene wiring script after the Game scene loads.
@@ -120,6 +123,12 @@ namespace Game.Gameplay
 
             if (_type == null)
                 return;
+
+            if (_damage != null && _damage.Sinking)
+            {
+                _throttleInput = 0f;
+                _steeringInput = 0f;
+            }
 
             float maxSpeed = _type.MaxSpeed * (_damage != null ? _damage.SpeedFactor : 1f);
             float targetSpeed = _throttleInput >= 0f

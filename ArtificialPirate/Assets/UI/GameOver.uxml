@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Style src="Pause.uss" />
+    <ui:VisualElement name="game-over-overlay" class="pause-overlay">
+        <ui:VisualElement name="safe-area-container" class="safe-area-container">
+            <ui:VisualElement class="pause-panel">
+                <ui:Label class="pause-title" text="Your ship has sunk" />
+                <ui:Button name="btn-game-over-menu" class="pause-btn" text="Main Menu" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -6,7 +6,7 @@ namespace Game.UI
     /// <summary>Contract for the persistent UI root that shows and hides screen overlays.</summary>
     public interface IUISystem
     {
-        /// <summary>Returns true when any overlay (loading, pause, diagnostics or map) is currently visible.</summary>
+        /// <summary>Returns true when any overlay (loading, pause, diagnostics, map or game over) is currently visible.</summary>
         bool IsAnyOverlayOpen { get; }
 
         /// <summary>Shows the full-screen loading overlay.</summary>
@@ -36,7 +36,7 @@ namespace Game.UI
         /// <summary>Fired when the player taps the Resume button on the pause overlay.</summary>
         event Action OnResumeRequested;
 
-        /// <summary>Fired when the player taps the Return to Menu button on the pause overlay.</summary>
+        /// <summary>Fired when the player taps the Main Menu button on the pause overlay or the game over screen.</summary>
         event Action OnReturnToMenuRequested;
     }
 }

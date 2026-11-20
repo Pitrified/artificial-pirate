@@ -90,11 +90,30 @@ namespace Game.Tests.EditMode
 
             _rider.Tick(0.1f);
 
-            Assert.That(damage.Sink, Is.GreaterThan(0f));
+            Assert.That(damage.Settle, Is.GreaterThan(0f));
             Assert.That(damage.ListDeg, Is.GreaterThan(0f));
-            Assert.AreEqual(SeaLevel - damage.Sink, _hull.position.y, Tolerance);
+            Assert.AreEqual(SeaLevel - damage.Settle, _hull.position.y, Tolerance);
             Assert.That(_hull.right.y, Is.LessThan(0f), "starboard down");
             Assert.AreEqual(damage.ListDeg, Vector3.Angle(_hull.right, _ship.transform.right), 0.01f);
+        }
+
+        [Test]
+        public void SinkingHull_GoesUnder_BowFirst_WhenHitAtTheBow()
+        {
+            UseWaves();
+            BoxCollider box = _hull.gameObject.AddComponent<BoxCollider>();
+            HullContact contact = _ship.AddComponent<HullContact>();
+            contact.Configure(_type, box, 0, 0f);
+            ShipDamage damage = _ship.AddComponent<ShipDamage>();
+            damage.Configure(contact);
+            damage.Hit(_ship.transform.position + _ship.transform.forward * HalfLength, 1f);
+            damage.Tick(_type.SinkSeconds * 0.5f);
+            _rider.Configure(_water, _hull, _type, Response, damage);
+
+            _rider.Tick(0.1f);
+
+            Assert.AreEqual(SeaLevel - damage.Settle - damage.SinkDepth, _hull.position.y, Tolerance);
+            Assert.That(_hull.forward.y, Is.LessThan(0f), "bow down");
         }
 
         [Test]

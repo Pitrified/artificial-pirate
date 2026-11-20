@@ -53,6 +53,15 @@ namespace Game.Gameplay
         [Tooltip("The list toward the damaged side when the hull is ruined with all its damage on one side (degrees).")]
         [SerializeField] private float _damagedListDeg = 8f;
 
+        [Tooltip("How long a ruined hull takes to go under (s).")]
+        [SerializeField] private float _sinkSeconds = 8f;
+
+        [Tooltip("How deep a ruined hull goes before it is gone, masts and all (m).")]
+        [SerializeField] private float _sinkDepth = 30f;
+
+        [Tooltip("How far a sinking hull tips toward the end that was last hit (degrees).")]
+        [SerializeField] private float _sinkPitchDeg = 25f;
+
         /// <summary>From the centre to the bow and to the stern at the waterline, in metres.</summary>
         public float HalfLength => _halfLength;
 
@@ -100,6 +109,15 @@ namespace Game.Gameplay
 
         /// <summary>The list toward the damaged side when the hull is ruined all on one side, in degrees.</summary>
         public float DamagedListDeg => _damagedListDeg;
+
+        /// <summary>How long a ruined hull takes to go under, in seconds.</summary>
+        public float SinkSeconds => _sinkSeconds;
+
+        /// <summary>How deep a ruined hull goes before it is gone, in metres.</summary>
+        public float SinkDepth => _sinkDepth;
+
+        /// <summary>How far a sinking hull tips toward the end that was last hit, in degrees.</summary>
+        public float SinkPitchDeg => _sinkPitchDeg;
 
         /// <summary>Sets the hull's size (types made in code: tests).</summary>
         internal void SetHull(float halfLength, float halfBeam, float draft, float freeboard)

@@ -11,7 +11,8 @@ namespace Game.Tests.EditMode
     /// <see cref="ShipDamage"/> on hulls built in code on the Ship layer: a ram hurts both ships by
     /// their share of the masses, a nudge does no harm, a grounding hurts once however long the
     /// throttle is held against the shore, health stops at 0, and a damaged ship is slower, sits
-    /// lower and lists toward the side that was hit.
+    /// lower and lists toward the side that was hit; a ruined one ignores the helm, goes under bow or
+    /// stern first by where it was last hit, and is turned off once it has sunk.
     /// </summary>
     public sealed class ShipDamageTests
     {
@@ -165,7 +166,7 @@ namespace Game.Tests.EditMode
             damage.Hit(new Vector3(HalfBeam, 0f, 2f), 0.5f);
 
             Assert.That(damage.SpeedFactor, Is.EqualTo(Mathf.Lerp(type.DamagedSpeedFloor, 1f, 0.5f)).Within(Tolerance));
-            Assert.That(damage.Sink, Is.EqualTo(0.5f * type.DamagedSinkShare * type.Freeboard).Within(Tolerance));
+            Assert.That(damage.Settle, Is.EqualTo(0.5f * type.DamagedSinkShare * type.Freeboard).Within(Tolerance));
             Assert.That(damage.ListDeg, Is.EqualTo(0.5f * type.DamagedListDeg).Within(Tolerance), "toward starboard");
 
             damage.Hit(new Vector3(-HalfBeam, 0f, -2f), 0.5f);
@@ -175,11 +176,11 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
-        public void ShipController_RuinedHull_SailsAtTheFloorSpeed()
+        public void ShipController_NearlyRuinedHull_SailsNearTheFloorSpeed()
         {
             SO_ShipType type = Type(1f);
             ShipDamage damage = Ship("Ship", type, Vector3.zero);
-            damage.Hit(Vector3.zero, 1f);
+            damage.Hit(Vector3.zero, 0.99f);
             ShipController controller = damage.gameObject.AddComponent<ShipController>();
             SetField(controller, "_type", type);
             SetField(controller, "_damage", damage);
@@ -193,7 +194,61 @@ namespace Game.Tests.EditMode
             controller.Tick(1f);
 
             float speed = controller.GetState().Position.z - before;
-            Assert.That(speed, Is.EqualTo(type.MaxSpeed * type.DamagedSpeedFloor).Within(1e-3f));
+            Assert.That(speed, Is.EqualTo(type.MaxSpeed * Mathf.Lerp(type.DamagedSpeedFloor, 1f, 0.01f)).Within(1e-3f));
+        }
+
+        [Test]
+        public void Ruined_GoesUnder_ThenSinks_Once()
+        {
+            SO_ShipType type = Type(1f);
+            ShipDamage damage = Ship("Ship", type, Vector3.zero);
+            int sunk = 0;
+            damage.Sunk += () => sunk++;
+
+            damage.Hit(new Vector3(0f, 0f, HalfLength), 1f);
+            Assert.IsTrue(damage.Sinking);
+            damage.Tick(type.SinkSeconds * 0.5f);
+
+            Assert.That(damage.SinkDepth, Is.EqualTo(0.25f * type.SinkDepth).Within(Tolerance), "slow at first");
+            Assert.That(damage.SinkPitchDeg, Is.EqualTo(0.5f * type.SinkPitchDeg).Within(Tolerance), "bow down: hit at the bow");
+            Assert.AreEqual(0, sunk);
+            Assert.IsTrue(damage.gameObject.activeSelf);
+
+            damage.Tick(type.SinkSeconds);
+            damage.Tick(type.SinkSeconds);
+
+            Assert.AreEqual(1, sunk);
+            Assert.IsFalse(damage.gameObject.activeSelf, "gone");
+        }
+
+        [Test]
+        public void Ruined_HitAtTheStern_GoesDownByTheStern()
+        {
+            SO_ShipType type = Type(1f);
+            ShipDamage damage = Ship("Ship", type, Vector3.zero);
+
+            damage.Hit(new Vector3(0f, 0f, -HalfLength), 1f);
+            damage.Tick(type.SinkSeconds * 0.5f);
+
+            Assert.That(damage.SinkPitchDeg, Is.LessThan(0f));
+        }
+
+        [Test]
+        public void ShipController_Sinking_IgnoresTheHelm()
+        {
+            SO_ShipType type = Type(1f);
+            ShipDamage damage = Ship("Ship", type, Vector3.zero);
+            ShipController controller = damage.gameObject.AddComponent<ShipController>();
+            SetField(controller, "_type", type);
+            SetField(controller, "_damage", damage);
+            damage.Hit(Vector3.zero, 1f);
+
+            controller.SetInput(1f, 1f);
+            controller.Tick(1f);
+
+            ShipState state = controller.GetState();
+            Assert.AreEqual(Vector3.zero, state.Position);
+            Assert.AreEqual(0f, state.YawDeg, 1e-3f);
         }
 
         private static void SetField(object target, string name, object value)

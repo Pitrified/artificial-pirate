@@ -95,9 +95,13 @@ namespace Game.Core
         /// </summary>
         public void RegisterShip(ShipController ship)
         {
+            if (_activeShip != null && _activeShip.Damage != null)
+                _activeShip.Damage.Sunk -= OnShipSunk;
             _activeShip = ship;
             if (ship == null)
                 return;
+            if (ship.Damage != null)
+                ship.Damage.Sunk += OnShipSunk;
 
             if (SaveSystem != null && SaveSystem.HasSave)
             {
@@ -220,17 +224,19 @@ namespace Game.Core
         /// <inheritdoc/>
         public async Task ReturnToMenuAsync(CancellationToken ct = default)
         {
-            if (CurrentState != GameState.Playing && CurrentState != GameState.Paused)
+            if (CurrentState != GameState.Playing && CurrentState != GameState.Paused && CurrentState != GameState.GameOver)
             {
                 Log.Warn(LogCat.Boot, "ReturnToMenuAsync called from invalid state '{0}'. Ignoring.", CurrentState);
                 return;
             }
 
-            PersistCurrentState();
-            _activeShip = null;                         // Game scene is about to unload
+            if (CurrentState != GameState.GameOver)
+                PersistCurrentState();
+            RegisterShip(null);                         // Game scene is about to unload
             _activeWorld = null;
             UISystem?.HideScreen(ScreenId.Map);
             UISystem?.HideScreen(ScreenId.Pause);       // clear any lingering pause overlay
+            UISystem?.HideScreen(ScreenId.GameOver);
             InputManager?.SetEnabled(true);             // restore input for Menu scene
             TransitionTo(GameState.Loading);
 
@@ -313,6 +319,26 @@ namespace Game.Core
             UISystem?.HideScreen(ScreenId.Map);
             InputManager?.SetEnabled(true);
             TransitionTo(GameState.Playing);
+        }
+
+        /// <summary>
+        /// The player's ship has gone under: the save is deleted, so the menu offers no Continue,
+        /// and the game over screen leads back to the menu.
+        /// </summary>
+        private void OnShipSunk()
+        {
+            if (CurrentState != GameState.Playing && CurrentState != GameState.Paused)
+            {
+                Log.Warn(LogCat.Boot, "OnShipSunk called from invalid state '{0}'. Ignoring.", CurrentState);
+                return;
+            }
+
+            SaveSystem?.DeleteSave();
+            UISystem?.HideScreen(ScreenId.Map);
+            UISystem?.HideScreen(ScreenId.Pause);
+            InputManager?.SetEnabled(false);
+            UISystem?.ShowScreen(ScreenId.GameOver);
+            TransitionTo(GameState.GameOver);
         }
 
         /// <inheritdoc/>
@@ -420,11 +446,12 @@ namespace Game.Core
 
         /// <summary>
         /// Captures the current ship state and writes it to the save file.
-        /// Silently skips if <see cref="SaveSystem"/> is not yet assigned.
+        /// Silently skips if <see cref="SaveSystem"/> is not yet assigned, or when no game is on
+        /// (no ship registered: quitting from the menu writes nothing).
         /// </summary>
         private void PersistCurrentState()
         {
-            if (SaveSystem == null)
+            if (SaveSystem == null || _activeShip == null)
                 return;
 
             try
@@ -492,6 +519,9 @@ namespace Game.Core
                 (GameState.Paused,  GameState.Playing) => true,
                 (GameState.Paused,  GameState.Loading) => true,
                 (GameState.Playing, GameState.Loading) => true,
+                (GameState.Playing, GameState.GameOver) => true,
+                (GameState.Paused,  GameState.GameOver) => true,
+                (GameState.GameOver, GameState.Loading) => true,
                 _                                      => false,
             };
         }

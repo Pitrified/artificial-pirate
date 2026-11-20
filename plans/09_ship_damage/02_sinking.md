@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 02 - Sinking and game over
@@ -34,3 +34,12 @@ Context: [`00_start.md`](00_start.md), depends on [`01_hull_damage.md`](01_hull_
 ## Done when
 
 - The tests pass; the gates pass; a capture of the sloop going down; a dev APK.
+
+## What the implementation found
+- 2026-11-20. Review before the code: the game never stops time when paused (input is turned off), so a ship already going under keeps sinking behind the pause or the map; `Paused -> GameOver` is allowed for that.
+- `ShipDamage` drives the sinking itself: `SinkDepth` grows with the square of the progress (slow at first) to 30 m over 8 s, `SinkPitchDeg` tips it toward the end last hit; then `Sunk` and the ship's object off. Phase 01's settling is renamed `Settle`, to keep it apart from sinking.
+- A real bug on the way: quitting from the menu ran `PersistCurrentState`, which wrote a default save when there was none, so Continue would come back after a game over (and after a first launch). A save now needs a registered ship.
+- The game over document is a GameObject beside Pause in the Persistent scene, added by a throwaway editor script (deleted); its layout reuses `Pause.uss`.
+- `SequenceCaptureTests` asserts the game is still playing at the end, so a capture with `CAPTURE_DAMAGE=1` writes its frames and then fails, as expected: the sloop goes down bow first and is gone after about 7 s.
+- The EditMode fake UI now records every hidden screen rather than the last one, since returning to the menu hides three.
+- Gates: compile 0 errors 0 warnings, EditMode 210/210, PlayMode 23/23. Dev APK 74,173,403 bytes.

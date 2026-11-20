@@ -7,9 +7,10 @@ namespace Game.Gameplay
     /// <summary>
     /// A ship's hull health, from 1 (whole) down to 0. Blows on its hull (<see cref="HullContact.Struck"/>:
     /// rams and groundings) and hits from anything else (<see cref="Hit"/>) lower it. A damaged ship
-    /// is slower (<see cref="SpeedFactor"/>), sits lower (<see cref="Sink"/>) and lists toward the side
-    /// that took the damage (<see cref="ListDeg"/>), by its type's numbers.
-    /// See docs/systems/ship-controller.md.
+    /// is slower (<see cref="SpeedFactor"/>), settles lower (<see cref="Settle"/>) and lists toward the
+    /// side that took the damage (<see cref="ListDeg"/>), by its type's numbers. At 0 it sinks: it
+    /// goes under over the type's time, tipping toward the end last hit, then raises
+    /// <see cref="Sunk"/> and turns its ship off. See docs/systems/ship-controller.md.
     /// </summary>
     public sealed class ShipDamage : MonoBehaviour
     {
@@ -19,12 +20,21 @@ namespace Game.Gameplay
         private float _health = 1f;
         private float _starboard;
         private float _port;
+        private bool _bowLastHit;
+        private bool _sinking;
+        private float _sinkProgress;
 
         /// <summary>The hull's health: 1 whole, 0 ruined.</summary>
         public float Health => _health;
 
+        /// <summary>Whether the hull is ruined and going under.</summary>
+        public bool Sinking => _sinking;
+
         /// <summary>Raised on each hit that did harm: where (world) and how much health it took.</summary>
         public event Action<Vector3, float> Damaged;
+
+        /// <summary>Raised once, when a sinking ship has gone under; the ship is then turned off.</summary>
+        public event Action Sunk;
 
         /// <summary>The share of the type's top speed the ship can still make.</summary>
         public float SpeedFactor
@@ -36,8 +46,8 @@ namespace Game.Gameplay
             }
         }
 
-        /// <summary>How far the hull has settled below its waterline, in metres.</summary>
-        public float Sink
+        /// <summary>How far the hull has settled below its waterline from damage, in metres.</summary>
+        public float Settle
         {
             get
             {
@@ -53,6 +63,31 @@ namespace Game.Gameplay
             {
                 SO_ShipType type = Type;
                 return type == null ? 0f : (_starboard - _port) * type.DamagedListDeg;
+            }
+        }
+
+        /// <summary>How far below the water a sinking hull has gone, in metres; 0 afloat.</summary>
+        public float SinkDepth
+        {
+            get
+            {
+                SO_ShipType type = Type;
+                return type == null ? 0f : _sinkProgress * _sinkProgress * type.SinkDepth;
+            }
+        }
+
+        /// <summary>How far a sinking hull has tipped, in degrees: positive bow down, as the hull's pitch.</summary>
+        public float SinkPitchDeg
+        {
+            get
+            {
+                SO_ShipType type = Type;
+                if (type == null)
+                {
+                    return 0f;
+                }
+                float pitch = _sinkProgress * type.SinkPitchDeg;
+                return _bowLastHit ? pitch : -pitch;
             }
         }
 
@@ -76,9 +111,15 @@ namespace Game.Gameplay
             Unsubscribe();
         }
 
+        private void Update()
+        {
+            Tick(Time.deltaTime);
+        }
+
         /// <summary>
         /// Takes <paramref name="amount"/> of health (0 to 1) off the hull, struck at
-        /// <paramref name="worldPoint"/>; the side it lands on sets the list.
+        /// <paramref name="worldPoint"/>; the side it lands on sets the list, and the end it lands
+        /// on the end that goes down first.
         /// </summary>
         public void Hit(Vector3 worldPoint, float amount)
         {
@@ -90,8 +131,8 @@ namespace Game.Gameplay
             _health -= amount;
 
             Transform hull = _contact != null ? _contact.Hull : null;
-            bool starboard = hull == null || hull.InverseTransformPoint(worldPoint).x >= 0f;
-            if (starboard)
+            Vector3 local = hull != null ? hull.InverseTransformPoint(worldPoint) : Vector3.zero;
+            if (local.x >= 0f)
             {
                 _starboard += amount;
             }
@@ -99,9 +140,33 @@ namespace Game.Gameplay
             {
                 _port += amount;
             }
+            _bowLastHit = local.z >= 0f;
 
             Log.Info(LogCat.Gameplay, "ShipDamage: {0} hit for {1:0.000}, health {2:0.000}", name, amount, _health);
             Damaged?.Invoke(worldPoint, amount);
+            if (_health <= 0f)
+            {
+                _sinking = true;
+                Log.Info(LogCat.Gameplay, "ShipDamage: {0} is sinking", name);
+            }
+        }
+
+        /// <summary>Carries a sinking ship under by <paramref name="dt"/> seconds. Exposed internally for tests.</summary>
+        internal void Tick(float dt)
+        {
+            if (!_sinking || _sinkProgress >= 1f)
+            {
+                return;
+            }
+            SO_ShipType type = Type;
+            float seconds = type != null ? type.SinkSeconds : 0f;
+            _sinkProgress = seconds > 0f ? Mathf.Min(1f, _sinkProgress + dt / seconds) : 1f;
+            if (_sinkProgress >= 1f)
+            {
+                Log.Info(LogCat.Gameplay, "ShipDamage: {0} has sunk", name);
+                Sunk?.Invoke();
+                gameObject.SetActive(false);
+            }
         }
 
         /// <summary>A blow closing at <paramref name="speed"/>, of which this hull takes <paramref name="share"/>.</summary>

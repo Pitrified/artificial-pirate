@@ -14,5 +14,7 @@ namespace Game.UI
 
         /// <summary>The full map, over the paused game; shown through <see cref="IUISystem.ShowMap"/>.</summary>
         Map,
+        /// <summary>The game over screen, shown when the player's ship has sunk.</summary>
+        GameOver,
     }
 }

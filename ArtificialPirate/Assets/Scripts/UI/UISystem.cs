@@ -6,7 +6,8 @@ namespace Game.UI
     using Game.Systems;
 
     /// <summary>
-    /// Manages the persistent UI root: full-screen loading overlay and pause overlay.
+    /// Manages the persistent UI root: the loading overlay and the screens over the game (pause,
+    /// diagnostics, map, game over).
     /// Lives in the Persistent scene on the <c>UIRoot</c> GameObject; owned by GameManager.
     /// All overlays default to hidden. Call <see cref="ShowLoading"/> or
     /// <see cref="ShowScreen"/> to reveal them.
@@ -19,6 +20,7 @@ namespace Game.UI
         private const string BtnResumeName          = "btn-resume";
         private const string BtnReturnToMenuName    = "btn-return-to-menu";
         private const string BtnDiagnosticsName     = "btn-diagnostics";
+        private const string BtnGameOverMenuName    = "btn-game-over-menu";
 
         // --------------------------------------------------------------------- serialized
 
@@ -26,6 +28,7 @@ namespace Game.UI
         [SerializeField] private UIDocument _pauseDocument;
         [SerializeField] private UIDocument _diagnosticsDocument;
         [SerializeField] private UIDocument _mapDocument;
+        [SerializeField] private UIDocument _gameOverDocument;
         [SerializeField] private DiagnosticsRecorder _diagnosticsRecorder;
 
         // --------------------------------------------------------------------- private state
@@ -34,6 +37,7 @@ namespace Game.UI
         private VisualElement _pauseRoot;
         private VisualElement _diagnosticsRoot;
         private VisualElement _mapRoot;
+        private VisualElement _gameOverRoot;
         private DiagnosticsPanel _diagnostics;
         private MapPanel _map;
 
@@ -41,6 +45,7 @@ namespace Game.UI
         private bool _pauseVisible;
         private bool _diagnosticsVisible;
         private bool _mapVisible;
+        private bool _gameOverVisible;
 
         private Rect       _lastSafeArea;
         private Vector2Int _lastScreenSize;
@@ -57,7 +62,7 @@ namespace Game.UI
         public event Action OnMapCloseRequested;
 
         /// <inheritdoc/>
-        public bool IsAnyOverlayOpen => _loadingVisible || _pauseVisible || _diagnosticsVisible || _mapVisible;
+        public bool IsAnyOverlayOpen => _loadingVisible || _pauseVisible || _diagnosticsVisible || _mapVisible || _gameOverVisible;
 
         /// <summary>The diagnostics panel, for tests.</summary>
         internal DiagnosticsPanel Diagnostics => _diagnostics;
@@ -68,6 +73,9 @@ namespace Game.UI
         /// <summary>The map's panel, for tests.</summary>
         internal MapPanel Map => _map;
 
+        /// <summary>The game over document's root, for tests.</summary>
+        internal VisualElement GameOverRoot => _gameOverRoot;
+
         // --------------------------------------------------------------------- Unity lifecycle
 
         private void Start()
@@ -76,8 +84,10 @@ namespace Game.UI
             _pauseRoot   = BindDocument(_pauseDocument,   "Pause");
             _diagnosticsRoot = BindDocument(_diagnosticsDocument, "Diagnostics");
             _mapRoot = BindDocument(_mapDocument, "Map");
+            _gameOverRoot = BindDocument(_gameOverDocument, "GameOver");
 
             RegisterPauseButtons();
+            RegisterGameOverButtons();
             if (_diagnosticsRoot != null)
             {
                 _diagnostics = new DiagnosticsPanel(_diagnosticsRoot, _diagnosticsRecorder, new PlatformDiagnosticsExport());
@@ -93,6 +103,7 @@ namespace Game.UI
             SetVisible(_pauseRoot,   false);
             SetVisible(_diagnosticsRoot, false);
             SetVisible(_mapRoot, false);
+            SetVisible(_gameOverRoot, false);
 
             _lastSafeArea   = Screen.safeArea;
             _lastScreenSize = new Vector2Int(Screen.width, Screen.height);
@@ -167,6 +178,11 @@ namespace Game.UI
                     SetVisible(_diagnosticsRoot, true);
                     _diagnosticsVisible = true;
                     break;
+                case ScreenId.GameOver:
+                    SetVisible(_gameOverRoot, true);
+                    _gameOverVisible = true;
+                    Log.Info(LogCat.UI, "Game over screen shown.");
+                    break;
                 default:
                     Log.Warn(LogCat.UI, "ShowScreen: ScreenId {0} is not handled by UISystem.", id);
                     break;
@@ -189,6 +205,10 @@ namespace Game.UI
                 case ScreenId.Map:
                     SetVisible(_mapRoot, false);
                     _mapVisible = false;
+                    break;
+                case ScreenId.GameOver:
+                    SetVisible(_gameOverRoot, false);
+                    _gameOverVisible = false;
                     break;
                 default:
                     Log.Warn(LogCat.UI, "HideScreen: ScreenId {0} is not handled by UISystem.", id);
@@ -237,6 +257,13 @@ namespace Game.UI
                 btnDiagnostics.clicked += () => ShowScreen(ScreenId.Diagnostics);
         }
 
+        private void RegisterGameOverButtons()
+        {
+            Button btnMenu = _gameOverRoot?.Q<Button>(BtnGameOverMenuName);
+            if (btnMenu != null)
+                btnMenu.clicked += () => OnReturnToMenuRequested?.Invoke();
+        }
+
         private static void SetVisible(VisualElement element, bool visible)
         {
             if (element == null)
@@ -259,6 +286,7 @@ namespace Game.UI
             ApplySafeAreaInsets(_loadingRoot, paddingLeft, paddingRight, paddingTop, paddingBot);
             ApplySafeAreaInsets(_pauseRoot,   paddingLeft, paddingRight, paddingTop, paddingBot);
             ApplySafeAreaInsets(_mapRoot,     paddingLeft, paddingRight, paddingTop, paddingBot);
+            ApplySafeAreaInsets(_gameOverRoot, paddingLeft, paddingRight, paddingTop, paddingBot);
         }
 
         private static void ApplySafeAreaInsets(
