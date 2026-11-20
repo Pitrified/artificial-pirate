@@ -16,6 +16,7 @@ namespace Game.Tests.PlayMode
     using UnityEngine.TestTools;
     using Game.Core;
     using Game.Gameplay;
+    using Game.UI;
 
     /// <summary>
     /// PlayMode tests verifying that the pause/resume cycle does not alter
@@ -101,6 +102,32 @@ namespace Game.Tests.PlayMode
                 $"Ship position must be unchanged after pause/resume (delta={positionDelta:F6} m)");
             Assert.That(yawDelta, Is.LessThan(Epsilon),
                 $"Ship yaw must be unchanged after pause/resume (delta={yawDelta:F6} deg)");
+        }
+
+        /// <summary>
+        /// The HUD sorts above the screens shown over the paused game, so it shows only while
+        /// playing: off when paused, on again after resuming.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator PauseResume_HudShownOnlyWhilePlaying()
+        {
+            yield return SceneManager.LoadSceneAsync(SceneNames.Boot, LoadSceneMode.Single);
+            yield return WaitForState(GameState.Menu);
+            var startTask = GameManager.Instance.StartNewGameAsync();
+            while (!startTask.IsCompleted)
+                yield return null;
+            yield return WaitForState(GameState.Playing);
+            yield return null;
+
+            Minimap minimap = Object.FindAnyObjectByType<Minimap>(FindObjectsInactive.Include);
+            Assert.IsNotNull(minimap, "The HUD has a minimap");
+            Assert.IsTrue(minimap.gameObject.activeInHierarchy, "The HUD shows while playing");
+
+            GameManager.Instance.PauseGame();
+            Assert.IsFalse(minimap.gameObject.activeInHierarchy, "The HUD is hidden while paused");
+
+            GameManager.Instance.ResumeGame();
+            Assert.IsTrue(minimap.gameObject.activeInHierarchy, "The HUD shows again after resuming");
         }
 
         // ------------------------------------------------------------------ helpers

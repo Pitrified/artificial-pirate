@@ -9,7 +9,8 @@ namespace Game.Core
     /// <summary>
     /// Wires Game scene components (ShipController, CameraController) with Persistent scene
     /// systems (InputManager); hands the world to GameManager to begin its seed, then wires the
-    /// ship to the world's ground, and opens the map when the minimap is tapped. Place this on
+    /// ship to the world's ground, opens the map when the minimap is tapped, and shows the HUD only
+    /// while playing, since its canvas sorts above the screens shown over the paused game. Place this on
     /// any root object in Game.unity and assign the serialized references in the Inspector.
     /// </summary>
     public sealed class GameSceneWiring : MonoBehaviour
@@ -19,6 +20,9 @@ namespace Game.Core
         [SerializeField] private WorldStreamer _world;
         [SerializeField] private WorldMap _worldMap;
         [SerializeField] private Minimap _minimap;
+        [SerializeField] private GameObject _hud;
+
+        private GameManager _gameManager;
 
         private void Start()
         {
@@ -38,6 +42,10 @@ namespace Game.Core
                 Log.Warn(LogCat.Gameplay, "GameSceneWiring: GameManager.Instance is null - ship/camera not wired");
                 return;
             }
+
+            _gameManager = gm;
+            gm.StateChanged += OnStateChanged;
+            ShowHud(gm.CurrentState);
 
             if (_ship == null)
             {
@@ -71,6 +79,20 @@ namespace Game.Core
             if (_minimap != null)
             {
                 _minimap.Clicked -= OpenMap;
+            }
+            if (_gameManager != null)
+            {
+                _gameManager.StateChanged -= OnStateChanged;
+            }
+        }
+
+        private void OnStateChanged(GameState from, GameState to) => ShowHud(to);
+
+        private void ShowHud(GameState state)
+        {
+            if (_hud != null)
+            {
+                _hud.SetActive(state == GameState.Playing);
             }
         }
 

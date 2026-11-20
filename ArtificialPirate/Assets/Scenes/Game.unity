@@ -1099,6 +1099,7 @@ MonoBehaviour:
   _world: {fileID: 1220623505}
   _worldMap: {fileID: 1220623508}
   _minimap: {fileID: 1643885581}
+  _hud: {fileID: 1194384197}
 --- !u!4 &1575283269
 Transform:
   m_ObjectHideFlags: 0

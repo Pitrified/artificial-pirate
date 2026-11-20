@@ -22,6 +22,7 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 | 06 | The full map       | [`06_full_map.md`](06_full_map.md) | done |
 | 07 | Verify             | [`07_verify.md`](07_verify.md) | in progress |
 | 08 | Wonkier islands    | [`08_wonkier_islands.md`](08_wonkier_islands.md) | done |
+| 09 | The HUD only while sailing | [`09_hud_while_sailing.md`](09_hud_while_sailing.md) | done |
 
 ## Log
 
@@ -35,3 +36,5 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 - 2026-11-19: phase 06 done: the full map over the paused game, opened from the minimap; `CAPTURE_MAP`.
 - 2026-11-19: phase 07: a fresh clone passes the gates, the dev APK is built; waiting on the phone.
 - 2026-11-19: the user found the first look too griddy and round: phase 08 moves islands anywhere in their cells, lets them spill into the next, and warps, stretches and lobes their shapes. A new APK.
+- 2026-11-20: two phone reports: 60 fps held, Continue restores the world. The user's read: islands, minimap, map and fog are ok; the HUD covers the paused screens' buttons (phase 09); the far water calms too abruptly, and the map should pan on a drag.
+- 2026-11-20: phase 09 done: the HUD shows only while playing. A new APK.
