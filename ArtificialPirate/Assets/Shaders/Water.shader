@@ -56,6 +56,7 @@ Shader "artificial-pirate/Water"
 
             static const float Gravity = 9.81;
             static const float ShadowDarkening = 0.45; // how much of the water's light a shadow takes
+            static const float PixelsPerWave = 4.0;    // a wave fades out from twice this many pixels a wavelength to this
 
             struct Attributes
             {
@@ -66,10 +67,8 @@ Shader "artificial-pirate/Water"
             {
                 float4 positionCS : SV_POSITION;
                 float3 positionWS : TEXCOORD0;
-                float3 normalWS   : TEXCOORD1;
-                float2 restXZ     : TEXCOORD2;
-                float  crest      : TEXCOORD3;
-                float  fogFactor  : TEXCOORD4;
+                float2 restXZ     : TEXCOORD1;
+                float  fogFactor  : TEXCOORD2;
             };
 
             // One Gerstner wave: adds its displacement and its tangent and binormal terms.
@@ -87,16 +86,29 @@ Shader "artificial-pirate/Water"
                 binormal += float3(-d.x * d.y * wave.z * s, d.y * wave.z * c, -d.y * d.y * wave.z * s);
             }
 
-            void GerstnerSum(float2 p, out float3 offset, out float3 normal)
+            void GerstnerSum(float2 p, float4 waveA, float4 waveB, float4 waveC, float4 waveD, out float3 offset, out float3 normal)
             {
                 offset = 0;
                 float3 tangent = float3(1, 0, 0);
                 float3 binormal = float3(0, 0, 1);
-                Gerstner(_WaterWaveA, p, offset, tangent, binormal);
-                Gerstner(_WaterWaveB, p, offset, tangent, binormal);
-                Gerstner(_WaterWaveC, p, offset, tangent, binormal);
-                Gerstner(_WaterWaveD, p, offset, tangent, binormal);
+                Gerstner(waveA, p, offset, tangent, binormal);
+                Gerstner(waveB, p, offset, tangent, binormal);
+                Gerstner(waveC, p, offset, tangent, binormal);
+                Gerstner(waveD, p, offset, tangent, binormal);
                 normal = normalize(cross(binormal, tangent));
+            }
+
+            // A wave flattened as its wavelength nears a few pixels of water, where it would shimmer.
+            float4 Resolved(float4 wave, float metresPerPixel)
+            {
+                wave.z *= saturate(wave.w / (metresPerPixel * PixelsPerWave) - 1.0);
+                return wave;
+            }
+
+            // How much the waves calm over seabed this deep, so they do not climb onto the land.
+            float ShallowCalm(float depth)
+            {
+                return saturate(depth / max(_WaterFoamParams.w, 1e-3));
             }
 
             Varyings Vert(Attributes input)
@@ -104,29 +116,21 @@ Shader "artificial-pirate/Water"
                 Varyings o;
                 float3 rest = TransformObjectToWorld(input.positionOS.xyz);
                 float3 offset, normal;
-                GerstnerSum(rest.xz, offset, normal);
+                GerstnerSum(rest.xz, _WaterWaveA, _WaterWaveB, _WaterWaveC, _WaterWaveD, offset, normal);
 
-                // Waves calm down over shallow water, so they do not climb onto the land.
                 float2 depthUV = (rest.xz - _WaterDepthRect.xy) / _WaterDepthRect.z;
                 float depth = SAMPLE_TEXTURE2D_LOD(_WaterDepthMap, sampler_WaterDepthMap, depthUV, 0).r * _WaterDepthRect.w;
-                float calm = saturate(depth / max(_WaterFoamParams.w, 1e-3));
-                // And far from the grid's centre, so its coarse outer quads meet a flat edge.
+                float calm = ShallowCalm(depth);
+                // The height also calms far from the grid's centre, so its coarse outer quads meet a
+                // flat edge. The light keeps the waves: the fragment works out their normal itself.
                 float far = distance(rest.xz, _WaterFarCalm.xy);
                 calm *= 1.0 - saturate((far - _WaterFarCalm.z) / max(_WaterFarCalm.w - _WaterFarCalm.z, 1e-3));
                 offset *= calm;
-                normal = normalize(lerp(float3(0, 1, 0), normal, calm));
                 float3 positionWS = float3(rest.x + offset.x, _WaterSeaLevel + offset.y, rest.z + offset.z);
-
-                // How high this point rides relative to the waves' total amplitude: crest foam.
-                float amplitude = _WaterWaveA.z * _WaterWaveA.w + _WaterWaveB.z * _WaterWaveB.w
-                                + _WaterWaveC.z * _WaterWaveC.w + _WaterWaveD.z * _WaterWaveD.w;
-                amplitude = max(amplitude / (2.0 * PI), 1e-3);
 
                 o.positionWS = positionWS;
                 o.positionCS = TransformWorldToHClip(positionWS);
-                o.normalWS = normal;
                 o.restXZ = rest.xz;
-                o.crest = saturate(offset.y / amplitude);
                 o.fogFactor = ComputeFogFactor(o.positionCS.z);
                 return o;
             }
@@ -136,6 +140,23 @@ Shader "artificial-pirate/Water"
                 // Seabed depth under this point, metres below the still surface.
                 float2 depthUV = (i.restXZ - _WaterDepthRect.xy) / _WaterDepthRect.z;
                 float depth = SAMPLE_TEXTURE2D(_WaterDepthMap, sampler_WaterDepthMap, depthUV).r * _WaterDepthRect.w;
+
+                // The waves' normal and height at this pixel, the waves too short to show here left out.
+                float2 footprint = fwidth(i.restXZ);
+                float metresPerPixel = max(max(footprint.x, footprint.y), 1e-4);
+                float3 offset, waveNormal;
+                GerstnerSum(i.restXZ,
+                    Resolved(_WaterWaveA, metresPerPixel), Resolved(_WaterWaveB, metresPerPixel),
+                    Resolved(_WaterWaveC, metresPerPixel), Resolved(_WaterWaveD, metresPerPixel),
+                    offset, waveNormal);
+                float calm = ShallowCalm(depth);
+                waveNormal = normalize(lerp(float3(0, 1, 0), waveNormal, calm));
+
+                // How high this point rides relative to the waves' total amplitude: crest foam.
+                float amplitude = _WaterWaveA.z * _WaterWaveA.w + _WaterWaveB.z * _WaterWaveB.w
+                                + _WaterWaveC.z * _WaterWaveC.w + _WaterWaveD.z * _WaterWaveD.w;
+                amplitude = max(amplitude / (2.0 * PI), 1e-3);
+                float crest = saturate(offset.y * calm / amplitude);
 
                 // Detail normals: two scrolls of one tiling map, crossing.
                 float tiling = _WaterDetail.x;
@@ -164,7 +185,7 @@ Shader "artificial-pirate/Water"
                     ripple = abs(h) * _RippleFoam * edge;
                     wake = saturate(field.b * _WakeFoam) * edge;
                 }
-                float3 n = normalize(float3(i.normalWS.x + bend.x, i.normalWS.y, i.normalWS.z + bend.y));
+                float3 n = normalize(float3(waveNormal.x + bend.x, waveNormal.y, waveNormal.z + bend.y));
 
                 // Colour: shallow over sand, deep further out.
                 half3 water = lerp(_WaterShallow.rgb, _WaterDeep.rgb, saturate(depth / _WaterDetail.w));
@@ -178,7 +199,7 @@ Shader "artificial-pirate/Water"
 
                 // Sky at grazing angles (Schlick, F0 of water), the sun's glint.
                 // Fresnel on a mostly geometric normal: the detail would sparkle sky everywhere at a low angle.
-                float3 nf = normalize(lerp(i.normalWS, n, 0.35));
+                float3 nf = normalize(lerp(waveNormal, n, 0.35));
                 float fresnel = 0.02 + 0.98 * pow(1.0 - saturate(dot(nf, v)), 5.0);
                 half3 colour = lerp(lit, _WaterSky.rgb, fresnel * 0.6);
                 float3 h = normalize(sun.direction + v);
@@ -193,7 +214,7 @@ Shader "artificial-pirate/Water"
                 // The waterline swashes up and down the beach, out of step along the shore.
                 float swash = 0.5 + 0.5 * sin(_WaterTime * 1.1 + i.restXZ.x * 0.15 + i.restXZ.y * 0.11);
                 float waterline = 1.0 - smoothstep(0.0, 0.08 + 0.14 * swash, depth);
-                float crestFoam = smoothstep(0.85, 1.0, i.crest) * _WaterFoamParams.z * smoothstep(0.55, 0.9, breakup);
+                float crestFoam = smoothstep(0.85, 1.0, crest) * _WaterFoamParams.z * smoothstep(0.55, 0.9, breakup);
                 // The wake's foam breaks up where it thins out, solid where it is fresh.
                 float wakeFoam = wake * smoothstep(0.2, 0.6, breakup + wake * 0.6 - 0.2);
                 float foam = saturate(max(max(bands, waterline), max(max(crestFoam, wakeFoam), saturate(ripple))));
