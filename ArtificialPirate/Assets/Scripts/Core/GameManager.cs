@@ -91,7 +91,7 @@ namespace Game.Core
 
         /// <summary>
         /// Called by <see cref="GameSceneWiring"/> when the Game scene loads.
-        /// Stores the active ship reference and restores saved position if a save exists.
+        /// Stores the active ship reference and restores its saved position and damage if a save exists.
         /// </summary>
         public void RegisterShip(ShipController ship)
         {
@@ -109,6 +109,8 @@ namespace Game.Core
                 ship.Teleport(
                     new UnityEngine.Vector3(data.ship.x, data.ship.y, data.ship.z),
                     data.ship.yawDeg);
+                if (ship.Damage != null)
+                    ship.Damage.Restore(data.damage);
                 Log.Info(LogCat.Boot,
                     "RegisterShip: restored position ({0:F1}, {1:F1}, {2:F1}) yaw {3:F1}.",
                     data.ship.x, data.ship.y, data.ship.z, data.ship.yawDeg);
@@ -468,6 +470,8 @@ namespace Game.Core
                         z      = state.Position.z,
                         yawDeg = state.YawDeg,
                     };
+                    if (_activeShip.Damage != null)
+                        data.damage = _activeShip.Damage.ToSaveData();
                 }
 
                 if (_activeWorld != null && _activeWorld.World != null)

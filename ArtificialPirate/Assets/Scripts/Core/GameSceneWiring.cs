@@ -9,7 +9,8 @@ namespace Game.Core
     /// <summary>
     /// Wires Game scene components (ShipController, CameraController) with Persistent scene
     /// systems (InputManager); hands the world to GameManager to begin its seed, then wires the
-    /// ship to the world's ground, opens the map when the minimap is tapped, and shows the HUD only
+    /// ship to the world's ground, opens the map when the minimap is tapped, shows the ship's hull on
+    /// the hull bar once its save is restored, and shows the HUD only
     /// while playing, since its canvas sorts above the screens shown over the paused game. Place this on
     /// any root object in Game.unity and assign the serialized references in the Inspector.
     /// </summary>
@@ -20,6 +21,7 @@ namespace Game.Core
         [SerializeField] private WorldStreamer _world;
         [SerializeField] private WorldMap _worldMap;
         [SerializeField] private Minimap _minimap;
+        [SerializeField] private HullBar _hullBar;
         [SerializeField] private GameObject _hud;
 
         private GameManager _gameManager;
@@ -56,6 +58,10 @@ namespace Game.Core
                 _ship.Inject(gm.InputManager);
                 gm.RegisterShip(_ship);
                 Log.Info(LogCat.Gameplay, "GameSceneWiring: ShipController injected with InputManager");
+                if (_hullBar != null)
+                {
+                    _hullBar.Show(_ship.Damage);
+                }
             }
 
             if (_camera == null)

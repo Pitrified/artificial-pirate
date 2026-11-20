@@ -39,6 +39,40 @@ namespace Game.Gameplay
         public CellSaveData[] explored;
     }
 
+    /// <summary>A hit on the hull, in the hull's local space.</summary>
+    [System.Serializable]
+    public struct HitSaveData
+    {
+        /// <summary>Where it landed, along the hull's X (starboard).</summary>
+        public float x;
+
+        /// <summary>Where it landed, along the hull's Y (up).</summary>
+        public float y;
+
+        /// <summary>Where it landed, along the hull's Z (the bow).</summary>
+        public float z;
+
+        /// <summary>The health it took, 0 to 1.</summary>
+        public float amount;
+    }
+
+    /// <summary>The hull's damage: the health lost, on each side, and the latest hits.</summary>
+    [System.Serializable]
+    public struct DamageSaveData
+    {
+        /// <summary>Health lost in all, 0 (whole) to 1 (ruined).</summary>
+        public float lost;
+
+        /// <summary>Health lost to hits on the starboard side.</summary>
+        public float starboard;
+
+        /// <summary>Health lost to hits on the port side.</summary>
+        public float port;
+
+        /// <summary>The latest hits, oldest first.</summary>
+        public HitSaveData[] hits;
+    }
+
     /// <summary>
     /// The game's save payload, written by <c>Game.Systems.SaveSystem</c> inside its envelope.
     /// Must stay in sync with the JSON schema in docs/functional-specs.md §9.
@@ -51,13 +85,17 @@ namespace Game.Gameplay
         /// Increment on any breaking field change; a mismatch resets the save.
         /// 2: the payload moved inside the save system's envelope (1 had the ship at the top level).
         /// 3: the world's seed and explored cells.
+        /// 4: the hull's damage.
         /// </summary>
-        public const int CurrentVersion = 3;
+        public const int CurrentVersion = 4;
 
         /// <summary>Ship state at the time of save.</summary>
         public ShipSaveData ship;
 
         /// <summary>The world at the time of save.</summary>
         public WorldSaveData world;
+
+        /// <summary>The ship's hull at the time of save.</summary>
+        public DamageSaveData damage;
     }
 }

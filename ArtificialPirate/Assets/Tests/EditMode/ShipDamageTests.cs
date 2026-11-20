@@ -12,7 +12,8 @@ namespace Game.Tests.EditMode
     /// their share of the masses, a nudge does no harm, a grounding hurts once however long the
     /// throttle is held against the shore, health stops at 0, and a damaged ship is slower, sits
     /// lower and lists toward the side that was hit; a ruined one ignores the helm, goes under bow or
-    /// stern first by where it was last hit, and is turned off once it has sunk.
+    /// stern first by where it was last hit, and is turned off once it has sunk. It keeps the latest
+    /// hits in the hull's space, and its damage comes back whole from a save.
     /// </summary>
     public sealed class ShipDamageTests
     {
@@ -249,6 +250,79 @@ namespace Game.Tests.EditMode
             ShipState state = controller.GetState();
             Assert.AreEqual(Vector3.zero, state.Position);
             Assert.AreEqual(0f, state.YawDeg, 1e-3f);
+        }
+
+        [Test]
+        public void Hits_KeptInTheHullsSpace_OldestDroppedWhenFull()
+        {
+            ShipDamage damage = Ship("Ship", Type(1f), new Vector3(5f, 0f, 7f));
+            damage.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+            Transform hull = damage.GetComponent<HullContact>().Hull;
+            const float Small = 0.01f;
+
+            damage.Hit(hull.TransformPoint(new Vector3(HalfBeam, 0f, 2f)), Small);
+            Assert.AreEqual(1, damage.HitCount);
+            HullHit first = damage.GetHit(0);
+            Assert.That(Vector3.Distance(first.Point, new Vector3(HalfBeam, 0f, 2f)), Is.LessThan(Tolerance), "in the hull's space");
+            Assert.That(first.Amount, Is.EqualTo(Small).Within(Tolerance));
+
+            for (int i = 1; i <= ShipDamage.KeptHits; i++)
+            {
+                damage.Hit(hull.TransformPoint(new Vector3(0f, 0f, i)), Small);
+            }
+
+            Assert.AreEqual(ShipDamage.KeptHits, damage.HitCount);
+            Assert.That(damage.GetHit(0).Point.z, Is.EqualTo(1f).Within(Tolerance), "the first one dropped");
+            Assert.That(damage.GetHit(ShipDamage.KeptHits - 1).Point.z, Is.EqualTo(ShipDamage.KeptHits).Within(Tolerance), "the newest last");
+        }
+
+        [Test]
+        public void Restore_FromASave_GivesBackTheSameHull()
+        {
+            SO_ShipType type = Type(1f);
+            ShipDamage damage = Ship("Ship", type, Vector3.zero);
+            damage.Hit(new Vector3(HalfBeam, 0f, 4f), 0.3f);
+            damage.Hit(new Vector3(-HalfBeam, 0f, -4f), 0.1f);
+            DamageSaveData saved = damage.ToSaveData();
+
+            ShipDamage restored = Ship("Restored", type, Vector3.zero);
+            restored.Restore(saved);
+
+            Assert.That(restored.Health, Is.EqualTo(damage.Health).Within(Tolerance));
+            Assert.That(restored.ListDeg, Is.EqualTo(damage.ListDeg).Within(Tolerance));
+            Assert.That(restored.SpeedFactor, Is.EqualTo(damage.SpeedFactor).Within(Tolerance));
+            Assert.AreEqual(2, restored.HitCount);
+            Assert.That(Vector3.Distance(restored.GetHit(1).Point, damage.GetHit(1).Point), Is.LessThan(Tolerance));
+            Assert.That(restored.GetHit(1).Amount, Is.EqualTo(0.1f).Within(Tolerance));
+            Assert.IsFalse(restored.Sinking);
+        }
+
+        [Test]
+        public void Restore_ARuinedHull_GoesUnderAgain_ByTheEndLastHit()
+        {
+            SO_ShipType type = Type(1f);
+            ShipDamage damage = Ship("Ship", type, Vector3.zero);
+            damage.Hit(new Vector3(0f, 0f, -HalfLength), 1f);
+
+            ShipDamage restored = Ship("Restored", type, Vector3.zero);
+            restored.Restore(damage.ToSaveData());
+            restored.Tick(type.SinkSeconds * 0.5f);
+
+            Assert.IsTrue(restored.Sinking);
+            Assert.That(restored.SinkPitchDeg, Is.LessThan(0f), "by the stern");
+        }
+
+        [Test]
+        public void Restore_ANewGame_IsWhole()
+        {
+            ShipDamage damage = Ship("Ship", Type(1f), Vector3.zero);
+            damage.Hit(Vector3.right, 0.5f);
+
+            damage.Restore(default);
+
+            Assert.AreEqual(1f, damage.Health);
+            Assert.AreEqual(0, damage.HitCount);
+            Assert.AreEqual(0f, damage.ListDeg);
         }
 
         private static void SetField(object target, string name, object value)

@@ -24,6 +24,7 @@ namespace Game.Tests.PlayMode
     using Game.Core;
     using Game.Gameplay;
     using Game.Gameplay.World;
+    using Game.UI;
 
     /// <summary>
     /// PlayMode test verifying that the save-and-restore cycle correctly
@@ -173,6 +174,50 @@ namespace Game.Tests.PlayMode
             WorldStreamer restored = Object.FindAnyObjectByType<WorldStreamer>();
             Assert.AreEqual(seed, restored.World.Seed, "The same world");
             Assert.AreEqual(explored, restored.Explored.Count, "The same cells explored");
+        }
+
+        /// <summary>
+        /// A damaged hull is saved on return to the menu, and Continue brings back its health,
+        /// its hits and the hull bar showing them.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator SaveReloadContinue_RestoresTheDamage()
+        {
+            const float Damage = 0.4f;
+
+            yield return SceneManager.LoadSceneAsync(SceneNames.Boot, LoadSceneMode.Single);
+            yield return WaitForState(GameState.Menu);
+
+            var startTask = GameManager.Instance.StartNewGameAsync();
+            while (!startTask.IsCompleted)
+                yield return null;
+            yield return WaitForState(GameState.Playing);
+            yield return null;
+
+            ShipController ship = Object.FindAnyObjectByType<ShipController>();
+            ship.Damage.Hit(ship.transform.position + ship.transform.right, Damage);
+            float listDeg = ship.Damage.ListDeg;
+
+            var returnTask = GameManager.Instance.ReturnToMenuAsync();
+            while (!returnTask.IsCompleted)
+                yield return null;
+            yield return WaitForState(GameState.Menu);
+
+            var continueTask = GameManager.Instance.ContinueAsync();
+            while (!continueTask.IsCompleted)
+                yield return null;
+            yield return WaitForState(GameState.Playing);
+            yield return null;
+
+            ShipDamage restored = Object.FindAnyObjectByType<ShipController>().Damage;
+            Assert.AreEqual(1f - Damage, restored.Health, 1e-4f, "The same health");
+            Assert.AreEqual(1, restored.HitCount, "The hit kept");
+            Assert.AreEqual(listDeg, restored.ListDeg, 1e-4f, "The same list");
+
+            HullBar bar = Object.FindAnyObjectByType<HullBar>();
+            Assert.IsNotNull(bar, "The HUD has a hull bar");
+            var fill = (RectTransform)bar.transform.Find("Fill");
+            Assert.AreEqual(1f - Damage, fill.anchorMax.x, 1e-4f, "The bar shows it");
         }
 
         // ------------------------------------------------------------------ helpers

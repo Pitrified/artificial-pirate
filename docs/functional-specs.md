@@ -134,18 +134,20 @@ Stored as `save.json` in `Application.persistentDataPath`:
 
 ```json
 {
-  "version": 3,
+  "version": 4,
   "lastSavedUtc": "2026-04-28T12:00:00Z",
   "payload": {
     "ship": { "x": 0.0, "y": 0.0, "z": 0.0, "yawDeg": 0.0 },
-    "world": { "seed": 1234567, "explored": [ { "x": 0, "z": 0 }, { "x": 1, "z": 0 } ] }
+    "world": { "seed": 1234567, "explored": [ { "x": 0, "z": 0 }, { "x": 1, "z": 0 } ] },
+    "damage": { "lost": 0.25, "starboard": 0.2, "port": 0.05, "hits": [ { "x": 3.1, "y": 0.4, "z": 6.0, "amount": 0.2 } ] }
   }
 }
 ```
 
 `version` and `lastSavedUtc` are written by the save system; `payload` is `GameSaveData` and `version` is its `CurrentVersion`.
-Version 1 had `ship` at the top level; version 2 had no `world`. Either is reset.
+Version 1 had `ship` at the top level; version 2 had no `world`; version 3 had no `damage`. Any of them is reset.
 `world.seed` 0 means no world was saved, and a new one begins (`docs/systems/world.md`).
+`damage` is the player's hull: the health lost, in all and on each side, and the latest hits in the hull's local space, oldest first (`docs/systems/ship-controller.md`); none means a whole hull.
 
 Rules:
 
