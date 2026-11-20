@@ -2,7 +2,7 @@
 
 Run from this folder:
 
-    uv run --no-sync python textures.py water_normals   (or palette, sail_canvas, hull_planks, deck_planks, flag)
+    uv run --no-sync python textures.py water_normals   (or palette, sail_canvas, hull_planks, deck_planks, flag, hull_marks)
 
 Each texture is a function below. Tiling comes from building the height field out of
 waves with integer frequencies over the tile, so the edges meet. The same seed gives
@@ -136,6 +136,47 @@ def flag() -> Path:
     return _save(image, "T_Flag")
 
 
+def _ragged_blob(size: int, radius: float, roughness: float, rng: np.random.Generator) -> np.ndarray:
+    """A mask in [0, 1] of a blob with a ragged edge, wider along x (the planks), centred in the cell."""
+    y, x = (np.mgrid[0:size, 0:size] + 0.5) / size - 0.5
+    angle = np.arctan2(y, x)
+    edge = np.ones_like(angle)
+    for k in range(3, 14):
+        edge += roughness / k ** 0.6 * np.sin(k * angle + rng.uniform(0, 2 * np.pi))
+    r = np.hypot(x / 1.15, y / 0.8)
+    inside = np.maximum(np.abs(x), np.abs(y)) < 0.47  # clear of the cell's border, so mips do not bleed
+    return ((r < radius * edge) & inside).astype(float)
+
+
+def hull_marks() -> Path:
+    """Damage on a hull's side, a 2 x 2 atlas: two splintered patches (bottom) and two holes (top).
+    Bare wood with grain along x, dark cracks and splinters; a hole is a black-brown gap in a ring of
+    broken planks. Alpha is cut: 0 outside the mark."""
+    cell = 128
+    rng = np.random.default_rng(51)
+    rgba = np.zeros((2 * cell, 2 * cell, 4))
+    grain = tiling_height(cell, waves=40, min_freq=6, max_freq=30, falloff=0.8, seed=52)
+    bare = np.array([0.62, 0.48, 0.32])
+    gap = np.array([0.08, 0.05, 0.03])
+    for row in range(2):
+        for col in range(2):
+            hole = row == 1
+            outer = _ragged_blob(cell, 0.31, 0.16, rng)
+            colour = bare * (0.85 + 0.15 * grain[..., None])
+            for _ in range(10):
+                y0 = rng.integers(cell // 5, 4 * cell // 5)
+                x0, x1 = sorted(rng.integers(cell // 8, 7 * cell // 8, size=2))
+                colour[y0:y0 + 2, x0:x1] *= 0.45
+            if hole:
+                inner = _ragged_blob(cell, 0.2, 0.28, rng)
+                colour = colour * (1 - inner[..., None]) + gap * inner[..., None]
+            ys = slice((1 - row) * cell, (2 - row) * cell)
+            xs = slice(col * cell, (col + 1) * cell)
+            rgba[ys, xs, :3] = colour
+            rgba[ys, xs, 3] = outer
+    return _save(Image.fromarray(np.round(np.clip(rgba, 0, 1) * 255).astype(np.uint8), "RGBA"), "T_HullMarks")
+
+
 TEXTURES = {
     "water_normals": water_normals,
     "palette": palette,
@@ -143,6 +184,7 @@ TEXTURES = {
     "hull_planks": hull_planks,
     "deck_planks": deck_planks,
     "flag": flag,
+    "hull_marks": hull_marks,
 }
 
 

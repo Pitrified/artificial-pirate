@@ -17,7 +17,7 @@ Brainstorm, options and questions in [`00_start.md`](00_start.md).
 | 01 | Hull damage and handling | [`01_hull_damage.md`](01_hull_damage.md) | done |
 | 02 | Sinking and game over    | [`02_sinking.md`](02_sinking.md) | done |
 | 03 | HUD bar and save         | [`03_hud_and_save.md`](03_hud_and_save.md) | done |
-| 04 | Marks on the hull        | [`04_hull_marks.md`](04_hull_marks.md) | planned |
+| 04 | Marks on the hull        | [`04_hull_marks.md`](04_hull_marks.md) | done |
 | 05 | Masts that break         | [`05_masts.md`](05_masts.md) | planned |
 | 06 | Verify                   | [`06_verify.md`](06_verify.md) | planned |
 
@@ -31,3 +31,5 @@ Brainstorm, options and questions in [`00_start.md`](00_start.md).
 - 2026-11-20 : phone test of the phase 02 APK: the sloop took about 13 rams on the brig to fall to 6% health, since a slower ship rams softer; the user chose to raise the speed floor from 0.4 to 0.6 to keep it playable (rams then also hit harder late on).
 - 2026-11-20 : phase 03 review: a filled `Image` draws nothing without a sprite, so the bar's fill is a child stretched to the health; the colours are two fields on `HullBar`, not a style asset; health is derived from the damage on each side; the bar binds after the restore; the phone's version 3 save will reset.
 - 2026-11-20 : phase 03 - `ShipDamage` keeps the latest 16 hits in hull space, saves and restores; `GameSaveData` version 4 with `damage` (the health lost saved on its own: the sides' sum rounds, correcting the review's line above); `HullBar` under the minimap, green to yellow to red; gates green (EditMode 215, PlayMode 24), a HUD capture.
+- 2026-11-20 : phase 04 review: the hull has no mesh collider to ray against, and above the water its sides are vertical at the builder's `half_beam`, so the type carries that profile and marks sit on it; one mesh of 16 quads per ship (one draw) instead of a pool of quads (up to 32 draws against the 80 budget); a `Restored` event so restored hits are drawn.
+- 2026-11-20 : phase 04 - `T_HullMarks` atlas (`textures.py hull_marks`), `M_HullMark`, the hull profile on `SO_ShipType` sampled from the builder, `HullMarks` on `PF_Ship`'s hull (one mesh, off when whole), `ShipDamage.Restored`; marks made bigger after the first capture; gates green (EditMode 221, PlayMode 24), a ram capture.

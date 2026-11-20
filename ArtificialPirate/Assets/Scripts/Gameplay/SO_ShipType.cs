@@ -23,6 +23,9 @@ namespace Game.Gameplay
         [Tooltip("Rail above the waterline amidships (m).")]
         [SerializeField] private float _freeboard = 0.5f;
 
+        [Tooltip("The hull's side above the water along its length, as a share of Half Beam, from -1 (the stern) to 1 (the bow) of Half Length; the builder's half_beam.")]
+        [SerializeField] private AnimationCurve _beamAlongLength = AnimationCurve.Constant(-1f, 1f, 1f);
+
         [Header("Handling")]
         [SerializeField] private float _maxSpeed = 8f;
         [SerializeField] private float _acceleration = 4f;
@@ -74,6 +77,16 @@ namespace Game.Gameplay
         /// <summary>Rail above the waterline amidships, in metres.</summary>
         public float Freeboard => _freeboard;
 
+        /// <summary>
+        /// From the centreline to the hull's side above the water, <paramref name="z"/> metres
+        /// toward the bow from the centre (negative: toward the stern), in metres.
+        /// </summary>
+        public float HalfBeamAt(float z)
+        {
+            float along = _halfLength > 0f ? Mathf.Clamp(z / _halfLength, -1f, 1f) : 0f;
+            return _halfBeam * _beamAlongLength.Evaluate(along);
+        }
+
         /// <summary>Maximum forward speed in metres per second.</summary>
         public float MaxSpeed => _maxSpeed;
 
@@ -118,6 +131,12 @@ namespace Game.Gameplay
 
         /// <summary>How far a sinking hull tips toward the end that was last hit, in degrees.</summary>
         public float SinkPitchDeg => _sinkPitchDeg;
+
+        /// <summary>Sets the hull's side along its length (types made in code: tests).</summary>
+        internal void SetBeamAlongLength(AnimationCurve shares)
+        {
+            _beamAlongLength = shares;
+        }
 
         /// <summary>Sets the hull's size (types made in code: tests).</summary>
         internal void SetHull(float halfLength, float halfBeam, float draft, float freeboard)

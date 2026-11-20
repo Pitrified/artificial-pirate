@@ -46,6 +46,9 @@ namespace Game.Gameplay
         /// <summary>Raised once, when a sinking ship has gone under; the ship is then turned off.</summary>
         public event Action Sunk;
 
+        /// <summary>Raised when saved damage has been put back.</summary>
+        public event Action Restored;
+
         /// <summary>The share of the type's top speed the ship can still make.</summary>
         public float SpeedFactor
         {
@@ -101,7 +104,8 @@ namespace Game.Gameplay
             }
         }
 
-        private SO_ShipType Type => _contact != null ? _contact.Type : null;
+        /// <summary>The ship's type, from its hull; null when not wired.</summary>
+        public SO_ShipType Type => _contact != null ? _contact.Type : null;
 
         /// <summary>The kept hit <paramref name="index"/>, oldest first.</summary>
         public HullHit GetHit(int index)
@@ -206,6 +210,7 @@ namespace Game.Gameplay
             _sinking = _health <= 0f;
             _sinkProgress = 0f;
             Log.Info(LogCat.Gameplay, "ShipDamage: {0} restored, health {1:0.000}, {2} hits", name, _health, _hitCount);
+            Restored?.Invoke();
         }
 
         private void Keep(HullHit hit)

@@ -6,8 +6,8 @@ namespace Game.UI
 
     /// <summary>
     /// The HUD's hull bar: a fill whose right edge sits at the player's hull health, turning from the
-    /// whole colour through the half one to the ruined one. It redraws when the hull is damaged, not
-    /// each frame.
+    /// whole colour through the half one to the ruined one. It redraws when the hull is damaged or
+    /// restored, not each frame.
     /// See docs/systems/ui-system.md.
     /// </summary>
     public sealed class HullBar : MonoBehaviour
@@ -35,6 +35,7 @@ namespace Game.UI
             if (_damage != null)
             {
                 _damage.Damaged += OnDamaged;
+                _damage.Restored += Refresh;
             }
             Refresh();
         }
@@ -68,6 +69,7 @@ namespace Game.UI
             if (_damage != null)
             {
                 _damage.Damaged -= OnDamaged;
+                _damage.Restored -= Refresh;
             }
         }
     }
