@@ -178,6 +178,7 @@ GameObject:
   - component: {fileID: 4541559287504695063}
   - component: {fileID: 996484746544028862}
   - component: {fileID: 4209681522950572463}
+  - component: {fileID: 3138151721611412151}
   m_Layer: 0
   m_Name: PF_Ship
   m_TagString: Untagged
@@ -311,3 +312,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.ShipDamage
   _contact: {fileID: 996484746544028862}
+  _masts: {fileID: 3138151721611412151}
+--- !u!114 &3138151721611412151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4700440681567757610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3586660adcb70cca59588ccb09ea15e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.ShipMasts
+  _damage: {fileID: 4209681522950572463}
+  _masts: []

@@ -18,7 +18,7 @@ Brainstorm, options and questions in [`00_start.md`](00_start.md).
 | 02 | Sinking and game over    | [`02_sinking.md`](02_sinking.md) | done |
 | 03 | HUD bar and save         | [`03_hud_and_save.md`](03_hud_and_save.md) | done |
 | 04 | Marks on the hull        | [`04_hull_marks.md`](04_hull_marks.md) | done |
-| 05 | Masts that break         | [`05_masts.md`](05_masts.md) | planned |
+| 05 | Masts that break         | [`05_masts.md`](05_masts.md) | done |
 | 06 | Verify                   | [`06_verify.md`](06_verify.md) | planned |
 
 ## Log
@@ -33,3 +33,4 @@ Brainstorm, options and questions in [`00_start.md`](00_start.md).
 - 2026-11-20 : phase 03 - `ShipDamage` keeps the latest 16 hits in hull space, saves and restores; `GameSaveData` version 4 with `damage` (the health lost saved on its own: the sides' sum rounds, correcting the review's line above); `HullBar` under the minimap, green to yellow to red; gates green (EditMode 215, PlayMode 24), a HUD capture.
 - 2026-11-20 : phase 04 review: the hull has no mesh collider to ray against, and above the water its sides are vertical at the builder's `half_beam`, so the type carries that profile and marks sit on it; one mesh of 16 quads per ship (one draw) instead of a pool of quads (up to 32 draws against the 80 budget); a `Restored` event so restored hits are drawn.
 - 2026-11-20 : phase 04 - `T_HullMarks` atlas (`textures.py hull_marks`), `M_HullMark`, the hull profile on `SO_ShipType` sampled from the builder, `HullMarks` on `PF_Ship`'s hull (one mesh, off when whole), `ShipDamage.Restored`; marks made bigger after the first capture; gates green (EditMode 221, PlayMode 24), a ram capture.
+- 2026-11-20 : phase 05 - the builder splits each mast (`<Name>Mast<i>`, its sail states, its stump), clearance 0 on both ships; `ShipMasts`, `MastParts`, `FallingMast`; mast numbers on `SO_ShipType`; the speed's share per mast; broken masts saved; `BuiltModelTests` for the masts and the hull's side; `CAPTURE_BREAK_MAST`; gates green (EditMode 232, PlayMode 24), a capture of both ships losing a mast; 57 draws with both in view.

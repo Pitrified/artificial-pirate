@@ -1,4 +1,6 @@
-"""Masts and spars. The masts and bowsprit are fixed; yards, booms and gaffs turn with the sails' trim."""
+"""Masts and spars. The masts and bowsprit are fixed; yards, booms and gaffs turn with the sails' trim.
+Each mast's parts go in its own parts, so it can be shown, broken and hidden on its own; a broken
+mast leaves a stump."""
 
 from __future__ import annotations
 
@@ -8,11 +10,13 @@ from dataclasses import dataclass
 from mathutils import Vector
 
 from builders.ship.hull import deck_height
-from builders.ship.mesh import MeshParts, pole
+from builders.ship.mesh import MeshParts, frame, pole
 
 MAST_SIDES = 8
 SPAR_SIDES = 6
 SPAR_OF_MAST = 0.45
+STUMP_HEIGHT = 1.4  # above the deck
+STUMP_SPLINTER = 0.6  # how far the broken top's points rise and fall
 
 
 @dataclass
@@ -84,18 +88,41 @@ def gaff_ends(mast: Mast, swing_deg: float) -> tuple[Vector, Vector]:
     return start, start + _swung(swing_deg, gaff["peak_deg"]) * gaff["length"]
 
 
-def standing(parts: MeshParts, p: dict, all_masts: list[Mast]) -> None:
-    """The masts and the bowsprit."""
-    for mast in all_masts:
+def standing(per_mast: list[MeshParts], all_masts: list[Mast]) -> None:
+    """The masts, each in its own parts."""
+    for parts, mast in zip(per_mast, all_masts, strict=True):
         d = mast.spec["diameter"]
         pole(parts, mast.foot, mast.head, d, d * 0.5, MAST_SIDES, "ShipWood")
+
+
+def bowsprit_pole(parts: MeshParts, p: dict) -> None:
     d = p["bowsprit"]["diameter"]
     pole(parts, *bowsprit(p), d, d * 0.5, SPAR_SIDES, "ShipWood")
 
 
-def spars(parts: MeshParts, all_masts: list[Mast], brace_deg: float, swing_deg: float, gaff_twist_deg: float) -> None:
-    """Yards, booms and gaffs, trimmed."""
-    for mast in all_masts:
+def stump(parts: MeshParts, mast: Mast) -> None:
+    """What a broken mast leaves: its foot standing a little above the deck, its top splintered."""
+    d = mast.spec["diameter"]
+    top = mast.at(mast.foot.z + STUMP_HEIGHT)
+    side, up = frame(mast.direction)
+    base = parts.add_verts([mast.foot + (side * math.cos(a) + up * math.sin(a)) * d / 2 for a in _angles()])
+    jagged = [top + mast.direction * (STUMP_SPLINTER * d * (1 if k % 2 else -1)) + (side * math.cos(a) + up * math.sin(a)) * d / 2
+              for k, a in enumerate(_angles())]
+    crown = parts.add_verts(jagged)
+    centre = parts.add_verts([top])
+    for k in range(MAST_SIDES):
+        n = (k + 1) % MAST_SIDES
+        parts.add_face((base + k, crown + k, crown + n, base + n), "ShipWood")
+        parts.add_face((crown + n, crown + k, centre), "ShipWood")
+
+
+def _angles() -> list[float]:
+    return [2 * math.pi * k / MAST_SIDES for k in range(MAST_SIDES)]
+
+
+def spars(per_mast: list[MeshParts], all_masts: list[Mast], brace_deg: float, swing_deg: float, gaff_twist_deg: float) -> None:
+    """Yards, booms and gaffs, trimmed, each mast's in its parts."""
+    for parts, mast in zip(per_mast, all_masts, strict=True):
         d = mast.spar_diameter
         for yard in mast.spec["yards"]:
             pole(parts, *yard_ends(mast, yard, brace_deg), d, d, SPAR_SIDES, "ShipWood")

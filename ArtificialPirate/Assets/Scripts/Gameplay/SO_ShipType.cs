@@ -65,6 +65,28 @@ namespace Game.Gameplay
         [Tooltip("How far a sinking hull tips toward the end that was last hit (degrees).")]
         [SerializeField] private float _sinkPitchDeg = 25f;
 
+        [Header("Masts")]
+        [Tooltip("The chance a hit of Mast Breaking Hit or more brings down the mast nearest it, with the hull whole after the hit.")]
+        [SerializeField] private float _mastBreakChanceWhole = 0.05f;
+
+        [Tooltip("The same chance with the hull ruined; between them it follows the health.")]
+        [SerializeField] private float _mastBreakChanceRuined = 0.5f;
+
+        [Tooltip("A hit taking this much health or more rolls the full chance; a smaller one a share of it.")]
+        [SerializeField] private float _mastBreakingHit = 0.15f;
+
+        [Tooltip("How long a broken mast takes to fall over the side (s).")]
+        [SerializeField] private float _mastFallSeconds = 2.5f;
+
+        [Tooltip("How far a broken mast tips as it falls (degrees).")]
+        [SerializeField] private float _mastFallDeg = 80f;
+
+        [Tooltip("How fast a fallen mast sinks (m/s).")]
+        [SerializeField] private float _mastSinkSpeed = 1.5f;
+
+        [Tooltip("How long a fallen mast sinks before it is gone (s).")]
+        [SerializeField] private float _mastSinkSeconds = 8f;
+
         /// <summary>From the centre to the bow and to the stern at the waterline, in metres.</summary>
         public float HalfLength => _halfLength;
 
@@ -131,6 +153,35 @@ namespace Game.Gameplay
 
         /// <summary>How far a sinking hull tips toward the end that was last hit, in degrees.</summary>
         public float SinkPitchDeg => _sinkPitchDeg;
+
+        /// <summary>The chance a hit of <see cref="MastBreakingHit"/> or more brings down a mast, the hull whole after it.</summary>
+        public float MastBreakChanceWhole => _mastBreakChanceWhole;
+
+        /// <summary>The chance a hit of <see cref="MastBreakingHit"/> or more brings down a mast, the hull ruined.</summary>
+        public float MastBreakChanceRuined => _mastBreakChanceRuined;
+
+        /// <summary>The health a hit takes to roll the full chance of breaking a mast.</summary>
+        public float MastBreakingHit => _mastBreakingHit;
+
+        /// <summary>How long a broken mast takes to fall over the side, in seconds.</summary>
+        public float MastFallSeconds => _mastFallSeconds;
+
+        /// <summary>How far a broken mast tips as it falls, in degrees.</summary>
+        public float MastFallDeg => _mastFallDeg;
+
+        /// <summary>How fast a fallen mast sinks, in m/s.</summary>
+        public float MastSinkSpeed => _mastSinkSpeed;
+
+        /// <summary>How long a fallen mast sinks before it is gone, in seconds.</summary>
+        public float MastSinkSeconds => _mastSinkSeconds;
+
+        /// <summary>Sets the chances of breaking a mast (types made in code: tests).</summary>
+        internal void SetMastBreaking(float whole, float ruined, float breakingHit)
+        {
+            _mastBreakChanceWhole = whole;
+            _mastBreakChanceRuined = ruined;
+            _mastBreakingHit = breakingHit;
+        }
 
         /// <summary>Sets the hull's side along its length (types made in code: tests).</summary>
         internal void SetBeamAlongLength(AnimationCurve shares)

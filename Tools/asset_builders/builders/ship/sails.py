@@ -158,12 +158,13 @@ def square_corners(mast: Mast, spec: dict, brace_deg: float) -> tuple[Vector, Ve
     return foot_l, foot_r, top_r, top_l
 
 
-def sailing(parts: MeshParts, p: dict, all_masts: list[Mast], trim: Trim) -> None:
-    """The spars trimmed to the wind and every sail set."""
-    spars(parts, all_masts, trim.brace_deg, trim.boom_deg, trim.gaff_deg - trim.boom_deg)
+def sailing(per_mast: list[MeshParts], p: dict, all_masts: list[Mast], trim: Trim) -> None:
+    """The spars trimmed to the wind and every sail set, each in its mast's parts."""
+    spars(per_mast, all_masts, trim.brace_deg, trim.boom_deg, trim.gaff_deg - trim.boom_deg)
     for i, spec in enumerate(p["sails"]):
         name = sail_name(i, spec)
         mast = all_masts[spec["mast"]]
+        parts = per_mast[spec["mast"]]
         kind = spec["kind"]
         if kind == "square":
             _sheet(parts, name, square_corners(mast, spec, trim.brace_deg), _SQUARE, trim.downwind)
@@ -229,10 +230,11 @@ def _furl(parts: MeshParts, name: str, start: Vector, end: Vector, height: float
     parts.cloths.append(Cloth(name, range(first, len(parts.faces))))
 
 
-def anchored(parts: MeshParts, p: dict, all_masts: list[Mast]) -> None:
+def anchored(per_mast: list[MeshParts], p: dict, all_masts: list[Mast]) -> None:
     """The spars squared and every sail rolled up: on top of and before its yard, on its boom, or
-    stowed along the bowsprit, the jibs each in their own stretch of it, innermost tack first."""
-    spars(parts, all_masts, 0.0, 0.0, 0.0)
+    stowed along the bowsprit, the jibs each in their own stretch of it, innermost tack first; each
+    in its mast's parts."""
+    spars(per_mast, all_masts, 0.0, 0.0, 0.0)
     start, end = bowsprit(p)
     jibs = sorted((spec["tack"], i) for i, spec in enumerate(p["sails"]) if spec["kind"] == "jib")
     stretch = {i: k for k, (_, i) in enumerate(jibs)}
@@ -241,6 +243,7 @@ def anchored(parts: MeshParts, p: dict, all_masts: list[Mast]) -> None:
     for i, spec in enumerate(p["sails"]):
         name = sail_name(i, spec)
         mast = all_masts[spec["mast"]]
+        parts = per_mast[spec["mast"]]
         kind = spec["kind"]
         if kind == "square":
             foot_l, _, top_r, top_l = square_corners(mast, spec, 0.0)

@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 05 - Masts that break
@@ -38,3 +38,13 @@ Context: [`00_start.md`](00_start.md) Q3 and Q4, depends on [`01_hull_damage.md`
 ## Done when
 
 - The tests pass; the gates pass; captures of each ship with a mast down; the draws in view within the budget (80); a dev APK.
+
+## What the implementation found
+
+- The model's objects cannot be moved under `Mast<i>` nodes inside a prefab instance, and need not be: `ShipMasts` holds each mast's objects (`MastParts`), placed and measured by a throwaway script from the stump's bounds.
+- The fallen mast is a scripted tip and sink (`FallingMast`), not `Buoyancy`: a 30 m spar floating on four probes would be heavier and no better to look at. It falls away from the blow and the ship sails on from it.
+- A roll on every hit broke masts on nudges; the chance is scaled by the hit's size up to `MastBreakingHit`.
+- The flag goes with the tallest mast (the sloop's only one, the brig's main).
+- `RemoveUnusedOverrides`, called to clear the overrides left on the old sail objects, also dropped the new active-state overrides made in the same pass; the states were set again in a second pass and checked.
+- Draws: 48 to 57 material slots with both ships in view (`SceneCapture -captureBudget` from above), as counted ahead (+2 the sloop, +7 the brig); islands are not in that count, so the phone settles it. Triangles about the same (the stumps add 24 each).
+- Capture: both ships losing mast 0, the sloop's falling to port and sinking, the brig keeping its mainmast and flag.

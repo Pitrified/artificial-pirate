@@ -7,7 +7,7 @@ namespace Game.Gameplay
     /// <summary>
     /// A ship's hull health, from 1 (whole) down to 0. Blows on its hull (<see cref="HullContact.Struck"/>:
     /// rams and groundings) and hits from anything else (<see cref="Hit"/>) lower it. A damaged ship
-    /// is slower (<see cref="SpeedFactor"/>), settles lower (<see cref="Settle"/>) and lists toward the
+    /// is slower (<see cref="SpeedFactor"/>, less again for each mast its <see cref="ShipMasts"/> has lost), settles lower (<see cref="Settle"/>) and lists toward the
     /// side that took the damage (<see cref="ListDeg"/>), by its type's numbers. At 0 it sinks: it
     /// goes under over the type's time, tipping toward the end last hit, then raises
     /// <see cref="Sunk"/> and turns its ship off. It keeps the latest hits in the hull's local space,
@@ -20,6 +20,9 @@ namespace Game.Gameplay
 
         [Tooltip("The ship's hull: its type, its model's transform, and the blows it takes.")]
         [SerializeField] private HullContact _contact;
+
+        [Tooltip("The ship's masts, if it has any that can break.")]
+        [SerializeField] private ShipMasts _masts;
 
         private float _health = 1f;
         private float _starboard;
@@ -49,13 +52,22 @@ namespace Game.Gameplay
         /// <summary>Raised when saved damage has been put back.</summary>
         public event Action Restored;
 
-        /// <summary>The share of the type's top speed the ship can still make.</summary>
+        /// <summary>
+        /// The share of the type's top speed the ship can still make: down with the health, and an
+        /// equal share of what is above the floor off for each mast lost, never below the floor.
+        /// </summary>
         public float SpeedFactor
         {
             get
             {
                 SO_ShipType type = Type;
-                return type == null ? 1f : Mathf.Lerp(type.DamagedSpeedFloor, 1f, _health);
+                if (type == null)
+                {
+                    return 1f;
+                }
+                float floor = type.DamagedSpeedFloor;
+                float sails = _masts != null ? _masts.LostShare : 0f;
+                return Mathf.Max(floor, Mathf.Lerp(floor, 1f, _health) - (1f - floor) * sails);
             }
         }
 
@@ -107,6 +119,9 @@ namespace Game.Gameplay
         /// <summary>The ship's type, from its hull; null when not wired.</summary>
         public SO_ShipType Type => _contact != null ? _contact.Type : null;
 
+        /// <summary>The hull's transform, the space the hits are kept in; null when not wired.</summary>
+        public Transform Hull => _contact != null ? _contact.Hull : null;
+
         /// <summary>The kept hit <paramref name="index"/>, oldest first.</summary>
         public HullHit GetHit(int index)
         {
@@ -117,11 +132,12 @@ namespace Game.Gameplay
             return _hits[(_nextHit - _hitCount + index + KeptHits) % KeptHits];
         }
 
-        /// <summary>Wires the hull (ships built in code: tests).</summary>
-        internal void Configure(HullContact contact)
+        /// <summary>Wires the hull, and the masts if any (ships built in code: tests).</summary>
+        internal void Configure(HullContact contact, ShipMasts masts = null)
         {
             Unsubscribe();
             _contact = contact;
+            _masts = masts;
             Subscribe();
         }
 
@@ -154,7 +170,7 @@ namespace Game.Gameplay
             }
             _health -= amount;
 
-            Transform hull = _contact != null ? _contact.Hull : null;
+            Transform hull = Hull;
             Vector3 local = hull != null ? hull.InverseTransformPoint(worldPoint) : Vector3.zero;
             if (local.x >= 0f)
             {
@@ -185,7 +201,14 @@ namespace Game.Gameplay
                 HullHit hit = GetHit(i);
                 hits[i] = new HitSaveData { x = hit.Point.x, y = hit.Point.y, z = hit.Point.z, amount = hit.Amount };
             }
-            return new DamageSaveData { lost = 1f - _health, starboard = _starboard, port = _port, hits = hits };
+            return new DamageSaveData
+            {
+                lost = 1f - _health,
+                starboard = _starboard,
+                port = _port,
+                hits = hits,
+                brokenMasts = _masts != null ? _masts.BrokenIndices() : Array.Empty<int>(),
+            };
         }
 
         /// <summary>
@@ -209,6 +232,10 @@ namespace Game.Gameplay
             _bowLastHit = _hitCount > 0 && GetHit(_hitCount - 1).Point.z >= 0f;
             _sinking = _health <= 0f;
             _sinkProgress = 0f;
+            if (_masts != null)
+            {
+                _masts.Restore(data.brokenMasts);
+            }
             Log.Info(LogCat.Gameplay, "ShipDamage: {0} restored, health {1:0.000}, {2} hits", name, _health, _hitCount);
             Restored?.Invoke();
         }

@@ -178,7 +178,7 @@ namespace Game.Tests.PlayMode
 
         /// <summary>
         /// A damaged hull is saved on return to the menu, and Continue brings back its health,
-        /// its hits and the hull bar showing them.
+        /// its hits, its broken mast and the hull bar showing them.
         /// </summary>
         [UnityTest]
         public IEnumerator SaveReloadContinue_RestoresTheDamage()
@@ -197,6 +197,7 @@ namespace Game.Tests.PlayMode
             ShipController ship = Object.FindAnyObjectByType<ShipController>();
             ship.Damage.Hit(ship.transform.position + ship.transform.right, Damage);
             float listDeg = ship.Damage.ListDeg;
+            ship.GetComponent<ShipMasts>().Break(0, 1f);
 
             var returnTask = GameManager.Instance.ReturnToMenuAsync();
             while (!returnTask.IsCompleted)
@@ -213,6 +214,9 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(1f - Damage, restored.Health, 1e-4f, "The same health");
             Assert.AreEqual(1, restored.HitCount, "The hit kept");
             Assert.AreEqual(listDeg, restored.ListDeg, 1e-4f, "The same list");
+            ShipMasts masts = restored.GetComponent<ShipMasts>();
+            Assert.IsTrue(masts.IsBroken(0), "The mast still down");
+            Assert.AreEqual(masts.Count, masts.Lost);
 
             HullBar bar = Object.FindAnyObjectByType<HullBar>();
             Assert.IsNotNull(bar, "The HUD has a hull bar");

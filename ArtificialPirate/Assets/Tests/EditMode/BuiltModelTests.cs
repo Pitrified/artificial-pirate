@@ -12,8 +12,9 @@ namespace Game.Tests.EditMode
     /// any transform (the export bakes the axis change and applies the units) and its material slots
     /// mapped to the project materials (docs/building_assets.md, "The Unity side"). A prop has the
     /// size its builder's parameters give and its pivot at the centre of its base. A ship has its
-    /// pivot on the waterline, matches its <see cref="SO_ShipType"/> there and at the keel, and
-    /// faces +Z. A new model adds a case.
+    /// pivot on the waterline, matches its <see cref="SO_ShipType"/> there (its size and its side
+    /// along the length) and at the keel, faces +Z, and has each mast's objects: the mast, its two
+    /// sail states and its stump. A new model adds a case.
     /// </summary>
     public sealed class BuiltModelTests
     {
@@ -45,6 +46,9 @@ namespace Game.Tests.EditMode
             /// <summary>A ship's type asset; null for a prop.</summary>
             public string ShipType;
 
+            /// <summary>A ship's masts, as its builder's PARAMS list them.</summary>
+            public int Masts;
+
             /// <summary>The model's name, for the test runner.</summary>
             public override string ToString() => System.IO.Path.GetFileNameWithoutExtension(Path);
         }
@@ -58,12 +62,14 @@ namespace Game.Tests.EditMode
                 Path = "Assets/Art/Models/Sloop.fbx",
                 Materials = ShipMaterials,
                 ShipType = "Assets/Settings/SO_Ship_Sloop.asset",
+                Masts = 1,
             };
             yield return new Expected
             {
                 Path = "Assets/Art/Models/Brig.fbx",
                 Materials = ShipMaterials,
                 ShipType = "Assets/Settings/SO_Ship_Brig.asset",
+                Masts = 2,
             };
         }
 
@@ -157,6 +163,42 @@ namespace Game.Tests.EditMode
             }
             Assert.AreEqual(type.HalfLength, halfLength, HullTolerance, "Half length at the waterline");
             Assert.AreEqual(type.HalfBeam, halfBeam, HullTolerance, "Half beam at the waterline");
+        }
+
+        [TestCaseSource(nameof(Ships))]
+        public void Ship_SideAlongTheLength_MatchesItsType(Expected model)
+        {
+            SO_ShipType type = LoadType(model);
+            ModelBounds(Load(model), out List<Vector3> points);
+            var widest = new Dictionary<float, float>();
+            foreach (Vector3 p in points)
+            {
+                if (Mathf.Abs(p.y) < WaterlineBand && Mathf.Abs(p.z) < type.HalfLength)
+                {
+                    float station = Mathf.Round(p.z * 100f) / 100f;
+                    widest[station] = Mathf.Max(widest.TryGetValue(station, out float x) ? x : 0f, Mathf.Abs(p.x));
+                }
+            }
+            Assert.That(widest.Count, Is.GreaterThan(10), "The hull's stations at the waterline");
+            foreach (KeyValuePair<float, float> station in widest)
+            {
+                Assert.AreEqual(type.HalfBeamAt(station.Key), station.Value, HullTolerance, $"Half beam at z {station.Key}");
+            }
+        }
+
+        [TestCaseSource(nameof(Ships))]
+        public void Ship_HasEachMastsObjects(Expected model)
+        {
+            GameObject root = Load(model);
+            string name = root.name;
+            for (int i = 0; i < model.Masts; i++)
+            {
+                foreach (string part in new[] { "", "Sailing", "Anchored", "Stump" })
+                {
+                    Assert.IsNotNull(root.transform.Find($"{name}Mast{i}{part}"), $"{name}Mast{i}{part}");
+                }
+            }
+            Assert.IsNull(root.transform.Find($"{name}Mast{model.Masts}"), "No more masts");
         }
 
         [TestCaseSource(nameof(Ships))]

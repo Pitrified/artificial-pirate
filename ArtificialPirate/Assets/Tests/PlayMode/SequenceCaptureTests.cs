@@ -24,7 +24,8 @@ namespace Game.Tests.PlayMode
     /// ("x,y,z"; default: the game's own chase camera), CAPTURE_SIZE ("960x540"), CAPTURE_HUD
     /// (any value: the HUD drawn through the capture camera, which an overlay canvas is not),
     /// CAPTURE_MAP (a PNG path: the full map's picture of the cells explored, at the end),
-    /// CAPTURE_DAMAGE (0 to 1: health the ship's hull loses at the start, struck on its starboard side).
+    /// CAPTURE_DAMAGE (0 to 1: health the ship's hull loses at the start, struck on its starboard side),
+    /// CAPTURE_BREAK_MAST (a mast's number: brought down at the start on every ship that has it).
     /// Run alone with <c>-testFilter Game.Tests.PlayMode.SequenceCaptureTests</c>.
     /// </summary>
     public sealed class SequenceCaptureTests
@@ -89,6 +90,18 @@ namespace Game.Tests.PlayMode
             if (damage > 0f)
             {
                 ship.GetComponent<ShipDamage>().Hit(ship.transform.position + ship.transform.right, damage);
+            }
+            string breakMast = Environment.GetEnvironmentVariable("CAPTURE_BREAK_MAST");
+            if (breakMast != null)
+            {
+                int index = int.Parse(breakMast, CultureInfo.InvariantCulture);
+                foreach (ShipMasts masts in UnityEngine.Object.FindObjectsByType<ShipMasts>(FindObjectsInactive.Exclude))
+                {
+                    if (index < masts.Count)
+                    {
+                        masts.Break(index, 1f);
+                    }
+                }
             }
             Vector3 startPosition = ship.transform.position;
 

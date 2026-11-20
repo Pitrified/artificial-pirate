@@ -56,7 +56,7 @@ namespace Game.Gameplay
         public float amount;
     }
 
-    /// <summary>The hull's damage: the health lost, on each side, and the latest hits.</summary>
+    /// <summary>The hull's damage: the health lost, on each side, the latest hits and the masts lost.</summary>
     [System.Serializable]
     public struct DamageSaveData
     {
@@ -71,6 +71,9 @@ namespace Game.Gameplay
 
         /// <summary>The latest hits, oldest first.</summary>
         public HitSaveData[] hits;
+
+        /// <summary>The masts brought down, by the builder's number.</summary>
+        public int[] brokenMasts;
     }
 
     /// <summary>
