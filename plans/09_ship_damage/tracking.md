@@ -28,3 +28,4 @@ Brainstorm, options and questions in [`00_start.md`](00_start.md).
 - 2026-11-20 : the user validated the plan ("commit and go"); phases planned.
 - 2026-11-20 : phase 01 - `ShipDamage` (health, blows from `HullContact.Struck`, `Hit`), the top speed, sink and list from damage; tests; gates green, a capture of the damaged sloop. Hit points not kept yet (phases 03, 04).
 - 2026-11-20 : phase 02 - sinking (`ShipDamage`, `WaveRider`), `GameState.GameOver`, the game over screen, the save deleted; menu quit no longer writes an empty save; gates green, a sinking capture, dev APK.
+- 2026-11-20 : phone test of the phase 02 APK: the sloop took about 13 rams on the brig to fall to 6% health, since a slower ship rams softer; the user chose to raise the speed floor from 0.4 to 0.6 to keep it playable (rams then also hit harder late on).

@@ -45,7 +45,7 @@ namespace Game.Gameplay
         [SerializeField] private float _sinkingSpeed = 14f;
 
         [Tooltip("The share of the top speed left when the hull is ruined.")]
-        [SerializeField] private float _damagedSpeedFloor = 0.4f;
+        [SerializeField] private float _damagedSpeedFloor = 0.6f;
 
         [Tooltip("The share of the freeboard the hull settles by when ruined.")]
         [SerializeField] private float _damagedSinkShare = 0.5f;

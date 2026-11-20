@@ -83,7 +83,7 @@ Kinematic bodies never collide with each other in PhysX, so ships meet through a
   - Pushing on against a shore or a hull rebuilds only a frame's acceleration of closing speed, below `h`, so a blow lands once.
 - **`Hit(point, amount)`** takes health directly: what a weapon will call. `Damaged` reports each hit that did harm.
 - **What damage does**, by the type's numbers:
-  - `ShipController`'s top speed is `MaxSpeed` times `SpeedFactor`, from 1 down to `DamagedSpeedFloor` (0.4) when ruined;
+  - `ShipController`'s top speed is `MaxSpeed` times `SpeedFactor`, from 1 down to `DamagedSpeedFloor` (0.6) when ruined;
   - `WaveRider` settles the hull by `Settle`, up to `DamagedSinkShare` (0.5) of the freeboard;
   - and lists it toward the side the damage landed on, `ListDeg`: `DamagedListDeg` (8 degrees) times the starboard damage less the port damage.
 - **Sinking.** At 0 health the ship no longer answers the helm (`ShipController` zeroes its input) and goes under over `SinkSeconds` (8 s): `WaveRider` lowers the hull by `SinkDepth`, slowly at first (30 m at the end), and tips it toward the end last hit, up to `SinkPitchDeg` (25 degrees). Then `Sunk` fires and the ship's object is turned off, so its hull no longer collides. For the player's ship that is game over (`docs/systems/game-manager.md`); the brig is gone until the scene loads again.
