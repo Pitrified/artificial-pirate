@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 07 - Verify
@@ -43,4 +43,6 @@ status: in progress
   - memory went from 153 to 180 MB at 49 s, just after the diagnostics report was copied on the pause screen, and stayed there; the map opening added nothing. The user had switched to another app then, which explains it (the app's surface rebuilt on return); not from these phases;
   - a 0 ms frame (the fps max) is the first frame after the app came back, counted once.
 - **The user's read** on that build: the map's drag, pinch and buttons work; the HUD is fine; the far water is better but "a bit linear, there are just some long waves".
+- 2026-11-20. **Fourth phone report**, the phase 12 APK (built from `d597dac` with phase 12 uncommitted, 16:26Z; committed as `0fd16e3`). A new game, 42 s: 60 fps held (p05 59.7), 8 slow frames all at the scene load or the pause screen opening, memory flat at 150 to 153 MB, no problems.
+- **The user's read** on the phase 12 build: the far water is fine. The effort is closed.
 - **Not measured here**: triangles and draws with islands in view. `SceneCapture -captureBudget` counts the scene in the editor, where no island is built. By count, 14 k to 23 k island triangles are loaded around the ship after phase 08, and each island is two draws.

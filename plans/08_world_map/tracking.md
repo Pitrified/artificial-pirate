@@ -20,7 +20,7 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 | 04 | Seed and save      | [`04_seed_and_save.md`](04_seed_and_save.md) | done |
 | 05 | The minimap        | [`05_minimap.md`](05_minimap.md) | done |
 | 06 | The full map       | [`06_full_map.md`](06_full_map.md) | done |
-| 07 | Verify             | [`07_verify.md`](07_verify.md) | in progress |
+| 07 | Verify             | [`07_verify.md`](07_verify.md) | done |
 | 08 | Wonkier islands    | [`08_wonkier_islands.md`](08_wonkier_islands.md) | done |
 | 09 | The HUD only while sailing | [`09_hud_while_sailing.md`](09_hud_while_sailing.md) | done |
 | 10 | Waves out to the fog | [`10_far_water.md`](10_far_water.md) | done |
@@ -46,3 +46,5 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 - 2026-11-20: phase 11 done: the map drags and pinches, with Ship and Reset zoom. A new APK with phases 10 and 11 for the phone.
 - 2026-11-20: the phone run of phases 09 to 11: 60 fps, the map and the HUD fine; the far water still "a bit linear": phase 12 adds broad patches far out.
 - 2026-11-20: phase 12 done: broad patches on the far water. A new APK for the phone.
+- 2026-11-20: the phone run of phase 12: 60 fps, memory flat; the user finds the far water fine. Phase 07 and the plan done.
+- Left open: triangles and draws with islands in view are counted, not measured on the phone; the map is soft at its closest zoom (48 px a cell).

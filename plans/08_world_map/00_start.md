@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 priority: 0
 description: |
   A sea that grows as the ship sails: islands generated from a seed, tile by tile around the
