@@ -65,6 +65,9 @@ namespace Game.UI
         /// <summary>The map document's root, for tests.</summary>
         internal VisualElement MapRoot => _mapRoot;
 
+        /// <summary>The map's panel, for tests.</summary>
+        internal MapPanel Map => _map;
+
         // --------------------------------------------------------------------- Unity lifecycle
 
         private void Start()
@@ -136,7 +139,7 @@ namespace Game.UI
         }
 
         /// <inheritdoc/>
-        public void ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg)
+        public void ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg, float startView, float closestView)
         {
             if (_map == null)
             {
@@ -145,7 +148,7 @@ namespace Game.UI
             }
             SetVisible(_mapRoot, true);
             _mapVisible = true;
-            _map.Show(map, shipUv, shipYawDeg);
+            _map.Show(map, shipUv, shipYawDeg, startView, closestView);
             Log.Info(LogCat.UI, "Map shown.");
         }
 

@@ -46,7 +46,7 @@ handling, and screen routing.
 
 - `ShowLoading()` / `HideLoading()`
 - `ShowScreen(ScreenId id)` - Menu, Pause, Diagnostics; `HideScreen(ScreenId id)`
-- `ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg)`, hidden with `HideScreen(ScreenId.Map)`; `OnMapCloseRequested`
+- `ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg, float startView, float closestView)`, hidden with `HideScreen(ScreenId.Map)`; `OnMapCloseRequested`
 - `IsAnyOverlayOpen { get; }`
 
 ---

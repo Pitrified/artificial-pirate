@@ -27,11 +27,23 @@ namespace Game.Gameplay.World
         [Tooltip("Height above which land is rock (m).")]
         [SerializeField] private float _rockAbove = 20f;
 
+        [Tooltip("Cells across the full map's view when it opens.")]
+        [SerializeField] private float _viewCells = 7f;
+
+        [Tooltip("Cells across the full map's view zoomed in as far as it goes.")]
+        [SerializeField] private float _closestCells = 2f;
+
         [Tooltip("A cell not yet explored.")]
         [SerializeField] private Color32 _unexplored = new Color32(28, 30, 36, 255);
 
         /// <summary>Pixels along a cell's side.</summary>
         public int TileSize => _tileSize;
+
+        /// <summary>Cells across the full map's view when it opens.</summary>
+        public float ViewCells => _viewCells;
+
+        /// <summary>Cells across the full map's view zoomed in as far as it goes.</summary>
+        public float ClosestCells => _closestCells;
 
         /// <summary>A cell not yet explored.</summary>
         public Color32 Unexplored => _unexplored;

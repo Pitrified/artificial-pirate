@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 11 - Pan and zoom the map
@@ -23,3 +23,11 @@ Asked 2026-11-20 by the user: "i expected a drag on the map to move it ... do it
 ## Done when
 
 - Drag, pinch and both buttons work on the phone; the gates pass; a new dev APK.
+
+## What the implementation found
+- 2026-11-20. Done as planned. `MapView` keeps up to two pointers; when one of two lifts, the other drags on. `MapPanel` captures each pointer on the window, so a drag that leaves the window keeps going.
+- The map's border went with the clip: a border on the window would shift the picture by its width.
+- `IUISystem.ShowMap` takes the start and closest views as shares of the map's side; `SO_MapStyle` gains `ViewCells` (7) and `ClosestCells` (2), and the asset keeps the defaults.
+- Tests: `MapViewTests` (9: open, edge clamp, drag, pinch about its midpoint, zoom limits, one finger lifted, the two buttons); `MapScreenTests` taps Ship and Reset zoom; `GameManagerTests` checks the start view's share.
+- Gates: compile 0 warnings, EditMode 195/195, PlayMode 22/22. A new dev APK with phases 10 and 11: 74,172,603 bytes.
+- Not checked here: multi-touch reaching UI Toolkit through the event system on the phone. The tests drive `MapView` directly.

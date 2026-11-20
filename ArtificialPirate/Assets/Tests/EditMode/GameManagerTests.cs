@@ -91,10 +91,12 @@ namespace Game.Tests.EditMode
         public void FireReturnToMenuRequested() => OnReturnToMenuRequested?.Invoke();
         public Texture2D ShownMap { get; private set; }
         public Vector2 ShownShipUv { get; private set; }
-        public void ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg)
+        public float ShownStartView { get; private set; }
+        public void ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg, float startView, float closestView)
         {
             ShownMap = map;
             ShownShipUv = shipUv;
+            ShownStartView = startView;
         }
         public event Action OnMapCloseRequested;
         public void FireMapCloseRequested() => OnMapCloseRequested?.Invoke();
@@ -298,6 +300,7 @@ namespace Game.Tests.EditMode
                 float side = 3f * worldSettings.CellSize;
                 Assert.AreEqual(0.5f, _fakeUI.ShownShipUv.x, 1e-4f);
                 Assert.AreEqual((100f + side / 2f) / side, _fakeUI.ShownShipUv.y, 1e-4f);
+                Assert.AreEqual(style.ViewCells / 3f, _fakeUI.ShownStartView, 1e-4f, "the view's cells as a share of the map's three");
 
                 _fakeUI.FireMapCloseRequested();
 

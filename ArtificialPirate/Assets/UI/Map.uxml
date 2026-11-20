@@ -3,18 +3,26 @@
     <!--
         map-overlay: full-screen backdrop over the paused game.
         safe-area-container: receives dynamic padding from UISystem.ApplySafeArea().
-        map-frame: the space the map fits in; MapPanel keeps map-image square inside it.
+        map-frame: the space the map fits in; MapPanel keeps map-window square inside it.
+        map-window: the view, clipping map-image, which MapPanel sizes and moves as it is dragged and pinched.
         map-ship: the ship's arrow, placed and turned by MapPanel.
+        btn-map-ship, btn-map-zoom: centre on the ship, reset the zoom (MapPanel).
         btn-close-map: wired by UISystem to fire OnMapCloseRequested.
     -->
     <ui:VisualElement name="map-overlay" class="map-overlay">
         <ui:VisualElement name="safe-area-container" class="safe-area-container">
             <ui:VisualElement name="map-frame" class="map-frame">
-                <ui:VisualElement name="map-image" class="map-image">
-                    <ui:VisualElement name="map-ship" class="map-ship" />
+                <ui:VisualElement name="map-window" class="map-window">
+                    <ui:VisualElement name="map-image" class="map-image">
+                        <ui:VisualElement name="map-ship" class="map-ship" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Button name="btn-close-map" class="map-close" text="Close" />
+            <ui:VisualElement name="map-buttons" class="map-buttons">
+                <ui:Button name="btn-map-ship" class="map-button" text="Ship" />
+                <ui:Button name="btn-map-zoom" class="map-button" text="Reset zoom" />
+                <ui:Button name="btn-close-map" class="map-button map-close" text="Close" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

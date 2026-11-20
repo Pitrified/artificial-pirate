@@ -24,7 +24,7 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 | 08 | Wonkier islands    | [`08_wonkier_islands.md`](08_wonkier_islands.md) | done |
 | 09 | The HUD only while sailing | [`09_hud_while_sailing.md`](09_hud_while_sailing.md) | done |
 | 10 | Waves out to the fog | [`10_far_water.md`](10_far_water.md) | done |
-| 11 | Pan and zoom the map | [`11_map_pan_zoom.md`](11_map_pan_zoom.md) | in progress |
+| 11 | Pan and zoom the map | [`11_map_pan_zoom.md`](11_map_pan_zoom.md) | done |
 
 ## Log
 
@@ -42,3 +42,4 @@ Islands generated from a seed around the ship as it sails, a minimap and a full 
 - 2026-11-20: phase 09 done: the HUD shows only while playing. A new APK.
 - 2026-11-20: the user took option A for the far water (phase 10), and asked for drag, pinch zoom, recentre and reset zoom on the map (phase 11).
 - 2026-11-20: phase 10 done: the waves' light goes out to the fog; the phone check waits for phase 11's APK.
+- 2026-11-20: phase 11 done: the map drags and pinches, with Ship and Reset zoom. A new APK with phases 10 and 11 for the phone.

@@ -11,8 +11,8 @@ namespace Game.Tests.PlayMode
     using Game.UI;
 
     /// <summary>
-    /// The map in the real scenes: tapping the minimap opens the map over the paused game, and its
-    /// Close button resumes it.
+    /// The map in the real scenes: tapping the minimap opens the map over the paused game, its
+    /// Ship and Reset zoom buttons move the view, and its Close button resumes it.
     /// </summary>
     public sealed class MapScreenTests
     {
@@ -41,19 +41,40 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(ui.IsAnyOverlayOpen, "The map is shown");
             Assert.AreEqual(DisplayStyle.Flex, ui.MapRoot.style.display.value);
 
-            Button close = ui.MapRoot.Q<Button>("btn-close-map");
-            using (NavigationSubmitEvent submit = NavigationSubmitEvent.GetPooled())
-            {
-                submit.target = close;
-                close.SendEvent(submit);
-            }
+            // The cells explored at the start are fewer than the view's, so it shows all of them.
+            MapView view = ui.Map.View;
+            Assert.AreEqual(1f, view.Share, 1e-4f);
+
+            view.ZoomAbout(Vector2.zero, 4f, 100f);
+            Assert.Greater(Vector2.Distance(view.Ship, view.Centre), 0.1f, "zoomed in about a corner, away from the ship");
+            Tap(ui, "btn-map-ship");
+            yield return null;
+            Assert.AreEqual(view.Ship.x, view.Centre.x, 1e-4f, "Ship centres on the ship");
+            Assert.AreEqual(view.Ship.y, view.Centre.y, 1e-4f);
+            Assert.Less(view.Share, 1f, "and keeps the zoom");
+            Tap(ui, "btn-map-zoom");
+            yield return null;
+            Assert.AreEqual(1f, view.Share, 1e-4f, "Reset zoom goes back to the whole map");
+
+            Tap(ui, "btn-close-map");
             yield return null;
 
             Assert.AreEqual(GameState.Playing, GameManager.Instance.CurrentState);
             Assert.IsFalse(ui.IsAnyOverlayOpen, "The map is hidden");
         }
 
-        private static IEnumerator WaitForState(GameState state)
+        private static void Tap(UISystem ui, string button)
+        {
+            Button target = ui.MapRoot.Q<Button>(button);
+            Assert.IsNotNull(target, button);
+            using (NavigationSubmitEvent submit = NavigationSubmitEvent.GetPooled())
+            {
+                submit.target = target;
+                target.SendEvent(submit);
+            }
+        }
+
+                private static IEnumerator WaitForState(GameState state)
         {
             for (int i = 0; i < WaitFrames; i++)
             {

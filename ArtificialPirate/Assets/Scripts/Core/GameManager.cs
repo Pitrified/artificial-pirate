@@ -296,8 +296,9 @@ namespace Game.Core
             Vector3 at = ship.position;
             Texture2D picture = map.ComposeExplored(map.World.CellAt(at.x, at.z), out Rect area);
             var shipUv = new Vector2((at.x - area.x) / area.width, (at.z - area.y) / area.height);
+            float cell = map.World.Settings.CellSize;
             InputManager?.SetEnabled(false);
-            UISystem?.ShowMap(picture, shipUv, ship.eulerAngles.y);
+            UISystem?.ShowMap(picture, shipUv, ship.eulerAngles.y, map.ViewCells * cell / area.width, map.ClosestCells * cell / area.width);
             TransitionTo(GameState.Paused);
         }
 

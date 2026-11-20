@@ -27,6 +27,12 @@ namespace Game.Gameplay.World
         /// <summary>Pixels along a cell's side.</summary>
         public int TileSize => _style.TileSize;
 
+        /// <summary>Cells across the full map's view when it opens.</summary>
+        public float ViewCells => _style.ViewCells;
+
+        /// <summary>Cells across the full map's view zoomed in as far as it goes.</summary>
+        public float ClosestCells => _style.ClosestCells;
+
         /// <summary>Wires the streamer and the style (maps built in code: tests).</summary>
         internal void Configure(WorldStreamer streamer, SO_MapStyle style)
         {
