@@ -57,6 +57,12 @@ Shader "artificial-pirate/Water"
             static const float Gravity = 9.81;
             static const float ShadowDarkening = 0.45; // how much of the water's light a shadow takes
             static const float PixelsPerWave = 4.0;    // a wave fades out from twice this many pixels a wavelength to this
+            // Far out, the detail map again at a tenth of its tiling: broad patches across the long waves.
+            static const float PatchTiling = 0.1;
+            static const float PatchScroll = 0.3;      // of the detail's drift, in metres a second
+            static const float PatchStrength = 4.0;    // of the detail's strength
+            static const float PatchesFrom = 60.0;     // m from the camera, fading in
+            static const float PatchesFull = 200.0;    // m from the camera, at full strength
 
             struct Attributes
             {
@@ -166,6 +172,10 @@ Shader "artificial-pirate/Water"
                 half3 n1 = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uv1));
                 half3 n2 = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uv2));
                 float2 bend = (n1.xy + n2.xy) * _WaterDetail.y;
+                float2 uv3 = i.positionWS.xz * tiling * PatchTiling + float2(-scroll, scroll * 0.7) * PatchTiling * PatchScroll;
+                half3 n3 = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uv3));
+                float patches = saturate((distance(i.positionWS, _WorldSpaceCameraPos) - PatchesFrom) / (PatchesFull - PatchesFrom));
+                bend += n3.xy * _WaterDetail.y * PatchStrength * patches;
 
                 // Ripples: a height field around the action; its slope bends the normal, its height foams.
                 // Its foam channel is the wake a ship leaves.

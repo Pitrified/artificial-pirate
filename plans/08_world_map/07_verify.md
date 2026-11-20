@@ -38,4 +38,9 @@ status: in progress
   - 60 fps held (p05 59.7); 9 slow frames, all at the scene load or the pause screen opening;
   - the 5.7 MB frame shows again with no map opened, so it is the scene load, not the map.
 - **The user's read**, so far: on the map and diagnostics screens the HUD (joystick, minimap) covers their buttons and takes their taps. The HUD canvas sorts above the UI Toolkit panels; the fix, hiding the HUD while not sailing, is proposed as phase 09.
+- 2026-11-20. **Third phone report**, the APK with phases 09 to 11 (built from `e120aa8` with phase 11 uncommitted, 13:56Z; committed as `d597dac`). A new game, seed 2027718516, 87 s, the map opened from 65.4 s to 80.3 s:
+  - 60 fps held with the per-pixel waves: p05 59.7 fps, p50 16.8 ms; 14 slow frames, all at the scene load or a screen opening;
+  - memory went from 153 to 180 MB at 49 s, just after the diagnostics report was copied on the pause screen, and stayed there; the map opening added nothing. The user had switched to another app then, which explains it (the app's surface rebuilt on return); not from these phases;
+  - a 0 ms frame (the fps max) is the first frame after the app came back, counted once.
+- **The user's read** on that build: the map's drag, pinch and buttons work; the HUD is fine; the far water is better but "a bit linear, there are just some long waves".
 - **Not measured here**: triangles and draws with islands in view. `SceneCapture -captureBudget` counts the scene in the editor, where no island is built. By count, 14 k to 23 k island triangles are loaded around the ship after phase 08, and each island is two draws.
