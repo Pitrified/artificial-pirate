@@ -19,7 +19,7 @@ Analysis, proposals and answers in [`00_start.md`](00_start.md).
 | 02 | Wood                           | [`02_wood.md`](02_wood.md) | done |
 | 03 | Lantern and helm               | [`03_lantern_helm.md`](03_lantern_helm.md) | done |
 | 04 | Hatches, bulwark and rail      | [`04_hatches_bulwark.md`](04_hatches_bulwark.md) | done |
-| 05 | Masts and taffrail             | [`05_masts_taffrail.md`](05_masts_taffrail.md) | planned |
+| 05 | Masts and taffrail             | [`05_masts_taffrail.md`](05_masts_taffrail.md) | done |
 | 06 | Verify                         | [`06_verify.md`](06_verify.md) | planned |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
@@ -37,3 +37,4 @@ Append-only. Newest at the bottom.
 - 2026-11-21 : phase 02 - `T_Spar` (long grain) and `T_ShipWood` (0.25 m boards), each with a normal map, 2 m tiles; `M_Spar` new, `M_ShipWood` textured; masts 16 sides, spars 10, smooth; UVs on boxes, poles, the stump and lofted strips; captures show grain on the masts and boards on the bulwark; gates green (EditMode 233, PlayMode 24). Phone time waits for phase 06.
 - 2026-11-21 : phase 03 - review before coding found nothing to correct. Lantern: iron frame, glass in `M_LanternGlass` (emissive), brass cap and ring; brig wheel: rim, 8 spokes with handles, hub, pedestal; sloop tiller: rudder head, rising shaft, grip. The glow first did not show: URP needs emissive GI flags (doc updated). Gates green (EditMode 233, PlayMode 24).
 - 2026-11-21 : phase 04 - review before coding: the companionway named by hatch index, not `t` (plan corrected); crew checked clear of the hatches. Coamings round a `Tar` opening, gratings of crossed bars, a companionway hood with a ladder (sloop main hatch, brig after hatch), timberheads every third stanchion, a chamfered cap rail. Gates green (EditMode 233, PlayMode 24).
+- 2026-11-21 : phase 05 - review before coding found nothing to correct. Mast hoops, partners and a cap; a rim on the tops; the stump keeps the collar and hoops below its break; the taffrail open: balusters in `Trim`, gilt cap rail, carved board and boss, scrolls, quarter rails. A break-mast sequence still brings the mast down. Gates green (EditMode 233, PlayMode 24).

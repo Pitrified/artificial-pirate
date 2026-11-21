@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 05 - Masts and taffrail
@@ -30,3 +30,10 @@ Context: [`00_start.md`](00_start.md) "Masts", "Taffrail", Q5; depends on [`02_w
 - Gates green; mast and stern captures show hoops, caps and the open taffrail.
 - Breaking a mast still works (`ShipMastsTests`, `CAPTURE_BREAK_MAST`).
 - Counts logged.
+
+## What the implementation found
+
+- The hoops and partners come from one helper shared by the mast and its stump. The brig's break starts about 0.95 m above the deck, under the first hoop at 1 m, so its stumps keep only the collar; the sloop's keeps one hoop.
+- The balusters are `Trim`, so each ship's paint carries to them (red on the sloop, the brig's own trim); rails and carving `Gilt`. No new slot.
+- `BuiltModelTests` needed no change: the mast objects and slots are the same.
+- Counts: sloop 9 548 triangles (hull 5 038, mast 1 788), brig 16 444; both ships in view 63 278 triangles, 48 material slots, against 55 218 and 46 after phase 02.
