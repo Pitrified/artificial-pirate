@@ -30,4 +30,4 @@ Phone run on 2026-11-21, Pixel 7 Pro, the dev APK from `01f3eff`, three diagnost
 - The brig takes about a quarter of each ram the sloop takes, the blow split by size; it was not sunk in this run.
 - Hits under 0.001 still log a line; noise only, left as is.
 - The restore log line reports health and hits but not the masts lost; the mast's restore was confirmed by eye.
-- The fresh-clone gate run was not done: it is a full import of about ten minutes and was not asked for; the gates passed on this tree at `01f3eff`.
+- 2026-11-21. **Fresh clone** of `feat/09_ship_damage` at `02f48b4`, in `~/repos/artificial-pirate-verify` (deleted after): 18 LFS files, the models identical to the working tree's; `Tools/setup.sh` exit 0; gates from an empty `Library/`: compile 0 errors, 0 warnings; EditMode 232/232; PlayMode 24/24; the clone's tree unchanged.
