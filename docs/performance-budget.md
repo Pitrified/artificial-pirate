@@ -22,6 +22,11 @@ targets for v0.2 and tested on-device, not in editor.
 
 ## 2. Rendering
 
+The counts in this table are guides, not limits: they say where to look when a frame costs too much.
+What decides is the frame time on the phone, section 1, and how much of it the CPU and the GPU use.
+The game is capped at 60 fps, so the frame rate alone only says a frame fits in 16.7 ms; the diagnostics report's `cpu ms` and `gpu ms` rows (docs/systems/logging.md) say how much room is left.
+A change that adds detail is judged by those rows on the phone against a run from before it, the p95 above all, not by its draws or triangles.
+
 | Metric                  | Target                | Notes                    |
 | ----------------------- | --------------------- | ------------------------ |
 | SetPass calls           | ≤ 30                  | URP batching + SRP batcher |

@@ -22,7 +22,7 @@ namespace Game.Systems
             AppendHeader(sb, recorder.Build);
             sb.Append('\n');
             float now = Time.realtimeSinceStartup;
-            AppendStats(sb, "session", recorder.FrameMs, recorder.MemoryMb, recorder.HeapMb, now);
+            AppendStats(sb, "session", recorder.FrameMs, recorder.CpuMs, recorder.GpuMs, recorder.MemoryMb, recorder.HeapMb, now);
             Histogram gc = recorder.GcAllocKb;
             if (gc.Count > 0)
             {
@@ -31,7 +31,7 @@ namespace Game.Systems
             sb.Append("gc ").Append(recorder.GcCollections).Append(" collections | slow frames (over 33 ms) ")
               .Append(recorder.SlowFrames)
               .Append(" (").Append(Percent(recorder.SlowFrames, recorder.FrameMs.Count)).Append(")\n");
-            AppendStats(sb, "last 60 s", recorder.RecentFrameMs(now), null, null, now);
+            AppendStats(sb, "last 60 s", recorder.RecentFrameMs(now), recorder.RecentCpuMs(now), recorder.RecentGpuMs(now), null, null, now);
             sb.Append('\n');
             AppendProblems(sb, recorder.Problems);
             sb.Append('\n');
@@ -82,9 +82,12 @@ namespace Game.Systems
         /// <summary>
         /// A statistics block: frames and the time it covers, then a row per metric of min, p05,
         /// median, mean, p95, max. Frame rate is read off the frame times (its p05 is 1000 over the
-        /// frame time's p95). Memory rows are left out when null.
+        /// frame time's p95). The CPU's and GPU's times on a frame show how much of it they use while
+        /// the frame rate is capped; a device that does not report them says so. Memory rows are
+        /// left out when null.
         /// </summary>
-        internal static void AppendStats(StringBuilder sb, string title, Histogram frameMs, Histogram memoryMb, Histogram heapMb, float now)
+        internal static void AppendStats(StringBuilder sb, string title, Histogram frameMs, Histogram cpuMs, Histogram gpuMs,
+            Histogram memoryMb, Histogram heapMb, float now)
         {
             sb.Append("stats ").Append(title).Append(": ").Append(frameMs.Count).Append(" frames");
             if (title == "session")
@@ -101,6 +104,8 @@ namespace Game.Systems
             Row(sb, "frame ms", frameMs.Min, frameMs.Quantile(0.05f), frameMs.Quantile(0.5f), frameMs.Mean, frameMs.Quantile(0.95f), frameMs.Max);
             Row(sb, "fps", Fps(frameMs.Max), Fps(frameMs.Quantile(0.95f)), Fps(frameMs.Quantile(0.5f)),
                 1000f * frameMs.Count / (float)frameMs.Sum, Fps(frameMs.Quantile(0.05f)), Fps(frameMs.Min));
+            TimingRow(sb, "cpu ms", cpuMs);
+            TimingRow(sb, "gpu ms", gpuMs);
             if (memoryMb != null && memoryMb.Count > 0)
             {
                 Row(sb, "memory MB", memoryMb.Min, memoryMb.Quantile(0.05f), memoryMb.Quantile(0.5f), memoryMb.Mean, memoryMb.Quantile(0.95f), memoryMb.Max);
@@ -171,6 +176,16 @@ namespace Game.Systems
                 sb.Append(F1(v).PadLeft(7));
             }
             sb.Append('\n');
+        }
+
+        private static void TimingRow(StringBuilder sb, string name, Histogram ms)
+        {
+            if (ms.Count == 0)
+            {
+                sb.Append(name.PadRight(12)).Append("  not reported by this device\n");
+                return;
+            }
+            Row(sb, name, ms.Min, ms.Quantile(0.05f), ms.Quantile(0.5f), ms.Mean, ms.Quantile(0.95f), ms.Max);
         }
 
         private static float Fps(float ms) => ms > 0f ? 1000f / ms : 0f;

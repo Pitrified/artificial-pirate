@@ -149,5 +149,39 @@ namespace Game.Tests.EditMode
                 UnityEngine.Object.DestroyImmediate(go);
             }
         }
+
+        [Test]
+        public void Report_HasCpuAndGpuTimes_OrSaysTheyAreNotReported()
+        {
+            var go = new GameObject("Recorder");
+            try
+            {
+                var recorder = go.AddComponent<DiagnosticsRecorder>();
+                float now = Time.realtimeSinceStartup;
+                for (int i = 0; i < 60; i++)
+                {
+                    recorder.RecordFrame(16.7f, now, cpuMs: 0f, gpuMs: 0f);
+                }
+                string none = recorder.BuildReport(detailed: false);
+                StringAssert.Contains("cpu ms        not reported by this device", none);
+                StringAssert.Contains("gpu ms        not reported by this device", none);
+
+                for (int i = 0; i < 60; i++)
+                {
+                    recorder.RecordFrame(16.7f, now, cpuMs: 6f, gpuMs: 9f);
+                }
+                Assert.AreEqual(60, recorder.CpuMs.Count, "only the frames with a time");
+                Assert.AreEqual(9f, recorder.GpuMs.Quantile(0.5f), 0.5f);
+                Assert.AreEqual(60, recorder.RecentGpuMs(now).Count, "the last minute too");
+                string report = recorder.BuildReport(detailed: false);
+                StringAssert.DoesNotContain("not reported", report);
+                StringAssert.Contains("cpu ms", report);
+                StringAssert.Contains("gpu ms", report);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
     }
 }

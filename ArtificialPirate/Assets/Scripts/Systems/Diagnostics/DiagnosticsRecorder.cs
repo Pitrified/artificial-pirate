@@ -8,7 +8,8 @@ namespace Game.Systems
 
     /// <summary>
     /// Collects what the diagnostics report needs, in every build, with fixed buffers and no
-    /// allocation per frame: frame times into a session histogram and a last-minute ring, memory
+    /// allocation per frame: frame times, and the CPU and GPU times of a frame where the device
+    /// reports them, into session histograms and a last-minute ring, memory
     /// and managed heap once a second into histograms and a 10-minute per-second series, and the
     /// session's exceptions and errors apart from the log ring. <see cref="BuildReport"/> writes it
     /// as text (docs/systems/logging.md, "Diagnostics report"). Lives in the Persistent scene.
@@ -52,11 +53,16 @@ namespace Game.Systems
         [SerializeField] private SO_BuildInfo _build;
 
         private readonly Histogram _frameMs = new Histogram(FrameBins, FrameBinMs);
+        private readonly Histogram _cpuMs = new Histogram(FrameBins, FrameBinMs);
+        private readonly Histogram _gpuMs = new Histogram(FrameBins, FrameBinMs);
         private readonly Histogram _memoryMb = new Histogram(MemoryBins, 1f);
         private readonly Histogram _heapMb = new Histogram(HeapBins, 1f);
         private readonly Histogram _gcAllocKb = new Histogram(GcAllocBins, GcAllocBinKb);
         private readonly float[] _recentMs = new float[RecentFrames];
+        private readonly float[] _recentCpuMs = new float[RecentFrames];
+        private readonly float[] _recentGpuMs = new float[RecentFrames];
         private readonly float[] _recentAt = new float[RecentFrames];
+        private readonly FrameTiming[] _timing = new FrameTiming[1];
         private readonly Second[] _series = new Second[SeriesSeconds];
         private readonly ProblemLog _problems = new ProblemLog();
 
@@ -79,6 +85,12 @@ namespace Game.Systems
         public SO_BuildInfo Build => _build;
 
         internal Histogram FrameMs => _frameMs;
+
+        /// <summary>The CPU's time on a frame, ms; empty where the device does not report it.</summary>
+        internal Histogram CpuMs => _cpuMs;
+
+        /// <summary>The GPU's time on a frame, ms; empty where the device does not report it.</summary>
+        internal Histogram GpuMs => _gpuMs;
         internal Histogram MemoryMb => _memoryMb;
         internal Histogram HeapMb => _heapMb;
 
@@ -175,7 +187,15 @@ namespace Game.Systems
             }
             else
             {
-                RecordFrame(Time.unscaledDeltaTime * 1000f, now);
+                float cpuMs = 0f;
+                float gpuMs = 0f;
+                FrameTimingManager.CaptureFrameTimings();
+                if (FrameTimingManager.GetLatestTimings(1, _timing) > 0)
+                {
+                    cpuMs = (float)_timing[0].cpuFrameTime;
+                    gpuMs = (float)_timing[0].gpuFrameTime;
+                }
+                RecordFrame(Time.unscaledDeltaTime * 1000f, now, cpuMs, gpuMs);
                 if (_gcAlloc.Valid)
                 {
                     // LastValue is the frame before this one: the counter closes at the end of a frame.
@@ -193,15 +213,28 @@ namespace Game.Systems
             }
         }
 
-        /// <summary>Adds one frame's time (ms) at <paramref name="now"/> seconds.</summary>
-        internal void RecordFrame(float ms, float now)
+        /// <summary>
+        /// Adds one frame's time (ms) at <paramref name="now"/> seconds, with the CPU's and GPU's
+        /// times on it; a time of 0 is one the device did not report, and is left out.
+        /// </summary>
+        internal void RecordFrame(float ms, float now, float cpuMs = 0f, float gpuMs = 0f)
         {
             _frameMs.Add(ms);
+            if (cpuMs > 0f)
+            {
+                _cpuMs.Add(cpuMs);
+            }
+            if (gpuMs > 0f)
+            {
+                _gpuMs.Add(gpuMs);
+            }
             if (ms > SlowFrameMs)
             {
                 _slowFrames++;
             }
             _recentMs[_recentHead] = ms;
+            _recentCpuMs[_recentHead] = cpuMs;
+            _recentGpuMs[_recentHead] = gpuMs;
             _recentAt[_recentHead] = now;
             _recentHead = (_recentHead + 1) % RecentFrames;
             if (_recentCount < RecentFrames)
@@ -242,7 +275,15 @@ namespace Game.Systems
         }
 
         /// <summary>A histogram of the frame times in the last <see cref="RecentWindow"/> seconds before <paramref name="now"/>.</summary>
-        internal Histogram RecentFrameMs(float now)
+        internal Histogram RecentFrameMs(float now) => Recent(_recentMs, now);
+
+        /// <summary>The CPU's times in the last <see cref="RecentWindow"/> seconds, those reported.</summary>
+        internal Histogram RecentCpuMs(float now) => Recent(_recentCpuMs, now);
+
+        /// <summary>The GPU's times in the last <see cref="RecentWindow"/> seconds, those reported.</summary>
+        internal Histogram RecentGpuMs(float now) => Recent(_recentGpuMs, now);
+
+        private Histogram Recent(float[] ring, float now)
         {
             var recent = new Histogram(FrameBins, FrameBinMs);
             for (int i = 0; i < _recentCount; i++)
@@ -252,7 +293,10 @@ namespace Game.Systems
                 {
                     break;
                 }
-                recent.Add(_recentMs[idx]);
+                if (ring[idx] > 0f)
+                {
+                    recent.Add(ring[idx]);
+                }
             }
             return recent;
         }
