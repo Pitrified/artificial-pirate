@@ -2,7 +2,8 @@
 
 Run from this folder:
 
-    uv run --no-sync python textures.py water_normals   (or palette, sail_canvas, hull_planks, deck_planks, flag, hull_marks)
+    uv run --no-sync python textures.py water_normals   (or palette, sail_canvas, hull_planks, deck_planks, flag, hull_marks,
+                                                         spar_wood, ship_wood)
 
 Each texture is a function below. Tiling comes from building the height field out of
 waves with integer frequencies over the tile, so the edges meet. The same seed gives
@@ -23,13 +24,16 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 TEXTURES_DIR = REPO_ROOT / "ArtificialPirate" / "Assets" / "Art" / "Textures"
 
 
-def tiling_height(size: int, waves: int, min_freq: int, max_freq: int, falloff: float, seed: int) -> np.ndarray:
-    """A tiling height field in [-1, 1]: a sum of plane waves with integer frequencies."""
+def tiling_height(size: int, waves: int, min_freq: int, max_freq: int, falloff: float, seed: int,
+                  max_freq_x: int | None = None) -> np.ndarray:
+    """A tiling height field in [-1, 1]: a sum of plane waves with integer frequencies. A low max_freq_x
+    stretches it along x, as wood grain."""
     rng = np.random.default_rng(seed)
     y, x = np.mgrid[0:size, 0:size] / size
     h = np.zeros((size, size))
+    along = max_freq if max_freq_x is None else max_freq_x
     for _ in range(waves):
-        fx, fy = rng.integers(-max_freq, max_freq + 1, size=2)
+        fx, fy = rng.integers(-along, along + 1), rng.integers(-max_freq, max_freq + 1)
         f = float(np.hypot(fx, fy))
         if f < min_freq:
             continue
@@ -120,6 +124,27 @@ def deck_planks() -> Path:
     return _save(_grey(_planks(256, 256, plank_px=16, butt_every_px=128, seed=41)), "T_DeckPlanks")
 
 
+def _wood(name: str, tone: np.ndarray, height: np.ndarray, strength: float) -> Path:
+    """A grey wood texture, multiplied by its material's colour, and its normal map, `<name>_N`."""
+    normal_map(height, strength).save(_save(_grey(tone), name).with_name(f"{name}_N.png"), optimize=False)
+    return TEXTURES_DIR / f"{name}.png"
+
+
+def spar_wood() -> Path:
+    """Masts and spars: long grain running along u, 2 x 2 m a tile, and its normal map."""
+    size = 256
+    grain = tiling_height(size, waves=60, min_freq=6, max_freq=60, falloff=0.8, seed=51, max_freq_x=2)
+    streaks = tiling_height(size, waves=16, min_freq=2, max_freq=8, falloff=1.0, seed=52, max_freq_x=1)
+    return _wood("T_Spar", 0.88 + 0.07 * grain + 0.05 * streaks, grain, strength=2.0)
+
+
+def ship_wood() -> Path:
+    """Bulwarks, rails and deck furniture: boards 0.25 m wide along u with seams and butt joints, 2 x 2 m
+    a tile, and its normal map."""
+    tone = _planks(256, 256, plank_px=32, butt_every_px=256, seed=61)
+    return _wood("T_ShipWood", tone, tone, strength=3.0)
+
+
 def flag() -> Path:
     """A black flag with a white skull over crossed bones, 2:1.3."""
     w, h = 256, 166
@@ -185,6 +210,8 @@ TEXTURES = {
     "deck_planks": deck_planks,
     "flag": flag,
     "hull_marks": hull_marks,
+    "spar_wood": spar_wood,
+    "ship_wood": ship_wood,
 }
 
 

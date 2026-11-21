@@ -12,8 +12,8 @@ from mathutils import Vector
 from builders.ship.hull import deck_height
 from builders.ship.mesh import MeshParts, frame, pole
 
-MAST_SIDES = 8
-SPAR_SIDES = 6
+MAST_SIDES = 16
+SPAR_SIDES = 10
 SPAR_OF_MAST = 0.45
 STUMP_HEIGHT = 1.4  # above the deck
 STUMP_SPLINTER = 0.6  # how far the broken top's points rise and fall
@@ -92,12 +92,12 @@ def standing(per_mast: list[MeshParts], all_masts: list[Mast]) -> None:
     """The masts, each in its own parts."""
     for parts, mast in zip(per_mast, all_masts, strict=True):
         d = mast.spec["diameter"]
-        pole(parts, mast.foot, mast.head, d, d * 0.5, MAST_SIDES, "ShipWood")
+        pole(parts, mast.foot, mast.head, d, d * 0.5, MAST_SIDES, "Spar", smooth=True)
 
 
 def bowsprit_pole(parts: MeshParts, p: dict) -> None:
     d = p["bowsprit"]["diameter"]
-    pole(parts, *bowsprit(p), d, d * 0.5, SPAR_SIDES, "ShipWood")
+    pole(parts, *bowsprit(p), d, d * 0.5, SPAR_SIDES, "Spar", smooth=True)
 
 
 def stump(parts: MeshParts, mast: Mast) -> None:
@@ -110,10 +110,14 @@ def stump(parts: MeshParts, mast: Mast) -> None:
               for k, a in enumerate(_angles())]
     crown = parts.add_verts(jagged)
     centre = parts.add_verts([top])
+    step = math.pi * d / MAST_SIDES
     for k in range(MAST_SIDES):
         n = (k + 1) % MAST_SIDES
-        parts.add_face((base + k, crown + k, crown + n, base + n), "ShipWood")
-        parts.add_face((crown + n, crown + k, centre), "ShipWood")
+        uvs = ((0.0, k * step), ((jagged[k] - mast.foot).length, k * step),
+               ((jagged[n] - mast.foot).length, (k + 1) * step), (0.0, (k + 1) * step))
+        parts.add_face((base + k, crown + k, crown + n, base + n), "Spar", smooth=True, uvs=uvs)
+        parts.add_planar_face((crown + n, crown + k, centre), "Spar")
+        parts.mark_sharp(crown + k, crown + n)
 
 
 def _angles() -> list[float]:
@@ -125,8 +129,8 @@ def spars(per_mast: list[MeshParts], all_masts: list[Mast], brace_deg: float, sw
     for parts, mast in zip(per_mast, all_masts, strict=True):
         d = mast.spar_diameter
         for yard in mast.spec["yards"]:
-            pole(parts, *yard_ends(mast, yard, brace_deg), d, d, SPAR_SIDES, "ShipWood")
+            pole(parts, *yard_ends(mast, yard, brace_deg), d, d, SPAR_SIDES, "Spar", smooth=True)
         if "boom" in mast.spec:
-            pole(parts, *boom_ends(mast, swing_deg), d, d * 0.8, SPAR_SIDES, "ShipWood")
+            pole(parts, *boom_ends(mast, swing_deg), d, d * 0.8, SPAR_SIDES, "Spar", smooth=True)
         if "gaff" in mast.spec:
-            pole(parts, *gaff_ends(mast, swing_deg + gaff_twist_deg), d, d * 0.8, SPAR_SIDES, "ShipWood")
+            pole(parts, *gaff_ends(mast, swing_deg + gaff_twist_deg), d, d * 0.8, SPAR_SIDES, "Spar", smooth=True)

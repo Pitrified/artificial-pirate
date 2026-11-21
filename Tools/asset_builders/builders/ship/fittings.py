@@ -11,6 +11,7 @@ Type keys (all but the deck optional):
 from __future__ import annotations
 
 import itertools
+import math
 from collections.abc import Callable
 
 from mathutils import Vector
@@ -55,12 +56,23 @@ def _strip(parts: MeshParts, p: dict, profile: Profile, t0: float, t1: float, sl
     steps = max(2, round((t1 - t0) * STATIONS))
     ts = [t0 + (t1 - t0) * i / steps for i in range(steps + 1)]
     for side in (1.0, -1.0):
-        rows = [parts.add_verts([Vector((side * x, _y(p, t), z)) for x, z in profile(t)]) for t in ts]
+        rows = []
+        for t in ts:
+            section = profile(t)
+            rows.append(parts.add_verts([Vector((side * x, _y(p, t), z)) for x, z in section], _around(section, _y(p, t))))
         n = len(profile(ts[0]))
         for a, b in itertools.pairwise(rows):
             for k in range(n - 1):
                 quad = (a + k, a + k + 1, b + k + 1, b + k)
                 parts.add_face(quad if side > 0 else tuple(reversed(quad)), slot)
+
+
+def _around(section: list[tuple[float, float]], y: float) -> list[tuple[float, float]]:
+    """UVs in metres for a lofted section's points: u along the hull, v around the section."""
+    v = [0.0]
+    for (x0, z0), (x1, z1) in itertools.pairwise(section):
+        v.append(v[-1] + math.hypot(x1 - x0, z1 - z0))
+    return [(y, d) for d in v]
 
 
 def deck(parts: MeshParts, p: dict) -> None:
@@ -170,16 +182,17 @@ def furniture(parts: MeshParts, p: dict) -> None:
     if "capstan" in spec:
         t = spec["capstan"]
         base = Vector((0.0, _y(p, t), deck_height(p, t)))
-        pole(parts, base, base + Vector((0.0, 0.0, CAPSTAN_HEIGHT)), CAPSTAN_DIAMETER, CAPSTAN_DIAMETER * 0.8, 8, "ShipWood")
+        pole(parts, base, base + Vector((0.0, 0.0, CAPSTAN_HEIGHT)), CAPSTAN_DIAMETER, CAPSTAN_DIAMETER * 0.8, 12, "ShipWood",
+             smooth=True)
     t = spec.get("helm_at", 0.08)
     base = Vector((0.0, _y(p, t), deck_height(p, t)))
     if spec.get("helm") == "wheel":
         hub = base + Vector((0.0, 0.0, WHEEL_DIAMETER / 2 + 0.3))
-        axis_box(parts, base + Vector((0.0, -0.2, (hub.z - base.z) / 2)), Vector((0.2, 0.2, hub.z - base.z)), "ShipWood")
-        pole(parts, hub - Vector((0.0, 0.05, 0.0)), hub + Vector((0.0, 0.05, 0.0)), WHEEL_DIAMETER, WHEEL_DIAMETER, 12, "ShipWood")
+        axis_box(parts, base + Vector((0.0, -0.2, (hub.z - base.z) / 2)), Vector((0.2, 0.2, hub.z - base.z)), "Spar")
+        pole(parts, hub - Vector((0.0, 0.05, 0.0)), hub + Vector((0.0, 0.05, 0.0)), WHEEL_DIAMETER, WHEEL_DIAMETER, 12, "Spar")
     else:
         start = Vector((0.0, -p["length"] / 2 + 0.2, deck_height(p, 0.0) + 0.6))
-        pole(parts, start, start + Vector((0.0, TILLER_LENGTH, -0.1)), 0.18, 0.12, 6, "ShipWood")
+        pole(parts, start, start + Vector((0.0, TILLER_LENGTH, -0.1)), 0.18, 0.12, 8, "Spar", smooth=True)
 
 
 def fit(parts: MeshParts, p: dict) -> None:

@@ -78,9 +78,9 @@ def _mast_rigging(body: MeshParts, parts: MeshParts, p: dict, mast: Mast) -> Non
     d = mast.spec["diameter"]
     width = _top_width(p)
     top_centre = mast.at(top_z) + Vector((0.0, 0.0, TOP_THICKNESS / 2))
-    axis_box(parts, top_centre, Vector((width, width * TOP_LENGTH, TOP_THICKNESS)), "ShipWood")
+    axis_box(parts, top_centre, Vector((width, width * TOP_LENGTH, TOP_THICKNESS)), "Spar")
     cross_centre = mast.at(cross_z)
-    axis_box(parts, cross_centre, Vector((width * CROSSTREES_OF_TOP, 0.4, CROSSTREES_THICKNESS)), "ShipWood")
+    axis_box(parts, cross_centre, Vector((width * CROSSTREES_OF_TOP, 0.4, CROSSTREES_THICKNESS)), "Spar")
 
     for side in (1.0, -1.0):
         plates = _chainplates(p, mast, side)

@@ -11,6 +11,8 @@ from mathutils import Vector
 DEFAULT_PREVIEW = (0.5, 0.5, 0.5)
 LINE_SIDES = 3
 
+UV = tuple[float, float]
+
 
 @dataclass(frozen=True)
 class Rope:
@@ -34,13 +36,15 @@ class Cloth:
 @dataclass
 class MeshParts:
     """Vertices with UVs (in metres), faces with their slot and shading, and sharp edges; the ropes and
-    cloths among them, by name."""
+    cloths among them, by name. A face can carry its own UV per corner, where faces meeting at a vertex
+    map it differently (a box's edges, a pole's seam)."""
 
     verts: list[Vector] = field(default_factory=list)
     uvs: list[tuple[float, float]] = field(default_factory=list)
     faces: list[tuple[int, ...]] = field(default_factory=list)
     slots: list[str] = field(default_factory=list)
     smooth: list[bool] = field(default_factory=list)
+    corner_uvs: list[tuple[UV, ...] | None] = field(default_factory=list)
     sharp: set[tuple[int, int]] = field(default_factory=set)
     ropes: list[Rope] = field(default_factory=list)
     cloths: list[Cloth] = field(default_factory=list)
@@ -51,23 +55,45 @@ class MeshParts:
         self.uvs.extend(uvs if uvs is not None else [(0.0, 0.0)] * len(points))
         return start
 
-    def add_face(self, indices: tuple[int, ...], slot: str, smooth: bool = False) -> None:
+    def add_face(self, indices: tuple[int, ...], slot: str, smooth: bool = False,
+                 uvs: tuple[UV, ...] | None = None) -> None:
         self.faces.append(indices)
         self.slots.append(slot)
         self.smooth.append(smooth)
+        self.corner_uvs.append(uvs)
+
+    def add_planar_face(self, indices: tuple[int, ...], slot: str) -> None:
+        """A flat face mapped in metres on its own plane, u along its longer first edge."""
+        self.add_face(indices, slot, uvs=planar_uvs([self.verts[i] for i in indices]))
 
     def mark_sharp(self, a: int, b: int) -> None:
         self.sharp.add((min(a, b), max(a, b)))
 
 
-UV = tuple[float, float]
+def planar_uvs(points: list[Vector]) -> tuple[UV, ...]:
+    """A flat polygon's corners in metres on its plane: u along the longer of its two edges from the
+    first corner, so a board's grain runs along it."""
+    origin = points[0]
+    first, last = points[1] - origin, points[-1] - origin
+    along = first if first.length >= last.length else last
+    normal = first.cross(last)
+    if along.length < 1e-9 or normal.length < 1e-12:
+        return tuple((0.0, 0.0) for _ in points)
+    u = along.normalized()
+    v = normal.cross(u).normalized()
+    return tuple(((q - origin).dot(u), (q - origin).dot(v)) for q in points)
 
 
 def box(parts: MeshParts, corners: list[Vector], slot: str, uv: UV | None = None) -> None:
-    """Eight corners ordered by z, then y, then x, each pair low and high; uv for every corner if given."""
+    """Eight corners ordered by z, then y, then x, each pair low and high; uv for every corner if given,
+    else each face mapped in metres."""
     s = parts.add_verts(corners, [uv] * 8 if uv else None)
     for face in ((0, 2, 3, 1), (4, 5, 7, 6), (0, 1, 5, 4), (2, 6, 7, 3), (0, 4, 6, 2), (1, 3, 7, 5)):
-        parts.add_face(tuple(s + i for i in face), slot)
+        indices = tuple(s + i for i in face)
+        if uv:
+            parts.add_face(indices, slot)
+        else:
+            parts.add_planar_face(indices, slot)
 
 
 def axis_box(parts: MeshParts, centre: Vector, size: Vector, slot: str, uv: UV | None = None) -> None:
@@ -87,8 +113,9 @@ def frame(axis: Vector) -> tuple[Vector, Vector]:
 
 
 def pole(parts: MeshParts, start: Vector, end: Vector, d0: float, d1: float, sides: int, slot: str,
-         caps: bool = True, uv: UV | None = None) -> None:
-    """A tapered pole between two points."""
+         caps: bool = True, uv: UV | None = None, smooth: bool = False) -> None:
+    """A tapered pole between two points, mapped in metres: u along it, v around; smooth rounds its
+    sides and keeps the caps flat."""
     axis = (end - start).normalized()
     side, up = frame(axis)
     rings = []
@@ -97,12 +124,22 @@ def pole(parts: MeshParts, start: Vector, end: Vector, d0: float, d1: float, sid
                 for a in (2 * math.pi * i / sides for i in range(sides))]
         rings.append(parts.add_verts(ring, [uv] * sides if uv else None))
     a, b = rings
+    length = (end - start).length
+    step = math.pi * (d0 + d1) / 2 / sides
     for i in range(sides):
         j = (i + 1) % sides
-        parts.add_face((a + i, b + i, b + j, a + j), slot)
+        uvs = None if uv else ((0.0, i * step), (length, i * step), (length, (i + 1) * step), (0.0, (i + 1) * step))
+        parts.add_face((a + i, b + i, b + j, a + j), slot, smooth, uvs)
     if caps:
-        parts.add_face(tuple(a + i for i in range(sides)), slot)
-        parts.add_face(tuple(b + i for i in reversed(range(sides))), slot)
+        for cap in (tuple(a + i for i in range(sides)), tuple(b + i for i in reversed(range(sides)))):
+            if uv:
+                parts.add_face(cap, slot)
+            else:
+                parts.add_planar_face(cap, slot)
+        if smooth:
+            for ring in rings:
+                for i in range(sides):
+                    parts.mark_sharp(ring + i, ring + (i + 1) % sides)
 
 
 def line(parts: MeshParts, start: Vector, end: Vector, thickness: float, slot: str) -> None:
@@ -130,8 +167,9 @@ def make_object(name: str, parts: MeshParts, preview_rgb: dict[str, list[float]]
         sharp.data[edge.index].value = (min(a, b), max(a, b)) in parts.sharp
 
     uv = mesh.uv_layers.new(name="UVMap")
-    for loop in mesh.loops:
-        uv.data[loop.index].uv = parts.uvs[loop.vertex_index]
+    for poly, corners in zip(mesh.polygons, parts.corner_uvs):
+        for k, loop in enumerate(poly.loop_indices):
+            uv.data[loop].uv = corners[k] if corners else parts.uvs[mesh.loops[loop].vertex_index]
 
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.scene.collection.objects.link(obj)
