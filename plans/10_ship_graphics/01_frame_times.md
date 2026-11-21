@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 01 - Frame times and a baseline
@@ -39,3 +39,10 @@ Context: [`00_start.md`](00_start.md) Q6.
 
 - On some Android drivers `gpuFrameTime` stays 0 even with the stats on; then the fallback is the frame time with the cap lifted for a run (a debug toggle), raised as a question before building it.
 - Frame timing stats cost a little themselves; measure with them on in every run, baseline included, so the comparison is fair.
+
+## What the implementation found
+
+- 2026-11-22. **Baseline** from `16e08ea` (Pixel 7 Pro, Mali-G710, Vulkan), 37 s sailing near the brig, a mast lost on the way: frame ms p50 16.8, p95 16.8 (60 fps held); gpu ms p50 11.8, p95 12.3, mean 11.4, max 22.2; cpu ms p50 16.8, p95 18.8. The device reports GPU times, so no uncapped fallback is needed.
+- The CPU time includes the wait for the next vsync and sits at the frame time; under the cap it says little. The GPU time is the row to compare.
+- The quantiles resolve to the histogram's 0.5 ms bins, so two runs that agree at p50 and p95 differ by less than that; the mean is finer but moves with the route.
+- Under a frame cap the GPU's clock scales with the load, so the GPU time understates a change in work; it shows whether a frame still fits with room to spare, not a precise cost.

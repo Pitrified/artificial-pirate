@@ -15,7 +15,7 @@ Analysis, proposals and answers in [`00_start.md`](00_start.md).
 
 | #  | Phase                          | Plan | Status  |
 | -- | ------------------------------ | ---- | ------- |
-| 01 | Frame times and a baseline     | [`01_frame_times.md`](01_frame_times.md) | in progress |
+| 01 | Frame times and a baseline     | [`01_frame_times.md`](01_frame_times.md) | done |
 | 02 | Wood                           | [`02_wood.md`](02_wood.md) | done |
 | 03 | Lantern and helm               | [`03_lantern_helm.md`](03_lantern_helm.md) | done |
 | 04 | Hatches, bulwark and rail      | [`04_hatches_bulwark.md`](04_hatches_bulwark.md) | done |
@@ -40,3 +40,4 @@ Append-only. Newest at the bottom.
 - 2026-11-21 : phase 05 - review before coding found nothing to correct. Mast hoops, partners and a cap; a rim on the tops; the stump keeps the collar and hoops below its break; the taffrail open: balusters in `Trim`, gilt cap rail, carved board and boss, scrolls, quarter rails. A break-mast sequence still brings the mast down. Gates green (EditMode 233, PlayMode 24).
 - 2026-11-21 : phase 06 - fresh clone at `6646353` green (EditMode 233, PlayMode 24); dev APK built; before/after sheet. A capture run in parallel with the clone's Unity crashed in Unity's socket code; the same state's capture from phase 05 stands in. The phone runs (baseline and new) wait for the user.
 - 2026-11-22 : phase 06 - the phone report of `6646353`: 60 fps held, gpu ms p50 11.8, p95 12.3. The user saw water at the stern: the transom was open from the deck to the rail and the deck stopped short of the rake, a hull gap older than the plan that the solid taffrail had hidden; closed with a transom board, the deck run aft, the windows laid on the rake (`0d14399`); gates green; new dev APK. The baseline run waits for the user.
+- 2026-11-22 : phase 01 closed - the baseline from `16e08ea`: 60 fps held, gpu ms p50 11.8, p95 12.3, mean 11.4. The new build (`6646353`) gave the same p50 and p95 (the 0.5 ms bins) and a mean of 11.6 to 11.7: no difference the phone can show under the cap.
