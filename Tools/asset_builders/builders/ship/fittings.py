@@ -18,6 +18,7 @@ from collections.abc import Callable
 from mathutils import Vector
 
 from builders.ship.hull import (
+    BULWARK_THICKNESS,
     STATIONS,
     bulwark_inner,
     deck_height,
@@ -41,6 +42,8 @@ PORT_LID = 0.05
 WINDOW_WIDTH = 0.5
 WINDOW_HEIGHT = 0.7
 WINDOW_FRAME = 0.08
+WINDOW_FRAME_PROUD = 0.05
+WINDOW_GLASS_PROUD = 0.07
 TAFFRAIL_HEIGHT = 0.45
 TAFFRAIL_RAIL = Vector((0.0, 0.16, 0.08))  # the cap and foot rails' depth and height
 BALUSTER_STEP = 0.25
@@ -102,7 +105,9 @@ def deck(parts: MeshParts, p: dict) -> None:
         t0, t1 = i / STATIONS, (i + 1) / STATIONS
         corners = []
         for t, x_side in ((t0, 1.0), (t1, 1.0), (t1, -1.0), (t0, -1.0)):
-            corners.append(Vector((x_side * bulwark_inner(p, t), _y(p, t), deck_height(p, t))))
+            z = deck_height(p, t)
+            y = transom_y(p, z) + BULWARK_THICKNESS if t == 0 else _y(p, t)
+            corners.append(Vector((x_side * bulwark_inner(p, t), y, z)))
         s = parts.add_verts(corners, [(v.y, v.x) for v in corners])
         parts.add_face((s, s + 1, s + 2, s + 3), "Deck")
 
@@ -165,14 +170,24 @@ def stern(parts: MeshParts, p: dict) -> None:
     """Windows across the transom between the deck and the rail, and a carved taffrail above it."""
     count = p.get("stern_windows", 0)
     rail_z, deck_z = rail_height(p, 0.0), deck_height(p, 0.0)
-    z = (rail_z + deck_z) / 2 + 0.2
+    z = (rail_z + deck_z) / 2
     span = half_beam(p, 0.0) * 1.2
     for i in range(count):
         x = -span / 2 + span * (i + 0.5) / count
-        y = transom_y(p, z)
-        axis_box(parts, Vector((x, y - 0.02, z)), Vector((WINDOW_WIDTH + WINDOW_FRAME * 2, 0.06, WINDOW_HEIGHT + WINDOW_FRAME * 2)), "Gilt")
-        axis_box(parts, Vector((x, y - 0.06, z)), Vector((WINDOW_WIDTH, 0.06, WINDOW_HEIGHT)), "Tar")
+        _on_transom(parts, p, x, z, Vector((WINDOW_WIDTH + WINDOW_FRAME * 2, WINDOW_FRAME_PROUD, WINDOW_HEIGHT + WINDOW_FRAME * 2)),
+                    "Gilt")
+        _on_transom(parts, p, x, z, Vector((WINDOW_WIDTH, WINDOW_GLASS_PROUD, WINDOW_HEIGHT)), "Tar")
     taffrail(parts, p)
+
+
+def _on_transom(parts: MeshParts, p: dict, x: float, z: float, size: Vector, slot: str) -> None:
+    """A box laid on the raked transom, centred at x and z: size.x across, size.z high, standing
+    size.y proud of it."""
+    corners = [Vector((x + dx, transom_y(p, zc) + dy, zc))
+               for zc in (z - size.z / 2, z + size.z / 2)
+               for dy in (-size.y, 0.0)
+               for dx in (-size.x / 2, size.x / 2)]
+    box(parts, corners, slot)
 
 
 def taffrail(parts: MeshParts, p: dict) -> None:

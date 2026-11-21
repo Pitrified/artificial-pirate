@@ -115,6 +115,19 @@ def hull(parts: MeshParts, p: dict) -> None:
     for k in range(n):
         parts.mark_sharp(stern + k, stern + (k + 1) % n)
         parts.mark_sharp(bow + k, bow + (k + 1) % n)
+    _transom_board(parts, stern, n)
+
+
+def _transom_board(parts: MeshParts, stern: int, n: int) -> None:
+    """The transom between the bulwarks from the deck up to the rail, which the stern's loop leaves open:
+    its face aft, a top, and planking inside."""
+    face = (stern, stern + 1, stern + n - 2, stern + n - 1)
+    parts.add_planar_face(face, "Topsides")
+    inside = parts.add_verts([parts.verts[i] + Vector((0.0, BULWARK_THICKNESS, 0.0)) for i in face])
+    parts.add_planar_face(tuple(range(inside + 3, inside - 1, -1)), "ShipWood")
+    parts.add_planar_face((face[1], inside + 1, inside + 2, face[2]), "Trim")
+    for a, b in zip(face, (*face[1:], face[0])):
+        parts.mark_sharp(a, b)
 
 
 def rudder(parts: MeshParts, p: dict) -> None:
