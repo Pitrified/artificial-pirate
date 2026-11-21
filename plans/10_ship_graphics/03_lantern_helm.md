@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 03 - Lantern and helm
@@ -32,3 +32,10 @@ Context: [`00_start.md`](00_start.md) "Lantern", "Helm", Q2, Q3; depends on [`02
 
 - Gates green; captures of both sterns show a lantern with panes and a spoked wheel.
 - Counts logged.
+
+## What the implementation found
+
+- URP rewrites `_EMISSION` from the material's GI flags on import, so the glow set by script vanished on the next start until the flags were `RealtimeEmissive`; written into `docs/building_assets.md` pitfalls.
+- The first glow (emission 2.5) tonemapped to a pale cream; 1.3 on a darker base reads as a warm lit lamp.
+- A `ring` helper in `mesh.py` (a smooth hoop) for the rim and the lantern's ring, ready for the mast hoops.
+- Counts: sloop 6 616 triangles, brig 12 016; both ships in view 56 226 triangles, 48 material slots.
