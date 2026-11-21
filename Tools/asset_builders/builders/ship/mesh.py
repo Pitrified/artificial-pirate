@@ -142,6 +142,29 @@ def pole(parts: MeshParts, start: Vector, end: Vector, d0: float, d1: float, sid
                     parts.mark_sharp(ring + i, ring + (i + 1) % sides)
 
 
+def ring(parts: MeshParts, centre: Vector, axis: Vector, radius: float, thickness: float, segments: int,
+         slot: str, sides: int = 6, uv: UV | None = None) -> None:
+    """A smooth hoop round an axis: a rim, a band on a mast. Mapped in metres, u around the hoop, or
+    every corner on uv if given."""
+    axis = axis.normalized()
+    side, up = frame(axis)
+    loops = []
+    for i in range(segments):
+        a = 2 * math.pi * i / segments
+        out = side * math.cos(a) + up * math.sin(a)
+        loops.append(parts.add_verts([centre + out * (radius + math.cos(b) * thickness / 2) + axis * (math.sin(b) * thickness / 2)
+                                      for b in (2 * math.pi * k / sides for k in range(sides))],
+                                     [uv] * sides if uv else None))
+    step, tube = 2 * math.pi * radius / segments, math.pi * thickness / sides
+    for i in range(segments):
+        a, b = loops[i], loops[(i + 1) % segments]
+        for k in range(sides):
+            n = (k + 1) % sides
+            uvs = None if uv else ((i * step, k * tube), (i * step, (k + 1) * tube),
+                                   ((i + 1) * step, (k + 1) * tube), ((i + 1) * step, k * tube))
+            parts.add_face((a + k, a + n, b + n, b + k), slot, True, uvs)
+
+
 def line(parts: MeshParts, start: Vector, end: Vector, thickness: float, slot: str) -> None:
     """A rope: a three-sided prism with no caps, the cheapest pole that reads from every side."""
     pole(parts, start, end, thickness, thickness, LINE_SIDES, slot, caps=False)

@@ -1,5 +1,6 @@
-"""People and things on deck, all coloured from the palette texture (one slot, Palette): cannons run
-out at the gun ports, crew, a stern lantern; and the flag, its own object for its waving material.
+"""People and things on deck, coloured from the palette texture (one slot, Palette): cannons run
+out at the gun ports, crew, a stern lantern whose glass glows in its own slot (LanternGlass); and the
+flag, its own object for its waving material.
 
 Type keys (optional): crew, a list of [t (fraction from the stern), x (fraction of the half beam)].
 """
@@ -11,7 +12,7 @@ from mathutils import Vector
 from builders.palette import swatch_uv
 from builders.ship.fittings import gun_port_centres
 from builders.ship.hull import bulwark_inner, deck_height, rail_height, transom_y
-from builders.ship.mesh import MeshParts, axis_box, pole
+from builders.ship.mesh import MeshParts, axis_box, pole, ring
 
 CARRIAGE = Vector((0.8, 1.0, 0.4))
 BARREL_LENGTH = 1.8
@@ -23,6 +24,9 @@ SKINS = ("skin", "skin_dark")
 
 LANTERN_POST = 1.0
 LANTERN = Vector((0.35, 0.35, 0.5))
+LANTERN_FRAME = 0.04
+LANTERN_PLATE = 0.05
+LANTERN_CAP = 0.25
 
 FLAG_COLUMNS = 10
 FLAG_ROWS = 5
@@ -71,13 +75,27 @@ def crew(parts: MeshParts, p: dict) -> None:
 
 
 def lantern(parts: MeshParts, p: dict) -> None:
+    """On a post at the taffrail: glass panes in an iron frame of corner posts, plates and a bar across
+    each side, under a brass cap with a ring."""
+    iron, brass = swatch_uv("iron"), swatch_uv("brass")
     top = rail_height(p, 0.0) + 0.45
     base = Vector((0.0, transom_y(p, top) + 0.1, top))
-    lamp = base + Vector((0.0, 0.0, LANTERN_POST))
-    pole(parts, base, lamp, 0.1, 0.1, 6, "Palette", uv=swatch_uv("iron"))
-    axis_box(parts, lamp + Vector((0.0, 0.0, LANTERN.z / 2)), LANTERN, "Palette", swatch_uv("lamp"))
-    cap = lamp + Vector((0.0, 0.0, LANTERN.z))
-    pole(parts, cap, cap + Vector((0.0, 0.0, 0.25)), 0.45, 0.05, 6, "Palette", uv=swatch_uv("brass"))
+    lamp = base + Vector((0.0, 0.0, LANTERN.z / 2 + LANTERN_POST))
+    pole(parts, base, lamp - Vector((0.0, 0.0, LANTERN.z / 2)), 0.1, 0.1, 8, "Palette", uv=iron)
+    axis_box(parts, lamp, LANTERN - Vector((LANTERN_FRAME, LANTERN_FRAME, 0.0)), "LanternGlass")
+    half = LANTERN / 2
+    for x in (-half.x, half.x):
+        for y in (-half.y, half.y):
+            axis_box(parts, lamp + Vector((x, y, 0.0)), Vector((LANTERN_FRAME, LANTERN_FRAME, LANTERN.z)), "Palette", iron)
+    for z in (-half.z, half.z):
+        plate = Vector((LANTERN.x + LANTERN_FRAME * 2, LANTERN.y + LANTERN_FRAME * 2, LANTERN_PLATE))
+        axis_box(parts, lamp + Vector((0.0, 0.0, z)), plate, "Palette", iron)
+    bar = LANTERN_FRAME / 2
+    axis_box(parts, lamp, Vector((LANTERN.x, LANTERN.y + bar, bar)), "Palette", iron)
+    axis_box(parts, lamp, Vector((LANTERN.x + bar, LANTERN.y, bar)), "Palette", iron)
+    cap = lamp + Vector((0.0, 0.0, half.z + LANTERN_PLATE / 2))
+    pole(parts, cap, cap + Vector((0.0, 0.0, LANTERN_CAP)), LANTERN.x * 1.2, 0.06, 8, "Palette", uv=brass)
+    ring(parts, cap + Vector((0.0, 0.0, LANTERN_CAP + 0.06)), Vector((1.0, 0.0, 0.0)), 0.06, 0.02, 8, "Palette", sides=4, uv=brass)
 
 
 def place(parts: MeshParts, p: dict) -> None:

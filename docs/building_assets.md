@@ -99,6 +99,7 @@ A stop condition like the list: triangles and draw calls against `docs/performan
 - **Bounds are not the pivot**: a feature on one side (the barrel's bung) moves the bounds' centre; test the base ring.
 - **Smooth shading rounds what should be flat**: mark the ring edges of a band sharp.
 - **The first editor render after opening a scene is unlit**; `SceneCapture` renders twice.
+- **Emission set from a script is undone on the next import** unless the material's `globalIlluminationFlags` include an emissive mode: URP rewrites `_EMISSION` from those flags. Set `RealtimeEmissive` with the keyword.
 - **Commons rate limits** quick downloads; one at a time, thumbnails.
 
 ## 8. How a run ends

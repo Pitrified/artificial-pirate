@@ -24,7 +24,7 @@ from builders.ship.hull import (
     rail_height,
     transom_y,
 )
-from builders.ship.mesh import MeshParts, axis_box, box, line, pole
+from builders.ship.mesh import MeshParts, axis_box, box, line, pole, ring
 
 WALE_HEIGHT = 0.25
 WALE_OUT = 0.08
@@ -41,8 +41,13 @@ TAFFRAIL_HEIGHT = 0.45
 HATCH_HEIGHT = 0.35
 CAPSTAN_DIAMETER = 0.8
 CAPSTAN_HEIGHT = 0.9
-WHEEL_DIAMETER = 1.4
+WHEEL_DIAMETER = 1.4  # to the handles' ends
+WHEEL_RIM = 0.58  # radius
+WHEEL_SPOKES = 8
+WHEEL_PEDESTAL = 0.3  # forward of the wheel
 TILLER_LENGTH = 2.5
+TILLER_RISE = 0.25
+RUDDER_HEAD = 0.26
 
 Profile = Callable[[float], list[tuple[float, float]]]
 
@@ -187,12 +192,39 @@ def furniture(parts: MeshParts, p: dict) -> None:
     t = spec.get("helm_at", 0.08)
     base = Vector((0.0, _y(p, t), deck_height(p, t)))
     if spec.get("helm") == "wheel":
-        hub = base + Vector((0.0, 0.0, WHEEL_DIAMETER / 2 + 0.3))
-        axis_box(parts, base + Vector((0.0, -0.2, (hub.z - base.z) / 2)), Vector((0.2, 0.2, hub.z - base.z)), "Spar")
-        pole(parts, hub - Vector((0.0, 0.05, 0.0)), hub + Vector((0.0, 0.05, 0.0)), WHEEL_DIAMETER, WHEEL_DIAMETER, 12, "Spar")
+        wheel(parts, base + Vector((0.0, 0.0, WHEEL_DIAMETER / 2 + 0.3)), base.z)
     else:
-        start = Vector((0.0, -p["length"] / 2 + 0.2, deck_height(p, 0.0) + 0.6))
-        pole(parts, start, start + Vector((0.0, TILLER_LENGTH, -0.1)), 0.18, 0.12, 8, "Spar", smooth=True)
+        tiller(parts, p)
+
+
+def wheel(parts: MeshParts, hub: Vector, deck_z: float) -> None:
+    """A ship's wheel facing aft: a rim on spokes that run past it as handles, its axle in a pedestal of
+    two posts and a cross piece forward of it."""
+    along = Vector((0.0, 1.0, 0.0))
+    ring(parts, hub, along, WHEEL_RIM, 0.07, 24, "Spar")
+    pole(parts, hub - along * 0.1, hub + along * 0.1, 0.22, 0.22, 10, "Spar", smooth=True)
+    for k in range(WHEEL_SPOKES):
+        a = 2 * math.pi * k / WHEEL_SPOKES
+        out = Vector((math.cos(a), 0.0, math.sin(a)))
+        pole(parts, hub + out * 0.1, hub + out * WHEEL_RIM, 0.05, 0.04, 6, "Spar", caps=False, smooth=True)
+        pole(parts, hub + out * WHEEL_RIM, hub + out * WHEEL_DIAMETER / 2, 0.06, 0.045, 6, "Spar", smooth=True)
+    pedestal = hub + along * WHEEL_PEDESTAL
+    pole(parts, hub, pedestal, 0.08, 0.08, 8, "Spar", smooth=True)
+    for x in (-0.3, 0.3):
+        post = Vector((pedestal.x + x, pedestal.y, deck_z))
+        axis_box(parts, post + Vector((0.0, 0.0, (hub.z + 0.15 - deck_z) / 2)), Vector((0.12, 0.12, hub.z + 0.15 - deck_z)), "Spar")
+    axis_box(parts, pedestal, Vector((0.72, 0.12, 0.14)), "Spar")
+
+
+def tiller(parts: MeshParts, p: dict) -> None:
+    """A rudder head standing above the deck at the stern, the tiller from it rising slightly forward to
+    a thinner grip."""
+    deck_z = deck_height(p, 0.0)
+    head = Vector((0.0, -p["length"] / 2 + 0.3, deck_z))
+    axis_box(parts, head + Vector((0.0, 0.0, 0.4)), Vector((RUDDER_HEAD, RUDDER_HEAD, 0.8)), "Spar")
+    points = [head + Vector((0.0, RUDDER_HEAD / 2 + TILLER_LENGTH * f, 0.65 + TILLER_RISE * f * f)) for f in (0.0, 0.4, 0.8, 1.0)]
+    for (start, end), (d0, d1) in zip(itertools.pairwise(points), ((0.17, 0.14), (0.14, 0.11), (0.07, 0.07)), strict=True):
+        pole(parts, start, end, d0, d1, 8, "Spar", smooth=True)
 
 
 def fit(parts: MeshParts, p: dict) -> None:
