@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 02 - Wood
@@ -44,3 +44,11 @@ Context: [`00_start.md`](00_start.md) "Shared: wood", depends on [`01_frame_time
 - A box's shared corners carry one UV; without the split per face the texture smears.
 - The mast's 8 to 16 sides change the stump and `ShipMasts` nothing, but `BuiltModelTests` may count vertices or objects.
 - The normal maps need importing as normal maps (the importer's texture type), set by an editor script.
+
+## What the implementation found
+
+- Boxes kept their 8 shared vertices: `MeshParts` gained UVs per face corner, so a box maps each face in metres and a pole wraps its seam without duplicated vertices (which would have shown as a seam once smooth).
+- Tops and crosstrees went to `Spar` as well, so a mast object holds `Spar` and `Tar` only; the new slot adds one draw per hull, not per mast.
+- `tiling_height` gained `max_freq_x` for grain; the existing textures regenerate byte for byte.
+- Smooth poles mark their cap rings sharp, the stump its crown.
+- Counts: sloop 6 132 to 6 372 triangles, brig 10 788 to 11 252. A new pose with both ships in view, `both 50 25,30,20 -18,3,62`: 15 renderers, 55 218 triangles, 46 material slots.

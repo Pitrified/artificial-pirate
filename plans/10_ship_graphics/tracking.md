@@ -16,7 +16,7 @@ Analysis, proposals and answers in [`00_start.md`](00_start.md).
 | #  | Phase                          | Plan | Status  |
 | -- | ------------------------------ | ---- | ------- |
 | 01 | Frame times and a baseline     | [`01_frame_times.md`](01_frame_times.md) | in progress |
-| 02 | Wood                           | [`02_wood.md`](02_wood.md) | planned |
+| 02 | Wood                           | [`02_wood.md`](02_wood.md) | done |
 | 03 | Lantern and helm               | [`03_lantern_helm.md`](03_lantern_helm.md) | planned |
 | 04 | Hatches, bulwark and rail      | [`04_hatches_bulwark.md`](04_hatches_bulwark.md) | planned |
 | 05 | Masts and taffrail             | [`05_masts_taffrail.md`](05_masts_taffrail.md) | planned |
@@ -33,3 +33,5 @@ Append-only. Newest at the bottom.
 - 2026-11-21 : folded in Q1 to Q6, every recommendation accepted; phases 01 to 06 planned.
 - 2026-11-21 : review of the sub-plans: checked the claims they rest on (the report already has session and 60 s sections; `DebugOverlayController` already reads `FrameTimingManager`; frame timing stats are off; boxes share 8 vertices and poles carry no UVs); no findings.
 - 2026-11-21 : phase 01 - frame timing stats on; `DiagnosticsRecorder` reads `FrameTimingManager` each frame (frames with no timing left out); `cpu ms` and `gpu ms` rows in the session and last-minute statistics, or "not reported by this device"; budget doc and logging doc updated; gates green (EditMode 233, PlayMode 24). The baseline waits for the phone.
+- 2026-11-21 : review of phase 02 before coding: the plan's "boxes need 24 vertices" replaced by per-corner UVs on `MeshParts` (also fixes a pole's seam once smooth); tops and crosstrees in `Spar`, so masts add no draw.
+- 2026-11-21 : phase 02 - `T_Spar` (long grain) and `T_ShipWood` (0.25 m boards), each with a normal map, 2 m tiles; `M_Spar` new, `M_ShipWood` textured; masts 16 sides, spars 10, smooth; UVs on boxes, poles, the stump and lofted strips; captures show grain on the masts and boards on the bulwark; gates green (EditMode 233, PlayMode 24). Phone time waits for phase 06.
