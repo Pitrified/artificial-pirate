@@ -15,7 +15,7 @@ Analysis, proposals and answers in [`00_start.md`](00_start.md).
 
 | #  | Phase                          | Plan | Status  |
 | -- | ------------------------------ | ---- | ------- |
-| 01 | Frame times and a baseline     | [`01_frame_times.md`](01_frame_times.md) | planned |
+| 01 | Frame times and a baseline     | [`01_frame_times.md`](01_frame_times.md) | in progress |
 | 02 | Wood                           | [`02_wood.md`](02_wood.md) | planned |
 | 03 | Lantern and helm               | [`03_lantern_helm.md`](03_lantern_helm.md) | planned |
 | 04 | Hatches, bulwark and rail      | [`04_hatches_bulwark.md`](04_hatches_bulwark.md) | planned |
@@ -32,3 +32,4 @@ Append-only. Newest at the bottom.
 - 2026-11-21 : the user: the draw and triangle limits are proxies, not fixed; reassessed: a first phase for CPU and GPU frame times on the phone, two wood materials with normal maps, rounder masts, the lantern's own material; Q6 on the budget doc.
 - 2026-11-21 : folded in Q1 to Q6, every recommendation accepted; phases 01 to 06 planned.
 - 2026-11-21 : review of the sub-plans: checked the claims they rest on (the report already has session and 60 s sections; `DebugOverlayController` already reads `FrameTimingManager`; frame timing stats are off; boxes share 8 vertices and poles carry no UVs); no findings.
+- 2026-11-21 : phase 01 - frame timing stats on; `DiagnosticsRecorder` reads `FrameTimingManager` each frame (frames with no timing left out); `cpu ms` and `gpu ms` rows in the session and last-minute statistics, or "not reported by this device"; budget doc and logging doc updated; gates green (EditMode 233, PlayMode 24). The baseline waits for the phone.
