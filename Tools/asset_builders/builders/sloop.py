@@ -43,7 +43,7 @@ PARAMS = {
     "wales": [1.25],
     "gun_ports": {"count": 6, "from": 0.2, "to": 0.75, "z": 2.05, "size": 0.5},
     "stern_windows": 3,
-    "deck": {"hatches": [[0.45, 2.0, 1.6], [0.82, 1.2, 1.2]], "helm": "tiller"},
+    "deck": {"hatches": [[0.45, 2.0, 1.6], [0.82, 1.2, 1.2]], "companionway": 0, "helm": "tiller"},
     "crew": [[0.12, 0.0], [0.5, 0.5], [0.62, -0.4], [0.85, 0.2]],
     "preview_rgb": {
         "HullBottom": [0.05, 0.05, 0.05],

@@ -5,7 +5,8 @@ Type keys (all but the deck optional):
 - wales: heights of the wales' centres above the water;
 - gun_ports: {count (a side), from, to (fractions from the stern), z (centre), size};
 - stern_windows: how many across the transom;
-- deck: {hatches: [[t, length, width]], capstan: t, helm: "wheel" or "tiller", helm_at: t}.
+- deck: {hatches: [[t, length, width]], companionway: which hatch is the way below (its index), capstan: t,
+  helm: "wheel" or "tiller", helm_at: t}. The other hatches are gratings.
 """
 
 from __future__ import annotations
@@ -30,8 +31,11 @@ WALE_HEIGHT = 0.25
 WALE_OUT = 0.08
 CAP_RAIL_HEIGHT = 0.1
 CAP_RAIL_OVERHANG = 0.08
+CAP_RAIL_CHAMFER = 0.03
 STANCHION_STEP = 1.2
 STANCHION = 0.12
+TIMBERHEAD_EVERY = 3  # stanchions
+TIMBERHEAD_PROUD = 0.15  # above the cap rail
 PORT_DEPTH = 0.06
 PORT_LID = 0.05
 WINDOW_WIDTH = 0.5
@@ -39,6 +43,13 @@ WINDOW_HEIGHT = 0.7
 WINDOW_FRAME = 0.08
 TAFFRAIL_HEIGHT = 0.45
 HATCH_HEIGHT = 0.35
+COAMING = 0.1  # board thickness
+GRATING_BAR = 0.05
+GRATING_STEP = 0.2
+HOOD_HEIGHT = 0.8  # above the coaming, at the closed forward end
+HOOD_FALL = 0.2  # how much lower the roof is at the open end
+HOOD_ROOF = 0.06
+LADDER_STEPS = 3
 CAPSTAN_DIAMETER = 0.8
 CAPSTAN_HEIGHT = 0.9
 WHEEL_DIAMETER = 1.4  # to the handles' ends
@@ -92,17 +103,21 @@ def deck(parts: MeshParts, p: dict) -> None:
 
 
 def rail(parts: MeshParts, p: dict) -> None:
-    """A cap rail standing proud of the bulwark, and stanchions inside it."""
+    """A cap rail standing proud of the bulwark, and stanchions inside it, every few running up through it
+    as a timberhead."""
 
     def cap(t: float) -> list[tuple[float, float]]:
         inner, outer, z = bulwark_inner(p, t) - CAP_RAIL_OVERHANG, half_beam(p, t) + CAP_RAIL_OVERHANG, rail_height(p, t)
-        return [(inner, z), (inner, z + CAP_RAIL_HEIGHT), (outer, z + CAP_RAIL_HEIGHT), (outer, z)]
+        top, c = z + CAP_RAIL_HEIGHT, CAP_RAIL_CHAMFER
+        return [(inner, z), (inner, top - c), (inner + c, top), (outer - c, top), (outer, top - c), (outer, z)]
 
     _strip(parts, p, cap, 0.0, 1.0, "ShipWood")
     count = int(p["length"] / STANCHION_STEP)
     for i in range(1, count):
         t = i / count
         z0, z1 = deck_height(p, t), rail_height(p, t)
+        if i % TIMBERHEAD_EVERY == 0:
+            z1 += CAP_RAIL_HEIGHT + TIMBERHEAD_PROUD
         for side in (1.0, -1.0):
             x = side * (bulwark_inner(p, t) - STANCHION / 2)
             axis_box(parts, Vector((x, _y(p, t), (z0 + z1) / 2)), Vector((STANCHION, STANCHION, z1 - z0)), "ShipWood")
@@ -181,9 +196,13 @@ def furniture(parts: MeshParts, p: dict) -> None:
     spec = p.get("deck")
     if not spec:
         return
-    for t, length, width in spec.get("hatches", []):
-        base = deck_height(p, t)
-        axis_box(parts, Vector((0.0, _y(p, t), base + HATCH_HEIGHT / 2)), Vector((width, length, HATCH_HEIGHT)), "ShipWood")
+    for i, (t, length, width) in enumerate(spec.get("hatches", [])):
+        base = Vector((0.0, _y(p, t), deck_height(p, t)))
+        coaming(parts, base, length, width)
+        if i == spec.get("companionway"):
+            companionway(parts, base, length, width)
+        else:
+            grating(parts, base, length, width)
     if "capstan" in spec:
         t = spec["capstan"]
         base = Vector((0.0, _y(p, t), deck_height(p, t)))
@@ -195,6 +214,52 @@ def furniture(parts: MeshParts, p: dict) -> None:
         wheel(parts, base + Vector((0.0, 0.0, WHEEL_DIAMETER / 2 + 0.3)), base.z)
     else:
         tiller(parts, p)
+
+
+def coaming(parts: MeshParts, base: Vector, length: float, width: float) -> None:
+    """Four boards round a hatch on the deck at base, and the dark below inside them."""
+    z = base.z + HATCH_HEIGHT / 2
+    for x in (-1.0, 1.0):
+        axis_box(parts, Vector((x * (width - COAMING) / 2, base.y, z)), Vector((COAMING, length, HATCH_HEIGHT)), "ShipWood")
+    for y in (-1.0, 1.0):
+        axis_box(parts, Vector((0.0, base.y + y * (length - COAMING) / 2, z)), Vector((width - COAMING * 2, COAMING, HATCH_HEIGHT)),
+                 "ShipWood")
+    axis_box(parts, base + Vector((0.0, 0.0, 0.02)), Vector((width - COAMING * 2, length - COAMING * 2, 0.04)), "Tar")
+
+
+def grating(parts: MeshParts, base: Vector, length: float, width: float) -> None:
+    """Crossed bars over the opening, the fore and aft ones a little lower so the two do not meet flush."""
+    inside = Vector((width - COAMING * 2, length - COAMING * 2))
+    top = base.z + HATCH_HEIGHT
+    for k in range(1, round(inside.x / GRATING_STEP)):
+        x = -inside.x / 2 + inside.x * k / round(inside.x / GRATING_STEP)
+        axis_box(parts, Vector((x, base.y, top - GRATING_BAR)), Vector((GRATING_BAR, inside.y, GRATING_BAR)), "ShipWood")
+    for k in range(1, round(inside.y / GRATING_STEP)):
+        y = -inside.y / 2 + inside.y * k / round(inside.y / GRATING_STEP)
+        axis_box(parts, Vector((0.0, base.y + y, top - GRATING_BAR / 2)), Vector((inside.x, GRATING_BAR, GRATING_BAR)), "ShipWood")
+
+
+def companionway(parts: MeshParts, base: Vector, length: float, width: float) -> None:
+    """The way below: a hood on the coaming, its roof falling aft to an open end facing the helm, a ladder
+    going down inside."""
+    y0, y1 = base.y - length / 2, base.y + length / 2
+    z0 = base.z + HATCH_HEIGHT
+
+    def roof(y: float) -> float:
+        return z0 + HOOD_HEIGHT - HOOD_FALL * (y1 - y) / length
+
+    for x in (-1.0, 1.0):
+        x0, x1 = sorted((x * width / 2, x * (width / 2 - COAMING)))
+        corners = [Vector((xx, y, roof(y) if high else z0)) for high in (False, True) for y in (y0, y1) for xx in (x0, x1)]
+        box(parts, corners, "ShipWood")
+    axis_box(parts, Vector((0.0, y1 - COAMING / 2, (z0 + roof(y1)) / 2)), Vector((width - COAMING * 2, COAMING, roof(y1) - z0)),
+             "ShipWood")
+    box(parts, [Vector((x, y, roof(y) + dz)) for dz in (0.0, HOOD_ROOF) for y in (y0 - COAMING, y1)
+                for x in (-width / 2 - COAMING / 2, width / 2 + COAMING / 2)], "ShipWood")
+    rise = HATCH_HEIGHT / LADDER_STEPS
+    for k in range(LADDER_STEPS):
+        step = Vector((0.0, y0 + COAMING + (k + 0.5) * (length - COAMING * 2) / LADDER_STEPS, z0 - rise * (k + 1) + 0.02))
+        axis_box(parts, step, Vector((width - COAMING * 2.5, 0.25, 0.04)), "ShipWood")
 
 
 def wheel(parts: MeshParts, hub: Vector, deck_z: float) -> None:
