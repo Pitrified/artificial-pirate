@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 priority: 0
 description: |
   Ships take damage as they sail: rams and groundings hurt the hull, which shows marks and holes,

@@ -19,7 +19,7 @@ Brainstorm, options and questions in [`00_start.md`](00_start.md).
 | 03 | HUD bar and save         | [`03_hud_and_save.md`](03_hud_and_save.md) | done |
 | 04 | Marks on the hull        | [`04_hull_marks.md`](04_hull_marks.md) | done |
 | 05 | Masts that break         | [`05_masts.md`](05_masts.md) | done |
-| 06 | Verify                   | [`06_verify.md`](06_verify.md) | in progress |
+| 06 | Verify                   | [`06_verify.md`](06_verify.md) | done |
 
 ## Log
 
@@ -35,3 +35,4 @@ Brainstorm, options and questions in [`00_start.md`](00_start.md).
 - 2026-11-20 : phase 04 - `T_HullMarks` atlas (`textures.py hull_marks`), `M_HullMark`, the hull profile on `SO_ShipType` sampled from the builder, `HullMarks` on `PF_Ship`'s hull (one mesh, off when whole), `ShipDamage.Restored`; marks made bigger after the first capture; gates green (EditMode 221, PlayMode 24), a ram capture.
 - 2026-11-20 : phase 05 - the builder splits each mast (`<Name>Mast<i>`, its sail states, its stump), clearance 0 on both ships; `ShipMasts`, `MastParts`, `FallingMast`; mast numbers on `SO_ShipType`; the speed's share per mast; broken masts saved; `BuiltModelTests` for the masts and the hull's side; `CAPTURE_BREAK_MAST`; gates green (EditMode 232, PlayMode 24), a capture of both ships losing a mast; 57 draws with both in view.
 - 2026-11-20 : phase 06 - dev APK built from `01f3eff` (clean tree, 74,495,159 bytes) with phases 01 to 05; the phone run is the user's. The fresh-clone gate run is not done yet (a full import, about ten minutes).
+- 2026-11-21 : phase 06 - phone run of the `01f3eff` APK: the sloop sank after 9 hits to game over, a mast broke, quit and Continue restored health, hits, position and the broken mast; the user saw the marks and the bar's colour; 60 fps, no problems. The fresh-clone gate run was not done. Phase and folder done.
