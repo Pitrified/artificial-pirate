@@ -27,6 +27,7 @@ TOP_LENGTH = 0.6
 TOP_THICKNESS = 0.2
 CROSSTREES_OF_TOP = 0.6
 CROSSTREES_THICKNESS = 0.15
+TOP_RIM = Vector((0.06, 0.06, 0.12))  # thickness, and height above the platform
 BRACE_LEAD_AFT = 6.0
 BACKSTAY_AFT = 2.5
 LIFT_SLOPE = 0.5  # rise to the mast over the yard's half length
@@ -73,12 +74,22 @@ def _ratlines(parts: MeshParts, shrouds: list[tuple[Vector, Vector]], bottom: fl
         z += RATLINE_STEP
 
 
+def _rim(parts: MeshParts, centre: Vector, width: float, length: float) -> None:
+    """A low rim round a top's platform, so it reads as a platform."""
+    for x in (-1.0, 1.0):
+        axis_box(parts, centre + Vector((x * (width - TOP_RIM.x) / 2, 0.0, 0.0)), Vector((TOP_RIM.x, length, TOP_RIM.z)), "Spar")
+    for y in (-1.0, 1.0):
+        axis_box(parts, centre + Vector((0.0, y * (length - TOP_RIM.y) / 2, 0.0)), Vector((width - TOP_RIM.x * 2, TOP_RIM.y, TOP_RIM.z)),
+                 "Spar")
+
+
 def _mast_rigging(body: MeshParts, parts: MeshParts, p: dict, mast: Mast) -> None:
     top_z, cross_z = mast.spec["top_z"], mast.spec["crosstrees_z"]
     d = mast.spec["diameter"]
     width = _top_width(p)
     top_centre = mast.at(top_z) + Vector((0.0, 0.0, TOP_THICKNESS / 2))
     axis_box(parts, top_centre, Vector((width, width * TOP_LENGTH, TOP_THICKNESS)), "Spar")
+    _rim(parts, top_centre + Vector((0.0, 0.0, (TOP_THICKNESS + TOP_RIM.z) / 2)), width, width * TOP_LENGTH)
     cross_centre = mast.at(cross_z)
     axis_box(parts, cross_centre, Vector((width * CROSSTREES_OF_TOP, 0.4, CROSSTREES_THICKNESS)), "Spar")
 

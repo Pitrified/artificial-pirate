@@ -10,13 +10,22 @@ from dataclasses import dataclass
 from mathutils import Vector
 
 from builders.ship.hull import deck_height
-from builders.ship.mesh import MeshParts, frame, pole
+from builders.ship.mesh import MeshParts, axis_box, frame, pole, ring
 
 MAST_SIDES = 16
 SPAR_SIDES = 10
 SPAR_OF_MAST = 0.45
 STUMP_HEIGHT = 1.4  # above the deck
 STUMP_SPLINTER = 0.6  # how far the broken top's points rise and fall
+TAPER = 0.5  # the head's diameter over the foot's
+HOOP_STEP = 1.75
+HOOP_FIRST = 1.0  # above the deck
+HOOP_LAST = 0.5  # below the top
+HOOP = 0.05
+PARTNERS = 0.3  # the collar's height at the deck
+PARTNERS_OF_MAST = 1.35
+CAP_ABOVE_TOP = 1.0
+CAP = Vector((1.6, 2.6, 0.25))  # of the mast's diameter, but its height in metres
 
 
 @dataclass
@@ -33,6 +42,9 @@ class Mast:
     @property
     def head(self) -> Vector:
         return self.at(self.spec["height"])
+
+    def diameter_at(self, z: float) -> float:
+        return self.spec["diameter"] * (1 - (1 - TAPER) * (z - self.foot.z) / (self.head.z - self.foot.z))
 
     @property
     def spar_diameter(self) -> float:
@@ -89,10 +101,24 @@ def gaff_ends(mast: Mast, swing_deg: float) -> tuple[Vector, Vector]:
 
 
 def standing(per_mast: list[MeshParts], all_masts: list[Mast]) -> None:
-    """The masts, each in its own parts."""
+    """The masts, each in its own parts: partners at the deck, iron hoops up to the top, a cap above it."""
     for parts, mast in zip(per_mast, all_masts, strict=True):
         d = mast.spec["diameter"]
-        pole(parts, mast.foot, mast.head, d, d * 0.5, MAST_SIDES, "Spar", smooth=True)
+        pole(parts, mast.foot, mast.head, d, d * TAPER, MAST_SIDES, "Spar", smooth=True)
+        _ironwork(parts, mast, mast.spec["top_z"] - HOOP_LAST)
+        cap_z = mast.spec["top_z"] + CAP_ABOVE_TOP
+        axis_box(parts, mast.at(cap_z), Vector((d * CAP.x, d * CAP.y, CAP.z)), "Tar")
+
+
+def _ironwork(parts: MeshParts, mast: Mast, up_to_z: float) -> None:
+    """The partners' collar where the mast meets the deck and hoops every HOOP_STEP below up_to_z, so a
+    stump keeps those below its break."""
+    d = mast.spec["diameter"]
+    pole(parts, mast.foot, mast.at(mast.foot.z + PARTNERS), d * PARTNERS_OF_MAST, d * 1.1, MAST_SIDES, "Spar", smooth=True)
+    z = mast.foot.z + HOOP_FIRST
+    while z < up_to_z:
+        ring(parts, mast.at(z), mast.direction, mast.diameter_at(z) / 2, HOOP, MAST_SIDES, "Tar", sides=4)
+        z += HOOP_STEP
 
 
 def bowsprit_pole(parts: MeshParts, p: dict) -> None:
@@ -110,6 +136,7 @@ def stump(parts: MeshParts, mast: Mast) -> None:
               for k, a in enumerate(_angles())]
     crown = parts.add_verts(jagged)
     centre = parts.add_verts([top])
+    _ironwork(parts, mast, mast.foot.z + STUMP_HEIGHT - STUMP_SPLINTER * d)
     step = math.pi * d / MAST_SIDES
     for k in range(MAST_SIDES):
         n = (k + 1) % MAST_SIDES

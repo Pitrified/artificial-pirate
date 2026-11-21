@@ -42,6 +42,11 @@ WINDOW_WIDTH = 0.5
 WINDOW_HEIGHT = 0.7
 WINDOW_FRAME = 0.08
 TAFFRAIL_HEIGHT = 0.45
+TAFFRAIL_RAIL = Vector((0.0, 0.16, 0.08))  # the cap and foot rails' depth and height
+BALUSTER_STEP = 0.25
+BALUSTER = 0.11  # at the bulge
+CARVING_WIDTH = 1.2
+QUARTER_RAIL_TO = 0.1  # where the quarter rails meet the cap rail, from the stern
 HATCH_HEIGHT = 0.35
 COAMING = 0.1  # board thickness
 GRATING_BAR = 0.05
@@ -167,8 +172,43 @@ def stern(parts: MeshParts, p: dict) -> None:
         y = transom_y(p, z)
         axis_box(parts, Vector((x, y - 0.02, z)), Vector((WINDOW_WIDTH + WINDOW_FRAME * 2, 0.06, WINDOW_HEIGHT + WINDOW_FRAME * 2)), "Gilt")
         axis_box(parts, Vector((x, y - 0.06, z)), Vector((WINDOW_WIDTH, 0.06, WINDOW_HEIGHT)), "Tar")
-    top = rail_z + TAFFRAIL_HEIGHT / 2
-    axis_box(parts, Vector((0.0, transom_y(p, top) + 0.1, top)), Vector((half_beam(p, 0.0) * 1.8, 0.15, TAFFRAIL_HEIGHT)), "Gilt")
+    taffrail(parts, p)
+
+
+def taffrail(parts: MeshParts, p: dict) -> None:
+    """An open rail across the stern: turned balusters between a foot rail and a gilt cap rail, a carved
+    board in the middle, scrolls at the ends, and quarter rails from its ends down to the cap rail."""
+    rail_z = rail_height(p, 0.0)
+    top = rail_z + TAFFRAIL_HEIGHT
+    y = transom_y(p, top) + 0.1
+    width = half_beam(p, 0.0) * 1.8
+    rails = Vector((width, TAFFRAIL_RAIL.y, TAFFRAIL_RAIL.z))
+    axis_box(parts, Vector((0.0, y, top - TAFFRAIL_RAIL.z / 2)), rails, "Gilt")
+    axis_box(parts, Vector((0.0, y, rail_z + TAFFRAIL_RAIL.z / 2)), rails, "Trim")
+    low, high = rail_z + TAFFRAIL_RAIL.z, top - TAFFRAIL_RAIL.z
+    count = round(width / BALUSTER_STEP)
+    for k in range(count + 1):
+        x = -width / 2 + width * k / count
+        if abs(x) > CARVING_WIDTH / 2:
+            _baluster(parts, Vector((x, y, low)), high - low)
+    axis_box(parts, Vector((0.0, y, (low + high) / 2)), Vector((CARVING_WIDTH, 0.08, high - low)), "Gilt")
+    pole(parts, Vector((0.0, y - 0.04, (low + high) / 2)), Vector((0.0, y - 0.1, (low + high) / 2)), high - low, (high - low) * 0.8, 12,
+         "Gilt", smooth=True)
+    for side in (1.0, -1.0):
+        end = Vector((side * width / 2, y, top - TAFFRAIL_RAIL.z))
+        ring(parts, end + Vector((side * 0.08, 0.0, 0.0)), Vector((0.0, 1.0, 0.0)), 0.1, 0.06, 10, "Gilt")
+        t = QUARTER_RAIL_TO
+        forward = Vector((side * half_beam(p, t), _y(p, t), rail_height(p, t) + CAP_RAIL_HEIGHT))
+        pole(parts, end, forward, 0.1, 0.1, 8, "Gilt", smooth=True)
+        _baluster(parts, Vector(((end.x + forward.x) / 2, (end.y + forward.y) / 2, rail_height(p, t / 2))),
+                  (end.z + forward.z) / 2 - rail_height(p, t / 2))
+
+
+def _baluster(parts: MeshParts, foot: Vector, height: float) -> None:
+    """A turned post: narrow at the foot, a bulge low down, a neck under the rail."""
+    bulge = foot + Vector((0.0, 0.0, height * 0.35))
+    pole(parts, foot, bulge, BALUSTER * 0.55, BALUSTER, 8, "Trim", smooth=True)
+    pole(parts, bulge, foot + Vector((0.0, 0.0, height)), BALUSTER, BALUSTER * 0.45, 8, "Trim", smooth=True)
 
 
 def bow(parts: MeshParts, p: dict) -> None:
