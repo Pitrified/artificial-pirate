@@ -78,7 +78,7 @@ namespace Game.Gameplay
 
     /// <summary>
     /// The game's save payload, written by <c>Game.Systems.SaveSystem</c> inside its envelope.
-    /// Must stay in sync with the JSON schema in docs/functional-specs.md §9.
+    /// Must stay in sync with the JSON schema in docs/systems/save-system.md.
     /// </summary>
     [System.Serializable]
     public struct GameSaveData

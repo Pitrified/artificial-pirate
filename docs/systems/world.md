@@ -54,7 +54,7 @@ On the `World` object, with the water, the streamer and the ship.
 
 - **Explored cells** (`ExploredCells`, on the streamer): the cells within `_seeRadius` (1: a 3 x 3 square) of the ship's cell, added when the ship enters a cell. They are kept by cell, as islands are, so later state (an island visited, looted) can be kept the same way. `Version` goes up when cells are added, so a map can tell when to redraw.
 - **The seed.** `GameSceneWiring` hands the streamer to `GameManager.RegisterWorld` before it wires the ground. With a save, the saved seed begins and the saved explored cells are added back; without one (a new game), a random seed from 1 up begins.
-- **The save** (`GameSaveData` version 3, `docs/functional-specs.md` §9) holds the seed and the explored cells; `GameManager` writes them with the ship.
+- **The save** (`GameSaveData`, [save-system](save-system.md#schema)) holds the seed and the explored cells; `GameManager` writes them with the ship.
 
 ## The maps
 

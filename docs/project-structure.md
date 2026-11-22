@@ -92,7 +92,7 @@ Never leave `GameObject (1)`.
 
 ## 5. Scene rules
 
-- Each scene has **one purpose** (see [functional-specs.md §5](functional-specs.md#5-scene-inventory)).
+- Each scene has **one purpose** (see [functional-specs.md, Scenes](functional-specs.md#scenes)).
 - Cross-scene references are **forbidden**. Use GameManager APIs.
 - A scene must be playable from the editor without manual setup, **except**
   Game scene which requires Persistent loaded first (provide editor helper).

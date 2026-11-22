@@ -33,7 +33,7 @@ Play Console (source phase 12):
 
 Demo-ready (source phase 13):
 
-- Every item of [`functional-specs.md` §12](../../docs/functional-specs.md#12-definition-of-demo-ready) on the Play Store build.
+- Every item of [`functional-specs.md`, Release checks](../../docs/functional-specs.md#release-checks) on the Play Store build.
 - Tag the commit `v0.2.0` (AI may prepare the tag command; the push is the user's).
 
 ## Done when

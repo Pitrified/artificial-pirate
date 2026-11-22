@@ -2,8 +2,7 @@
 
 ## Overview
 
-Single-file JSON persistence for the player session. Schema in
-[functional-specs.md §9](../functional-specs.md#9-persistence-v01-schema).
+Single-file JSON persistence for the player session. The file's schema is [below](#schema).
 
 ---
 
@@ -42,7 +41,32 @@ In this project the payload is `Game.Gameplay.GameSaveData`.
 - File path: `Path.Combine(Application.persistentDataPath, "save.json")`.
 - Atomic write: write to `save.json.tmp`, `File.Replace` to `save.json`.
 - On corrupt read: rename to `save.json.bak`, log warning, return defaults.
-- Version mismatch: same as corrupt (no migration in v0.2).
+- Version mismatch: same as corrupt (no migration).
+
+---
+
+## Schema
+
+Stored as `save.json` in `Application.persistentDataPath`:
+
+```json
+{
+  "version": 4,
+  "lastSavedUtc": "2026-04-28T12:00:00Z",
+  "payload": {
+    "ship": { "x": 0.0, "y": 0.0, "z": 0.0, "yawDeg": 0.0 },
+    "world": { "seed": 1234567, "explored": [ { "x": 0, "z": 0 }, { "x": 1, "z": 0 } ] },
+    "damage": { "lost": 0.25, "starboard": 0.2, "port": 0.05,
+                "hits": [ { "x": 3.1, "y": 0.4, "z": 6.0, "amount": 0.2 } ], "brokenMasts": [ 0 ] }
+  }
+}
+```
+
+`version` and `lastSavedUtc` are written by the save system; `payload` is `GameSaveData` and `version` is its `CurrentVersion`.
+This example is the one place the docs state the version; `Tools/spec_check.py` checks it against the code.
+Version 1 had `ship` at the top level; version 2 had no `world`; version 3 had no `damage`. Any of them is reset.
+`world.seed` 0 means no world was saved, and a new one begins ([world](world.md)).
+`damage` is the player's hull: the health lost, in all and on each side, the latest hits in the hull's local space, oldest first, and the masts brought down by the builder's number ([ship-controller](ship-controller.md)); none means a whole hull.
 
 ---
 
@@ -61,14 +85,14 @@ In this project the payload is `Game.Gameplay.GameSaveData`.
 
 ### Used by
 - GameManager (save on pause/quit, load on Continue)
-- The payload type and its version are the game's (`GameSaveData` in `Game.Gameplay`, filled from the ship's state, its hull's damage and the world by GameManager; the schema is in `docs/functional-specs.md` §9)
+- The payload type and its version are the game's (`GameSaveData` in `Game.Gameplay`, filled from the ship's state, its hull's damage and the world by GameManager; the schema is [above](#schema))
 
 ---
 
 ## Constraints
 
 - No PlayerPrefs (except audio volumes via AudioManager).
-- No async I/O in v0.2 - file is small (<1 KB), sync write is fine.
+- No async I/O: the file is small (a few KB), a sync write is fine.
 - No encryption; the file is intentionally inspectable.
 
 ---

@@ -51,7 +51,7 @@ handling, and screen routing.
 
 ---
 
-## Screens (v0.2)
+## Screens
 
 | Screen   | Source                | Lives in     |
 | -------- | --------------------- | ------------ |
@@ -60,6 +60,7 @@ handling, and screen routing.
 | Pause    | `Pause.uxml`          | Persistent (overlay) |
 | Map      | `Map.uxml`            | Persistent (overlay) |
 | GameOver | `GameOver.uxml` (styled by `Pause.uss`) | Persistent (overlay) |
+| Diagnostics | `Diagnostics.uxml` | Persistent (overlay), from the menu and the pause screen |
 
 The HUD in the Game scene is uGUI (the joystick, the pause button, the minimap in `docs/systems/world.md`).
 Under the minimap, `HullBar` shows the player's hull health: a dark bar holding a fill stretched from its left edge to the health, green when whole, yellow at half, red when ruined.

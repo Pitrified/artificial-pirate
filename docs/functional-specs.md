@@ -1,219 +1,170 @@
-# Project Functional & Technical Specification - v0.2
+# Artificial Pirate - functional spec
 
-> **Status:** Source of truth. Any feature not here is out of scope.
-> **Audience:** Humans + AI agents. Read before generating any code.
-
----
-
-## 1. Overview
-
-A 3D mobile game where the player controls a ship navigating a sea environment.
-This version delivers a **minimal, stable, extensible vertical slice**.
-
-Priorities (in order):
-
-1. Stable framerate on mid-range Android
-2. Clean, AI-legible architecture
-3. Fast iteration loop
-4. Visual polish (lowest)
+What the game is now, what is in and out of its scope, and the decisions that hold across it.
+How each part works is in its system page, linked from [Systems](#systems); this page does not repeat it.
+A feature that changes anything here changes this page in its own branch ([Keeping this page current](#keeping-this-page-current)).
 
 ---
 
-## 2. Core Technical Decisions (Locked)
+## The game
 
-| Concern        | Decision                                  | Rationale                              |
+A 3D naval game for Android phones, played in landscape.
+The player sails a sloop with one virtual stick across a sea that grows as it sails: islands generated from a seed, cell by cell, a minimap and a full map of what has been explored.
+Ships are built from parts (hull, masts, sails, rigging, fittings) by the asset builders, so several types share one model; the sloop and a brig exist, the brig anchored near the start.
+Hulls take damage when they ram a ship or run aground: a damaged ship is slower, sits lower and lists, its hull shows the hits, and a hard hit can bring a mast down.
+A ruined hull sinks; the player's sinking ends the game.
+The session is saved and continued from the menu.
+
+Priorities, in order: a steady frame rate on a mid-range phone, code an agent can read and change safely, a fast loop from change to device, then looks.
+
+---
+
+## Scope
+
+Something moves between these lists through a plan in `plans/`, which updates this page.
+
+**In the game:** sailing (kinematic), the chase camera, the generated world and its maps, stylized water with waves, shore foam and ripples, floating props, two ship types, ship against ship and against the shore, hull damage, broken masts, sinking and game over, the save, the diagnostics report and the debug overlay.
+
+**Next** (wanted, not yet planned; work toward it is not blocked): cannons and combat between ships, other ships under sail, more ship types, things to find on islands.
+
+**Not planned** (do not build without a plan that moves it): multiplayer, an economy or progression, cloud save, in-app purchases, ads, analytics, localization, accessibility settings, controller support, tablet or foldable layouts, realistic water physics.
+
+---
+
+## Locked decisions
+
+| Concern        | Decision                                  | Why                                    |
 | -------------- | ----------------------------------------- | -------------------------------------- |
 | Engine         | **Unity 6.4** (`6000.4.4f1`)              | Supported Update release, kept until the next LTS ships, then moved to it |
-| Render         | **URP**                                   | Best mobile perf/quality tradeoff      |
-| Scripting      | **C# / .NET Standard 2.1**                | Default Unity 6 setting                |
-| Backend        | **IL2CPP**, ARM64 only                    | Required for Play Store, best perf     |
-| Input          | **Unity Input System** (`com.unity.inputsystem`) | Future-proof, abstraction-friendly |
+| Render         | **URP**                                   | Best mobile performance for the look   |
+| Scripting      | **C# / .NET Standard 2.1**                | Unity 6's default                      |
+| Backend        | **IL2CPP**, ARM64 only                    | Required for the Play Store            |
+| Input          | **Unity Input System**                    | Actions abstract touch and keyboard    |
 | Movement       | **Kinematic / arcade**                    | Deterministic, no physics instability  |
-| Water          | **Custom URP shader (stylized)**: Gerstner waves, shore foam from a baked depth map, a 256x256 ripple step ([water](systems/water.md)) | Decent and reactive, one draw; no fluid simulation |
+| Water          | **Custom URP shader (stylized)**: Gerstner waves, shore foam from a depth map, a 256x256 ripple step ([water](systems/water.md)) | Reactive in one draw; no fluid simulation |
+| Models         | **Built by script**: Blender builders export FBX ([building_assets](building_assets.md)) | Repeatable, reviewable, one change for every ship type |
 | Camera         | **Third-person chase**                    | Mobile-friendly, no free look          |
-| Orientation    | **Landscape only (locked)**               | Single layout to design for            |
-| Scenes         | **Multi-scene additive + persistent root** | Clean lifetime separation             |
-| Save           | **JSON file in `Application.persistentDataPath`** | Inspectable, portable           |
-| Build trigger  | **Local script (manual)**                 | No CI in v0.2                          |
+| Orientation    | **Landscape only**                        | One layout to design for               |
+| Scenes         | **Additive scenes over a persistent root** | Clean lifetimes                       |
+| Save           | **JSON file in `Application.persistentDataPath`** ([save-system](systems/save-system.md)) | Inspectable, portable |
+| Builds         | **Local scripts** (`Tools/build-android.sh`) | No CI                               |
 
-Anything not listed here is **not decided**; do not introduce silent defaults.
-
----
-
-## 3. Target Platform Constraints
-
-**Reference device:** Pixel 7-class (mid-range Android, 2022+).
-
-**Build requirements (Google Play, 2026):**
-
-- `targetSdkVersion` ≥ 35 (Android 15)
-- 64-bit (ARM64) required; ARMv7 disabled
-- AAB (Android App Bundle) only - APK rejected for new releases
-
-**Performance budgets:** see [performance-budget.md](performance-budget.md).
+Anything not listed is **not decided**: raise it in a plan rather than introducing a silent default.
 
 ---
 
-## 4. Application Lifecycle
+## Platform
+
+- Reference device: a Pixel 7-class phone (mid-range Android, 2022 on); the budgets are in [performance-budget](performance-budget.md).
+- Google Play: `targetSdkVersion` 35 or above, ARM64 only, AAB for releases ([build-and-release](build-and-release.md)).
+
+---
+
+## Lifecycle
 
 ```
-App Launch
-  → Boot Scene (init systems, load Persistent additively)
-  → Loading Screen
-  → Menu Scene
-  → Game Scene (additive load over Persistent)
-  → Pause / Resume
-  → Back to Menu (unload Game)
-  → Quit
+App launch
+  -> Boot (init systems, load Persistent additively)
+  -> Loading -> Menu
+  -> Game (additive over Persistent) -> Pause / Resume
+  -> Back to the menu (unload Game), or the player's ship sinks -> Game over -> Menu (the save deleted)
+  -> Quit
 ```
 
-Ownership rules:
-
-- A central [GameManager](systems/game-manager.md) owns all state transitions.
-- No scene file owns global state.
-- Scenes are **passive**: they expose entry points, GameManager wires them.
+- [GameManager](systems/game-manager.md) owns every state change (`GameState`: Boot, Loading, Menu, Playing, Paused, GameOver).
+- No scene owns global state; scenes are passive, GameManager wires them.
 
 ---
 
-## 5. Scene Inventory
+## Scenes
 
-| Scene        | Loaded as | Lifetime              | Contents (high level)                  |
-| ------------ | --------- | --------------------- | -------------------------------------- |
-| `Boot`       | Single    | First frame only      | `GameBootstrap` only                   |
-| `Persistent` | Additive  | Whole session         | GameManager, Input, Save, Audio, UIRoot |
-| `Menu`       | Single    | While in menu         | Main menu UI                           |
-| `Game`       | Additive  | While playing         | Ship, water, the generated world, floating props, GameCamera |
-
----
-
-## 6. Game Systems (v0.2)
-
-Each system has a dedicated spec under [systems/](systems/).
-
-| System                                            | Purpose                                |
-| ------------------------------------------------- | -------------------------------------- |
-| [game-bootstrap](systems/game-bootstrap.md)       | Entry point, loads Persistent          |
-| [game-manager](systems/game-manager.md)           | State machine, scene coordination      |
-| [scene-loader](systems/scene-loader.md)           | Async additive load/unload             |
-| [input-manager](systems/input-manager.md)         | Input abstraction                      |
-| [ship-controller](systems/ship-controller.md)     | Kinematic player movement              |
-| [camera-controller](systems/camera-controller.md) | Third-person chase camera              |
-| [save-system](systems/save-system.md)             | JSON persistence                       |
-| [audio-manager](systems/audio-manager.md)         | Music + SFX channels                   |
-| [ui-system](systems/ui-system.md)                 | UI Toolkit roots, safe area, scaling   |
-| [logging](systems/logging.md)                     | Central log + debug overlay            |
-| [water](systems/water.md)                         | Waves, floating, ripples, shore        |
+| Scene        | Loaded as | Lifetime              | Contents                                |
+| ------------ | --------- | --------------------- | --------------------------------------- |
+| `Boot`       | Single    | First frame only      | `GameBootstrap` only                    |
+| `Persistent` | Additive  | Whole session         | GameManager, Input, Save, Audio, UI root |
+| `Menu`       | Single    | While in the menu     | Main menu UI                            |
+| `Game`       | Additive  | While playing         | The ships, water, the generated world, floating props, the HUD, the camera |
 
 ---
 
-## 7. Controls (v0.2)
+## Controls
 
-| Action     | Touch                              | Editor (keyboard)        |
-| ---------- | ---------------------------------- | ------------------------ |
-| Throttle   | Right-side virtual stick (Y axis)  | `W` / `S`                |
-| Steering   | Right-side virtual stick (X axis)  | `A` / `D`                |
-| Pause      | Top-left button                    | `Esc`                    |
-
-Single virtual stick is sufficient for v0.2; no twin-stick.
-
----
-
-## 8. UI Surfaces (v0.2)
-
-- Loading screen (cancel-safe, deterministic min duration 0.5 s to avoid flash)
-- Main menu: **Play**, **Continue** (if save exists), **Quit**
-- Pause overlay: **Resume**, **Return to menu**
-- Built with **UI Toolkit** (preferred) or **uGUI** if blockers arise.
-- Must respect **safe area** (notches, gesture bars).
+| Action         | Touch                                  | Editor (keyboard) |
+| -------------- | -------------------------------------- | ----------------- |
+| Throttle       | Virtual stick, Y axis                  | `W` / `S`         |
+| Steering       | Virtual stick, X axis                  | `A` / `D`         |
+| Pause          | Pause button, top left                 | `Esc`             |
+| Map            | Tap the minimap                        | Click the minimap |
+| Debug overlay  | Three-finger tap (development builds)  | `F1`              |
 
 ---
 
-## 9. Persistence (v0.1 schema)
+## Screens
 
-Stored as `save.json` in `Application.persistentDataPath`:
+UI Toolkit screens, in the safe area, routed by `UISystem` by `ScreenId` ([ui-system](systems/ui-system.md)):
 
-```json
-{
-  "version": 4,
-  "lastSavedUtc": "2026-04-28T12:00:00Z",
-  "payload": {
-    "ship": { "x": 0.0, "y": 0.0, "z": 0.0, "yawDeg": 0.0 },
-    "world": { "seed": 1234567, "explored": [ { "x": 0, "z": 0 }, { "x": 1, "z": 0 } ] },
-    "damage": { "lost": 0.25, "starboard": 0.2, "port": 0.05, "hits": [ { "x": 3.1, "y": 0.4, "z": 6.0, "amount": 0.2 } ] }
-  }
-}
-```
+| Screen | `ScreenId` | What it offers |
+| ------ | ---------- | -------------- |
+| Main menu | `Menu` | New Game, Continue (when a save exists), Diagnostics, Quit |
+| Pause | `Pause` | Resume, Main Menu, Diagnostics |
+| Map | `Map` | The explored world over the paused game: centre on the ship, reset zoom, close |
+| Game over | `GameOver` | The ship has sunk: Main Menu |
+| Diagnostics | `Diagnostics` | The diagnostics report: copy, share, the previous session's |
 
-`version` and `lastSavedUtc` are written by the save system; `payload` is `GameSaveData` and `version` is its `CurrentVersion`.
-Version 1 had `ship` at the top level; version 2 had no `world`; version 3 had no `damage`. Any of them is reset.
-`world.seed` 0 means no world was saved, and a new one begins (`docs/systems/world.md`).
-`damage` is the player's hull: the health lost, in all and on each side, and the latest hits in the hull's local space, oldest first (`docs/systems/ship-controller.md`); none means a whole hull.
-
-Rules:
-
-- Atomic write: write to `save.json.tmp`, then rename.
-- On unreadable/corrupt file: rename to `save.json.bak`, start fresh, log warning.
-- `version` field is mandatory; mismatched versions trigger reset (no migration in v0.2).
+Also: the loading screen (at least 0.5 s, so it does not flash), and the Game scene's HUD in uGUI (the stick, the pause button, the minimap, the hull bar).
 
 ---
 
-## 10. Error Handling & Fallbacks
+## Systems
 
-| Failure                       | Behavior                                |
+Each has a page under [systems/](systems/):
+
+| System | Page | Also in the page |
+| ------ | ---- | ---------------- |
+| Entry point, loads Persistent | [game-bootstrap](systems/game-bootstrap.md) | |
+| State machine, scene coordination | [game-manager](systems/game-manager.md) | game over |
+| Async additive load and unload | [scene-loader](systems/scene-loader.md) | |
+| Input abstraction | [input-manager](systems/input-manager.md) | |
+| Ships | [ship-controller](systems/ship-controller.md) | ship types, hull contact, damage, masts, hull marks, riding the waves |
+| Chase camera | [camera-controller](systems/camera-controller.md) | |
+| The world | [world](systems/world.md) | islands, streaming, the water's depth, the minimap and map |
+| Water | [water](systems/water.md) | waves, floating props, ripples, shore |
+| JSON save | [save-system](systems/save-system.md) | the save's schema |
+| Music and sound | [audio-manager](systems/audio-manager.md) | |
+| UI Toolkit roots, screens, safe area | [ui-system](systems/ui-system.md) | the HUD, the hull bar |
+| Logging | [logging](systems/logging.md) | the diagnostics report, the debug overlay |
+
+---
+
+## Errors
+
+| Failure                       | Behaviour                               |
 | ----------------------------- | --------------------------------------- |
-| Scene load fails              | Log error → return to Menu              |
-| Save file corrupt             | Backup + reset (see §9)                 |
-| Missing component reference   | Log error, system stays in safe state   |
-| Input device disconnected     | Use neutral input until reconnected     |
+| Scene load fails              | Log an error, return to the menu        |
+| Save file corrupt             | Back it up and start fresh ([save-system](systems/save-system.md)) |
+| Missing component reference   | Log an error, the system stays in a safe state |
+| Input device disconnected     | Neutral input until it is back          |
 
-Never swallow exceptions silently. Never crash in normal flow.
-
----
-
-## 11. Logging & Debugging
-
-- Central `Log` utility wrapping `UnityEngine.Debug` with category tags.
-- Stripped to warnings/errors in Release builds.
-- Debug overlay (toggle via 3-finger tap or `F1`):
-  - FPS, frame time, draw calls
-  - Current GameManager state
-  - Buttons: reset player, reload scene, skip loading
-
-See [systems/logging.md](systems/logging.md).
+Never swallow an exception silently; never crash in normal play.
+Logging goes through `Game.Systems.Log`; release builds keep warnings and errors ([logging](systems/logging.md)).
 
 ---
 
-## 12. Definition of Demo-Ready
+## Release checks
 
-The build is demo-ready when **all** of these hold:
+A build goes to testers when all of these hold on the reference phone:
 
-- [ ] Cold start to Menu < 5 s on Pixel 7
-- [ ] Menu → Game → Menu loop works repeatedly without leaks
-- [ ] Ship is controllable via touch
-- [ ] Island is reachable
-- [ ] Pause → Resume works
-- [ ] Pause → Menu unloads Game cleanly
-- [ ] Quit + relaunch + Continue restores last position
-- [ ] No errors or warnings in logcat under normal play
-- [ ] Sustained ≥ 30 FPS for 5 minutes of play (see [performance-budget.md](performance-budget.md))
+- Cold start to the menu in under 5 s.
+- Menu to game to menu, repeatedly, without leaks.
+- New Game, sail, pause, resume; quit, relaunch, Continue restores the ship, its damage and the world.
+- The ship sinks to game over and back to the menu, with no save left.
+- 60 fps held, by the diagnostics report, as [performance-budget](performance-budget.md) measures it.
+- No errors or warnings in logcat in normal play.
 
 ---
 
-## 13. Milestones
+## Keeping this page current
 
-1. **M0** - Repo + Unity project + LFS configured, opens cleanly
-2. **M1** - Bootstrap → Menu → empty Game loop runs in editor
-3. **M2** - Ship moves, camera follows, water visible
-4. **M3** - Save/load works across sessions
-5. **M4** - First Android device build runs
-6. **M5** - Internal Testing track on Play Console with ≥1 external tester
-
----
-
-## 14. Out of Scope for v0.2
-
-Multiplayer · Combat · Realistic water physics · Economy/progression · Cloud
-save · IAP · Ads · Analytics · Localization · Accessibility settings · Controller
-support · Tablets/foldables special layouts.
-
-These are **not** "later"; they are **not allowed to leak** into v0.2 code.
+- A plan in `plans/` says in its start file what it changes on this page (scope, a decision, a screen, a control, a system).
+- The change lands in the feature's own branch, by its last phase; that phase's "Done when" names this page, as it names the system pages.
+- `Tools/spec_check.py`, run by `Tools/gates.sh`, fails when a system page is missing from [Systems](#systems), a `ScreenId` from [Screens](#screens), or when the save's version in [save-system](systems/save-system.md#schema) differs from the code's.
