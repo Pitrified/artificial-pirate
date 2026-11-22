@@ -232,11 +232,14 @@ namespace Game.Gameplay
             _bowLastHit = _hitCount > 0 && GetHit(_hitCount - 1).Point.z >= 0f;
             _sinking = _health <= 0f;
             _sinkProgress = 0f;
+            int mastsLost = 0;
             if (_masts != null)
             {
                 _masts.Restore(data.brokenMasts);
+                mastsLost = _masts.Lost;
             }
-            Log.Info(LogCat.Gameplay, "ShipDamage: {0} restored, health {1:0.000}, {2} hits", name, _health, _hitCount);
+            Log.Info(LogCat.Gameplay, "ShipDamage: {0} restored, health {1:0.000}, {2} hits, {3} masts lost",
+                name, _health, _hitCount, mastsLost);
             Restored?.Invoke();
         }
 
