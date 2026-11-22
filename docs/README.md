@@ -79,8 +79,9 @@ Split by concern: **what we build**, **how we build it**, **how we ship it**.
 
 ## ⚠️ Ground rules
 
-- [functional-specs.md](functional-specs.md) is the **source of truth**.
-- Do not implement features not defined there. Update the spec **first**, then code.
+- [functional-specs.md](functional-specs.md) says what the game is and what is in scope, next, or not planned.
+  Building something on the not-planned list needs a plan that moves it; something next is not blocked.
+- A feature that changes what the game is updates the spec in its own branch, by its last phase, as it updates the system pages; `Tools/spec_check.py` in the gates catches a system page, screen or save version the spec misses.
 - AI-generated code must follow project structure, asmdef boundaries, and the guide's AI playbook.
 - Prefer small, incremental changes over large rewrites.
 
@@ -88,8 +89,8 @@ Split by concern: **what we build**, **how we build it**, **how we ship it**.
 
 ## 🔄 Workflow loop
 
-1. Define / update the feature in [functional-specs.md](functional-specs.md) and the relevant `systems/*.md`.
-2. Plan it in a `plans/` folder; the agent works it in the loop of [ai-development-playbook.md §3](https://github.com/Pitrified/unity-setup-project/blob/main/docs/ai-development-playbook.md#3-the-work-loop).
+1. Plan the feature in a `plans/` folder, saying what it changes in [functional-specs.md](functional-specs.md) and which `systems/*.md` it touches; the agent works it in the loop of [ai-development-playbook.md §3](https://github.com/Pitrified/unity-setup-project/blob/main/docs/ai-development-playbook.md#3-the-work-loop).
+2. The spec and the system pages change with the code, in the same branch.
 3. The agent runs the gates ([headless-unity.md](headless-unity.md)) and commits per [git-workflow.md](git-workflow.md).
 4. A person plays the build on a device.
 
@@ -97,6 +98,6 @@ Split by concern: **what we build**, **how we build it**, **how we ship it**.
 
 ## 📌 Notes
 
-- Project is in active **v0.1 → v0.2** evolution.
+- Scope is in [functional-specs.md](functional-specs.md#scope), not in version numbers.
 - Update docs **before** implementing, not after.
 - If something is unclear in the docs, fix the docs first.

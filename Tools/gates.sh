@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Tools/gates.sh
-# Runs the gates of docs/headless-unity.md §3 in Unity batch mode:
-# compile with 0 errors and 0 warnings, EditMode and PlayMode tests.
+# Runs the gates of docs/headless-unity.md §3: the spec check (Tools/spec_check.py), then in
+# Unity batch mode compile with 0 errors and 0 warnings, EditMode and PlayMode tests.
 #
 # Usage:
-#   ./Tools/gates.sh [compile|edit|play|all]     (default: all)
+#   ./Tools/gates.sh [spec|compile|edit|play|all]     (default: all)
 #
 # The editor is the project's version (ProjectSettings/ProjectVersion.txt) under
 # ~/Unity/Hub/Editor/; UNITY_PATH overrides it. On Linux Unity runs under xvfb-run when it
@@ -25,8 +25,8 @@ die()  { bad "$*"; exit 1; }
 
 WHAT="${1:-all}"
 case "$WHAT" in
-    compile|edit|play|all) ;;
-    *) die "Unknown gate '$WHAT'. Usage: $0 [compile|edit|play|all]" ;;
+    spec|compile|edit|play|all) ;;
+    *) die "Unknown gate '$WHAT'. Usage: $0 [spec|compile|edit|play|all]" ;;
 esac
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
@@ -144,16 +144,30 @@ gate_tests() {
     ok "$platform: $total of $total passed"
 }
 
+gate_spec() {
+    local lines
+    if lines="$(python3 "$SCRIPT_DIR/spec_check.py")"; then
+        ok "spec: docs/functional-specs.md agrees with the systems, screens and save version"
+    else
+        echo "$lines" >&2
+        bad "spec: docs/functional-specs.md is behind the game (Tools/spec_check.py)"
+        return 1
+    fi
+}
+
 status=0
 case "$WHAT" in
+    spec)    gate_spec || status=1 ;;
     compile) gate_compile || status=1 ;;
     edit)    gate_tests EditMode || status=1 ;;
     play)    gate_tests PlayMode || status=1 ;;
     all)
-        gate_compile || status=1
-        if [[ $status -eq 0 ]]; then
+        gate_spec || status=1
+        if gate_compile; then
             gate_tests EditMode || status=1
             gate_tests PlayMode || status=1
+        else
+            status=1
         fi
         ;;
 esac

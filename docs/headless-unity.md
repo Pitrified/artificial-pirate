@@ -50,6 +50,7 @@ xvfb-run -a -s "-screen 0 1280x1024x24" "$EDITOR" -batchmode -force-vulkan \
 
 | Gate | `<what to run>` | Pass |
 | ---- | --------------- | ---- |
+| Spec | `python3 Tools/spec_check.py` (no Unity) | exit 0: every system page linked from the spec, every `ScreenId` named in it, the save's version in `save-system.md` equal to the code's |
 | Compile | `-quit` | exit 0, no `error CS` and no `warning CS` lines in the log |
 | EditMode tests | `-runTests -testPlatform EditMode -testResults <xml>` | exit 0; the XML root has `failed="0"` |
 | PlayMode tests | `-runTests -testPlatform PlayMode -testResults <xml>` | exit 0; the XML root has `failed="0"` |
@@ -57,7 +58,7 @@ xvfb-run -a -s "-screen 0 1280x1024x24" "$EDITOR" -batchmode -force-vulkan \
 | Capture | `-executeMethod Game.Editor.SceneCapture.CaptureFromCommandLine -captureOut shot.png [-captureEye x,y,z -captureTarget x,y,z] [-captureBudget]` | the PNG looks right, and measures right where the change is visual; `-captureBudget` logs triangles and material slots in view |
 | Sequence | `-runTests -testPlatform PlayMode -testFilter Game.Tests.PlayMode.SequenceCaptureTests` with `CAPTURE_SEQUENCE_DIR=<dir>` (and `CAPTURE_SECONDS`, `CAPTURE_FPS`, `CAPTURE_EYE`, `CAPTURE_TARGET`; `CAPTURE_THROTTLE` and `CAPTURE_STEERING` sail the ship, from `CAPTURE_START` "x,z,yaw" if given; `CAPTURE_HUD` draws the HUD; `CAPTURE_MAP` writes the full map's picture to a PNG at the end; `CAPTURE_DAMAGE` takes that share of the hull's health, struck on starboard; `CAPTURE_BREAK_MAST` brings down that mast on every ship that has it) | frames over time in Play mode, read with `measure.py sheet / gif / motion / track` |
 
-`Tools/gates.sh [compile|edit|play|all]` runs the first three gates this way and exits non-zero on any `error CS`, `warning CS` or failed test, naming the failed tests; logs and results go to `ArtificialPirate/Logs/gates/`.
+`Tools/gates.sh [spec|compile|edit|play|all]` runs the first four gates and exits non-zero on a spec finding, any `error CS`, `warning CS` or failed test, naming the failed tests; logs and results go to `ArtificialPirate/Logs/gates/`.
 
 **A still is not enough for anything that moves** (water, animation, physics, particles): the sequence capture plays the Game scene in fixed 1/30 s steps, real physics included, and writes `frame_NNN.png` from a pose, so the same frames come out however slow the machine is.
 In `Tools/asset_builders`: `measure.py sheet DIR out.png` (all frames on one image, to look at), `gif DIR out.gif` (to watch), `motion DIR` (change between frames, overall and per grid cell: is it moving, and where; a still scene measures about 0.02, the control), `track DIR X0 Y0 X1 Y1 [--colour R G B]` (a box's brightness and the centroid of its brightest pixels, or of pixels near a colour, over time: something bobbing, a wave passing).
