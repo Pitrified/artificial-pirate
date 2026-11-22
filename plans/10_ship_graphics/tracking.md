@@ -20,7 +20,7 @@ Analysis, proposals and answers in [`00_start.md`](00_start.md).
 | 03 | Lantern and helm               | [`03_lantern_helm.md`](03_lantern_helm.md) | done |
 | 04 | Hatches, bulwark and rail      | [`04_hatches_bulwark.md`](04_hatches_bulwark.md) | done |
 | 05 | Masts and taffrail             | [`05_masts_taffrail.md`](05_masts_taffrail.md) | done |
-| 06 | Verify                         | [`06_verify.md`](06_verify.md) | in progress |
+| 06 | Verify                         | [`06_verify.md`](06_verify.md) | done |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -41,3 +41,4 @@ Append-only. Newest at the bottom.
 - 2026-11-21 : phase 06 - fresh clone at `6646353` green (EditMode 233, PlayMode 24); dev APK built; before/after sheet. A capture run in parallel with the clone's Unity crashed in Unity's socket code; the same state's capture from phase 05 stands in. The phone runs (baseline and new) wait for the user.
 - 2026-11-22 : phase 06 - the phone report of `6646353`: 60 fps held, gpu ms p50 11.8, p95 12.3. The user saw water at the stern: the transom was open from the deck to the rail and the deck stopped short of the rake, a hull gap older than the plan that the solid taffrail had hidden; closed with a transom board, the deck run aft, the windows laid on the rake (`0d14399`); gates green; new dev APK. The baseline run waits for the user.
 - 2026-11-22 : phase 01 closed - the baseline from `16e08ea`: 60 fps held, gpu ms p50 11.8, p95 12.3, mean 11.4. The new build (`6646353`) gave the same p50 and p95 (the 0.5 ms bins) and a mean of 11.6 to 11.7: no difference the phone can show under the cap.
+- 2026-11-22 : phase 06 closed - the phone on `0d14399`: 60 fps, gpu ms p50 11.8, p95 12.3, as the baseline; the user on that build: "All beautiful". Every phase done; the folder done, priority 0. The branch waits for the merge decision.

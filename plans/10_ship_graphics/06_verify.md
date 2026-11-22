@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 06 - Verify
@@ -24,4 +24,5 @@ status: in progress
 - The user saw a thin stripe of water at the stern. The cause was older than this plan: the hull's stern loop left the transom open from the deck to the rail between the bulwarks, and the deck stopped square short of the raked transom (0.73 m on the sloop, 0.30 m on the brig). The old solid taffrail board hid most of it from the chase camera; the open rail does not. Fixed in `0d14399`: a transom board (face aft, top, planking inside), the deck run aft to it, the stern windows centred on the board and laid on the rake. Sloop 9 554 triangles, brig 16 450; gates green (EditMode 233, PlayMode 24); captures from astern of both and from the sloop's deck.
 - **Dev APK** from `0d14399`: 75 208 660 bytes, SHA256 `c24a78b67bdd9fef1ded96cec160de9b7d4691deaa3dc1ccdc209e3d6df24cfb`.
 - 2026-11-22. **Against the baseline** (phase 01, `16e08ea`): gpu ms p50 11.8 and p95 12.3 in both; mean 11.4 before, 11.6 to 11.7 after, within what two different routes give. 60 fps held in both. The new ships cost nothing the phone can show under the cap; the frame keeps about 4.5 ms of GPU room.
-- Waiting: the stern on the phone and the user's read of the six parts.
+- 2026-11-22. **Phone, `0d14399`** (the stern closed), 42 s with a mast lost: 60 fps held; gpu ms p50 11.8, p95 12.3, mean 11.2, max 16.6. Same as the baseline.
+- **The user's read**, on this build: "All beautiful". Nothing asked to change.

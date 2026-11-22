@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 priority: 0
 description: |
   Better-looking ship fittings: the lantern, the helm, the hatches, the bulwark and its rail, the masts
