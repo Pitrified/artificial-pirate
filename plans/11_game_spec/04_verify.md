@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in progress
 ---
 
 # Phase 04 - Verify
@@ -14,3 +14,11 @@ status: planned
 ## Done when
 
 - All of the above hold; the user's read of the spec.
+
+## Results
+
+- 2026-11-23. **The check made to fail**, on a copy of `docs/`, the check and the two source files it reads: a system page added (`cannons.md`), `world.md`'s link removed, `GameOver`'s backticks removed, a `ScreenId` added (`Harbour`), `CurrentVersion` raised to 5. All five reported by name, exit 1; the untouched copy exit 0.
+- **Links**: 99 files, 0 broken; the six anchors the changed docs use (`#scenes`, `#release-checks`, `#systems`, `#screens`, `#keeping-this-page-current`, `#schema`) match their headings.
+- **Citations**: the same 9 older findings, none from this plan (Q7).
+- **Gates** at `17eee05`: spec pass, compile 0 errors 0 warnings, EditMode 233/233, PlayMode 24/24.
+- Waiting: the user's read of the spec, and Q7.

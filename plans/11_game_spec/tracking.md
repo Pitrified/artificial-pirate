@@ -14,9 +14,9 @@ Analysis, proposals and questions in [`00_start.md`](00_start.md).
 | #  | Phase                | Plan | Status |
 | -- | -------------------- | ---- | ------ |
 | 01 | Audit                | [`01_audit.md`](01_audit.md) | done |
-| 02 | The spec             | [`02_spec.md`](02_spec.md) | planned |
-| 03 | Keeping it current   | [`03_keep_current.md`](03_keep_current.md) | planned |
-| 04 | Verify               | [`04_verify.md`](04_verify.md) | planned |
+| 02 | The spec             | [`02_spec.md`](02_spec.md) | done |
+| 03 | Keeping it current   | [`03_keep_current.md`](03_keep_current.md) | done |
+| 04 | Verify               | [`04_verify.md`](04_verify.md) | in progress |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -28,3 +28,6 @@ Append-only. Newest at the bottom.
 - 2026-11-22 : the user: all a. Folded in; phases 01 to 04 planned.
 - 2026-11-22 : review of the sub-plans: the save version check narrowed to `save-system.md`'s JSON (world.md states one too, to go); screens matched by `ScreenId` names in backticks; gates get a `spec` gate; 9 older citations of plans outside `plans/` found (Q7), so phase 04 checks only that this plan adds none.
 - 2026-11-22 : phase 01 - review before: nothing to correct. Every section and every reference to the spec in [`01.1_findings.md`](01.1_findings.md): 2, 3, 5, 10 true; 1, 4, 6, 7, 8, 9, 11 stale; 12 to 14 the sample's; 8 references to repoint; `ui-system.md` lacks the diagnostics screen.
+- 2026-11-22 : phase 02 - review before: nothing to correct. The spec rewritten thin (`docs/functional-specs.md`); the save's schema moved to `save-system.md` with `brokenMasts`; `world.md`, `project-structure.md`, `GameSaveData.cs` and the draft `04_release` repointed; `ui-system.md` gained the diagnostics screen. Gates green (EditMode 233, PlayMode 24); links resolve.
+- 2026-11-23 : phase 03 - review before: in `all`, a spec failure must not skip the tests as a compile failure does (written that way). `Tools/spec_check.py` and the `spec` gate; the instructions, `AGENTS.md`, `docs/README.md` (the spec-first rule replaced by Q5's) and `headless-unity.md` §3 updated. Gates green with the spec line.
+- 2026-11-23 : phase 04 - review before: nothing to correct. The check caught each of five breakages on a scratch copy; links and anchors resolve; no new citations of plans. Waiting on the user's read and Q7.
