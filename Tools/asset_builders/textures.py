@@ -3,7 +3,7 @@
 Run from this folder:
 
     uv run --no-sync python textures.py water_normals   (or palette, sail_canvas, hull_planks, deck_planks, flag, hull_marks,
-                                                         spar_wood, ship_wood, particles, map_icons)
+                                                         spar_wood, ship_wood, particles, map_icons, app_icon)
 
 Each texture is a function below. Tiling comes from building the height field out of
 waves with integer frequencies over the tile, so the edges meet. The same seed gives
@@ -266,6 +266,53 @@ def map_icons() -> list[Path]:
     return made
 
 
+APP_ICON_SIZE = 1024
+APP_ICON_SUPERSAMPLE = 4
+
+
+def app_icon() -> list[Path]:
+    """The app's icon, flat: a brig under sail on a flat sea under a banded sky, its bow to the right,
+    in the game's colours (a black hull with an ochre band, cream sails, a black flag); the ship inside
+    the middle two thirds, the adaptive icon's safe circle. Drawn at 4x and reduced. Also a clear
+    square, the adaptive icon's foreground over this as its background."""
+    k = APP_ICON_SUPERSAMPLE
+    image = Image.new("RGB", (APP_ICON_SIZE * k, APP_ICON_SIZE * k))
+    draw = ImageDraw.Draw(image)
+
+    def at(x: float, y: float) -> tuple[float, float]:
+        return (x * k, y * k)
+
+    def shape(points: list[tuple[float, float]], colour: tuple[int, int, int]) -> None:
+        draw.polygon([at(x, y) for x, y in points], fill=colour)
+
+    for top, colour in ((0, (118, 176, 222)), (330, (146, 194, 232)), (520, (176, 212, 238))):
+        draw.rectangle([0, top * k, image.width, image.height], fill=colour)
+    draw.rectangle([0, 660 * k, image.width, image.height], fill=(34, 112, 150))
+    draw.rectangle([0, 800 * k, image.width, image.height], fill=(24, 86, 122))
+    for x, y, w in ((120, 720, 120), (720, 735, 150), (300, 850, 170), (650, 900, 110), (90, 930, 90)):
+        draw.rounded_rectangle([x * k, y * k, (x + w) * k, (y + 10) * k], radius=5 * k, fill=(214, 236, 242))
+    wood = (92, 62, 36)
+    cream = (240, 232, 210)
+    shade = (214, 204, 180)
+    shape([(250, 610), (800, 590), (760, 690), (300, 700)], (22, 22, 24))
+    shape([(252, 618), (796, 600), (790, 622), (256, 640)], (214, 170, 72))
+    draw.line([at(790, 595), at(905, 545)], fill=wood, width=10 * k)
+    for x in (420, 610):
+        draw.rectangle([(x - 6) * k, 220 * k, (x + 6) * k, 600 * k], fill=wood)
+    for x, scale in ((420, 1.0), (610, 1.05)):
+        for top, bottom, half_top, half_bottom in ((250, 330, 62, 74), (340, 440, 78, 92), (450, 570, 96, 112)):
+            ht, hb = half_top * scale, half_bottom * scale
+            shape([(x - ht, top), (x + ht, top), (x + hb + 8, bottom), (x - hb + 8, bottom)], cream)
+            shape([(x + ht * 0.4, top), (x + ht, top), (x + hb + 8, bottom), (x + hb * 0.4 + 8, bottom)], shade)
+    shape([(622, 270), (880, 556), (650, 560)], cream)
+    shape([(412, 300), (412, 575), (282, 575), (300, 340)], shade)
+    shape([(606, 190), (606, 222), (668, 214), (668, 186)], (20, 20, 22))
+    draw.rectangle([603 * k, 186 * k, 609 * k, 225 * k], fill=wood)
+    icon = _save(image.resize((APP_ICON_SIZE, APP_ICON_SIZE), Image.LANCZOS), "T_AppIcon")
+    clear = _save(Image.new("RGBA", (APP_ICON_SIZE, APP_ICON_SIZE), (0, 0, 0, 0)), "T_AppIconClear")
+    return [icon, clear]
+
+
 TEXTURES = {
     "water_normals": water_normals,
     "palette": palette,
@@ -278,6 +325,7 @@ TEXTURES = {
     "ship_wood": ship_wood,
     "particles": particles,
     "map_icons": map_icons,
+    "app_icon": app_icon,
 }
 
 

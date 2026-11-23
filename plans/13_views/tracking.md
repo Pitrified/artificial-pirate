@@ -16,8 +16,8 @@ An app icon of a brig at sea, boats on the minimap with an icon per kind of ship
 | 01 | Settings and cameras   | [`01_settings_and_cameras.md`](01_settings_and_cameras.md) | done |
 | 02 | The player's ship      | [`02_player_ship.md`](02_player_ship.md) | done |
 | 03 | Map icons              | [`03_map_icons.md`](03_map_icons.md) | done |
-| 04 | App icon               | [`04_app_icon.md`](04_app_icon.md) | in progress |
-| 05 | Verify                 | [`05_verify.md`](05_verify.md) | planned |
+| 04 | App icon               | [`04_app_icon.md`](04_app_icon.md) | done |
+| 05 | Verify                 | [`05_verify.md`](05_verify.md) | in progress |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -33,3 +33,4 @@ Append-only. Newest at the bottom.
 - 2026-11-23 : phase 02 closed: the player's brig starts at (0, 0, 72), clear of the floating props; the brig's helm crew moved off the helm view (model rebuilt); `CAPTURE_SHIP`; captures of the brig's three views. Gates green (EditMode 261, PlayMode 29).
 - 2026-11-23 : phase 03 - review before: nothing to correct. `T_MapIcon_<Type>` from the builders' hulls; `SO_ShipType.MapIcon`; tints and sizes on `SO_MapStyle`; the minimap's ships (a pool of 8) and the full map's `MapMarker`s; `MapArrow` removed. 2 new tests. Gates green (EditMode 263, PlayMode 30). Capture of the minimap with both brigs.
 - 2026-11-23 : phase 04 (in progress) - candidates made: three stills of the sailing brig from the game (bow quarter, abeam low, high three-quarter; the first framing too tight, retaken nearly twice as far so the brig sits in the adaptive icon's safe circle) and a flat drawing by a Pillow script (black hull, ochre band, cream sails, a black flag, flat sea and sky). Shown to the user as a sheet with each at 48 and 96 px. Waiting on the pick.
+- 2026-11-23 : phase 04 - the user picked D, the flat drawing. `textures.py app_icon` (`T_AppIcon`, `T_AppIconClear`); set as the default, legacy, round and adaptive icons; in the APK at every density.
