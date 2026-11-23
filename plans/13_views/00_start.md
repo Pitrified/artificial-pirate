@@ -74,34 +74,54 @@ A picture of a brig at sea from the game itself: a still from the Game scene (th
   - a. A new Settings screen, opened from the menu and from the pause screen.
   - b. Buttons on the pause screen.
   - Recommended: a, because settings will grow (the volumes have no screen yet) and the pattern of Diagnostics is there to follow.
-  - NEW_ANS:
+  - ANS: a.
 - Q2: The ship choice.
   - a. In development builds only: a tester's switch; a release sails the sloop.
   - b. In every build.
   - Recommended: a, because it is for testing both views, and the game's progression (a bigger ship) is not decided.
-  - NEW_ANS:
+  - ANS: a.
 - Q3: Switching cameras while sailing.
   - a. In the settings and with a camera button on the HUD that cycles through the three.
   - b. In the settings only.
   - Recommended: a, because comparing views mid-fight is the point, and a pause to change a camera breaks it.
-  - NEW_ANS:
+  - ANS: a.
 - Q4: The helm camera's motion.
   - a. Rides the hull: it pitches and rolls with the waves and the list, as an eye on deck does.
   - b. Steady: follows the heading only, the horizon level.
   - Recommended: b, because a rolling camera on a phone tires the eyes, and the waves still show in the bow rising against the horizon; a can be tried on the phone with a field.
-  - NEW_ANS:
+  - ANS: both, to try: the helm camera steady or riding the hull, a choice in the settings.
 - Q5: The icons per ship.
   - a. Each type's silhouette from above, made from the builder's numbers, tinted by side (the player's white, enemies red, allies green).
   - b. A simple glyph per type drawn by hand in code.
   - Recommended: a, because the shape then says which kind of ship it is, and a new type gets its icon from its own numbers.
-  - NEW_ANS:
+  - ANS: a, and super small: the minimap will be crowded, so no detail; the shape and size of each type is enough.
 - Q6: Other ships on the full map.
   - a. On the minimap only; the full map shows the player's icon.
   - b. On both.
   - Recommended: a, because the minimap is where a fight is read, and the full map is the explored world; the full map's screen takes only a picture and the player's place now, and markers would widen it.
-  - NEW_ANS:
+  - ANS: b, on both maps.
 - Q7: The app icon's picture.
   - a. A still from the game: the brig under sail on the game's own sea.
   - b. A render by the ship builder (Blender, studio light, a painted sky).
   - Recommended: a, because it looks like the game a player then opens, with no second look to keep in step.
-  - NEW_ANS:
+  - ANS: to be assessed: take some stills from the game and see, or hand-draw a flat SVG; the user picks.
+
+## Decisions
+
+Folded in from Q1 to Q7, 2026-11-23.
+
+- **A Settings screen** (Q1), from the menu and the pause screen, closing back, its choices in `PlayerPrefs` through `GameSettings`: the camera (Chase, Bird's eye, Helm), the helm's motion (Steady, Riding: Q4, both to try), and in development builds the ship (Sloop, Brig: Q2).
+- **A camera button on the HUD** (Q3) cycles the three cameras, and the settings remember the last.
+- **Map icons, small** (Q5): a type's silhouette from above, its hull's plan and nothing else, white on clear, a few dozen pixels; tinted by side when drawn (the player's white, enemies red, allies green). Sloop and brig differ by shape and length.
+- **Ships on both maps** (Q6): the minimap shows every ship in its window; the full map every ship in its picture, the moment it opens. `IUISystem.ShowMap` takes the ships as markers (where, heading, icon, tint) in place of the player's place alone.
+- **The app icon is chosen by the user** (Q7): phase 04 makes candidates, stills from the game and a flat SVG drawn by hand, and the user picks before it is set.
+
+## Phases
+
+| # | Phase | What |
+| -- | -- | -- |
+| 01 | Settings and cameras | `GameSettings`; the Settings screen; three rigs per type, the helm steady or riding; switching in `CameraController`; the HUD's camera button |
+| 02 | The player's ship | both player ships in the scene, the choice applied at load to everything that follows the player's ship |
+| 03 | Map icons | the icons by `textures.py`; the minimap's ships; the full map's markers |
+| 04 | App icon | candidates (stills, a flat SVG), the user's pick, the Android icons |
+| 05 | Verify | the spec and the system pages; the phone |

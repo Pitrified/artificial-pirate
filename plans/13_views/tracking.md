@@ -4,17 +4,20 @@ An app icon of a brig at sea, boats on the minimap with an icon per kind of ship
 
 ## Key decisions
 
-- To come with the answers to Q1 to Q7.
+- A Settings screen from menu and pause, in `PlayerPrefs`: camera, helm motion (steady or riding, both to try), and the ship in development builds.
+- Cameras are rigs per ship type; a HUD button cycles them.
+- Map icons are small silhouettes per type from the builder's numbers, tinted by side, on the minimap and the full map.
+- The app icon is the user's pick among candidates (stills from the game, a flat SVG).
 
 ## Phases
 
 | #  | Phase                  | Plan | Status |
 | -- | ---------------------- | ---- | ------ |
-| 01 | Settings and cameras   | to write | draft |
-| 02 | The player's ship      | to write | draft |
-| 03 | Map icons              | to write | draft |
-| 04 | App icon               | to write | draft |
-| 05 | Verify                 | to write | draft |
+| 01 | Settings and cameras   | [`01_settings_and_cameras.md`](01_settings_and_cameras.md) | planned |
+| 02 | The player's ship      | [`02_player_ship.md`](02_player_ship.md) | planned |
+| 03 | Map icons              | [`03_map_icons.md`](03_map_icons.md) | planned |
+| 04 | App icon               | [`04_app_icon.md`](04_app_icon.md) | planned |
+| 05 | Verify                 | [`05_verify.md`](05_verify.md) | planned |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -23,3 +26,5 @@ Status values: draft / planned / in progress / done / superseded / discarded.
 Append-only. Newest at the bottom.
 
 - 2026-11-23 : bootstrapped the folder on `feat/13_views` from `feat/12_cannons` at `af3fd99`: no app icon set; the minimap's ship a triangle, other ships not shown; one camera; no settings screen (Diagnostics the pattern); one player ship, which everything points at. Proposed a Settings screen in `PlayerPrefs`, three camera rigs per type, both player ships in the scene with the choice applied at load, silhouettes from the builder's numbers as map icons, the icon a still from the game. Q1 to Q7.
+- 2026-11-23 : `main` fast-forwarded to `af3fd99` (the cannons), at the user's word. The user: Q1 to Q3 a; Q4 both, a choice; Q5 a, super small; Q6 both maps; Q7 to be assessed, stills or a flat SVG. Folded in; sub-plans 01 to 05 written.
+- 2026-11-23 : review of the sub-plans: both player ships saved inactive with the chosen one turned on in `Awake` (turning one off after its `Awake` races it); the flat icon drawn with Pillow from `textures.py` rather than an SVG needing cairo. Corrected in place. Waiting on the user's go.
