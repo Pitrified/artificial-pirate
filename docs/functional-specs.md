@@ -26,7 +26,7 @@ Something moves between these lists through a plan in `plans/`, which updates th
 
 **In the game:** sailing (kinematic), the chase camera and its shake, the generated world and its maps, stylized water with waves, shore foam and ripples, floating props, two ship types, ship against ship and against the shore, broadsides that fire on their own (sides, aimed barrels, the balls' hits, flash, smoke, splinters, splashes), hull damage, smoke from a wreck, broken masts, sinking and game over, a ship sailing a circle on its own, sunk ships coming back, bars over other ships, the save, the diagnostics report and the debug overlay.
 
-**Next** (wanted, not yet planned; work toward it is not blocked): ships that choose where to sail and chase, sails that follow the heading, more ship types, things to find on islands, sound, chain shot at the masts, a choice of cameras in the settings (one from behind the helm).
+**Next** (wanted, not yet planned; work toward it is not blocked): ships that choose where to sail and chase, sails that follow the heading, more ship types, things to find on islands, sound, chain shot at the masts, a choice of cameras in the settings (one from behind the helm), chase and stern guns (on bigger ships), a giant ship (a three-masted galleon, the size of a tall ship such as the Amerigo Vespucci).
 
 **Not planned** (do not build without a plan that moves it): multiplayer, an economy or progression, cloud save, in-app purchases, ads, analytics, localization, accessibility settings, controller support, tablet or foldable layouts, realistic water physics.
 
