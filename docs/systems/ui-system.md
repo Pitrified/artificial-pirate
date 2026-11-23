@@ -66,6 +66,8 @@ The HUD in the Game scene is uGUI (the joystick, the pause button, the minimap i
 Under the minimap, `HullBar` shows the player's hull health: a dark bar holding a fill stretched from its left edge to the health, green when whole, yellow at half, red when ruined.
 `GameSceneWiring` binds it to the ship's `ShipDamage` once the save is restored, and it redraws on `Damaged`, not each frame.
 `HullBarTests` (EditMode): the fill follows the health and reddens.
+Beside the pause button, the CAM button (a uGUI `Button`; the pause button is an Input System `OnScreenButton`) cycles the cameras through `GameSettings.NextCamera`.
+The **Settings** screen (`UI/Settings.uxml`, `SettingsPanel`), from the menu and the pause screen as Diagnostics is, sets the camera, the helm camera's motion and, in development builds, the ship sailed from the next game; each row lights its chosen button, Back closes it. `GameManager` hands it the settings (`IUISystem.BindSettings`).
 Over the other ships near the player's, `ShipBars` places a bar each from a pool of four, red for another side and green for the player's (`docs/systems/combat.md`); it sits under the HUD, so it hides with it.
 
 ---

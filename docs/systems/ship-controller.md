@@ -31,7 +31,8 @@ It holds:
 - **the guns**: the starboard muzzles, a ball's damage and the hull's strength against balls (`docs/systems/combat.md`);
   Above the water the builder's sides are vertical, so the hull's side along its length is one curve, `_beamAlongLength`: the half-beam as a share of the type's, from -1 (stern) to 1 (bow) of the half length, sampled from the builder's `half_beam` at its 21 stations (`HalfBeamAt(z)`). A new type, or a hull reshaped in the builder, gets its curve sampled again; the marks sit on it.
 - **the handling**: the fields below;
-- **the camera's offset**, handed to the camera by `GameSceneWiring`.
+- **the cameras' rigs**: the chase's offset and look point, the bird's eye's and the helm's (`Rig(view)`, `docs/systems/camera-controller.md`);
+- **the map icon**, its hull from above (`docs/systems/world.md`).
 
 A new type is a model from the ship builder (`docs/building_assets.md`), an `SO_ShipType`, and a variant of `PF_Ship` carrying both.
 A variant whose paint differs overrides the shared slots on its renderer, as `PF_Ship_Brig` does with `M_BrigTopsides` and `M_BrigTrim`.

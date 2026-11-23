@@ -14,7 +14,7 @@ Ships are built from parts (hull, masts, sails, rigging, fittings, guns) by the 
 Ships fight with their broadsides: a ship's guns fire on their own at a ship of another side in range on its beam, so the player fights by steering, and the barrels turn to the shot.
 Hulls take damage from the balls where they strike, and when they ram a ship or run aground: a damaged ship is slower, sits lower and lists, its hull shows the hits, a badly damaged one smokes, and a hard hit can bring a mast down.
 A ruined hull sinks; the player's sinking ends the game. A pirate brig lies at anchor near the start and another sails a circle; a sunk one comes back.
-The session is saved and continued from the menu.
+The session is saved and continued from the menu. Three cameras follow the ship (behind it, high above it, from the helm), chosen in the settings or with a button while sailing; the maps show every ship as a small icon of its kind.
 
 Priorities, in order: a steady frame rate on a mid-range phone, code an agent can read and change safely, a fast loop from change to device, then looks.
 
@@ -24,9 +24,9 @@ Priorities, in order: a steady frame rate on a mid-range phone, code an agent ca
 
 Something moves between these lists through a plan in `plans/`, which updates this page.
 
-**In the game:** sailing (kinematic), the chase camera and its shake, the generated world and its maps, stylized water with waves, shore foam and ripples, floating props, two ship types, ship against ship and against the shore, broadsides that fire on their own (sides, aimed barrels, the balls' hits, flash, smoke, splinters, splashes), hull damage, smoke from a wreck, broken masts, sinking and game over, a ship sailing a circle on its own, sunk ships coming back, bars over other ships, the save, the diagnostics report and the debug overlay.
+**In the game:** sailing (kinematic), the chase camera and its shake, the generated world and its maps, stylized water with waves, shore foam and ripples, floating props, two ship types, ship against ship and against the shore, broadsides that fire on their own (sides, aimed barrels, the balls' hits, flash, smoke, splinters, splashes), hull damage, smoke from a wreck, broken masts, sinking and game over, a ship sailing a circle on its own, sunk ships coming back, bars over other ships, three cameras (chase, bird's eye, helm steady or riding), a settings screen, ships on both maps as icons of their kind, the choice of the player's ship (development builds), the app's icon, the save, the diagnostics report and the debug overlay.
 
-**Next** (wanted, not yet planned; work toward it is not blocked): ships that choose where to sail and chase, sails that follow the heading, more ship types, things to find on islands, sound, chain shot at the masts, a choice of cameras in the settings (one from behind the helm), chase and stern guns (on bigger ships), a giant ship (a three-masted galleon, the size of a tall ship such as the Amerigo Vespucci).
+**Next** (wanted, not yet planned; work toward it is not blocked): ships that choose where to sail and chase, sails that follow the heading, more ship types, things to find on islands, sound, chain shot at the masts, chase and stern guns (on bigger ships), a giant ship (a three-masted galleon, the size of a tall ship such as the Amerigo Vespucci).
 
 **Not planned** (do not build without a plan that moves it): multiplayer, an economy or progression, cloud save, in-app purchases, ads, analytics, localization, accessibility settings, controller support, tablet or foldable layouts, realistic water physics.
 
@@ -48,6 +48,7 @@ Something moves between these lists through a plan in `plans/`, which updates th
 | Orientation    | **Landscape only**                        | One layout to design for               |
 | Scenes         | **Additive scenes over a persistent root** | Clean lifetimes                       |
 | Save           | **JSON file in `Application.persistentDataPath`** ([save-system](systems/save-system.md)) | Inspectable, portable |
+| Settings       | **`PlayerPrefs`** (`GameSettings`, [game-manager](systems/game-manager.md)) | Kept on the phone, not in the save; as the volumes are |
 | Builds         | **Local scripts** (`Tools/build-android.sh`) | No CI                               |
 
 Anything not listed is **not decided**: raise it in a plan rather than introducing a silent default.
@@ -96,6 +97,7 @@ App launch
 | Steering       | Virtual stick, X axis                  | `A` / `D`         |
 | Pause          | Pause button, top left                 | `Esc`             |
 | Map            | Tap the minimap                        | Click the minimap |
+| Camera         | CAM button, beside the pause button: chase, bird's eye, helm in turn | Click it |
 | Debug overlay  | Three-finger tap (development builds)  | `F1`              |
 
 ---
@@ -108,12 +110,12 @@ UI Toolkit screens, in the safe area, routed by `UISystem` by `ScreenId` ([ui-sy
 | ------ | ---------- | -------------- |
 | Main menu | `Menu` | New Game, Continue (when a save exists), Settings, Diagnostics, Quit |
 | Pause | `Pause` | Resume, Main Menu, Settings, Diagnostics |
-| Map | `Map` | The explored world over the paused game: centre on the ship, reset zoom, close |
+| Map | `Map` | The explored world over the paused game, with the ships on it: centre on the ship, reset zoom, close |
 | Game over | `GameOver` | The ship has sunk: Main Menu |
 | Diagnostics | `Diagnostics` | The diagnostics report: copy, share, the previous session's |
 | Settings | `Settings` | The camera (Chase, Bird's eye, Helm), the helm camera steady or riding; in development builds the ship sailed from the next game; Back |
 
-Also: the loading screen (at least 0.5 s, so it does not flash), and the Game scene's HUD in uGUI (the stick, the pause button, the minimap, the hull bar, bars over the other ships near the player's).
+Also: the loading screen (at least 0.5 s, so it does not flash), and the Game scene's HUD in uGUI (the stick, the pause button, the camera button, the minimap with the ships near, the hull bar, bars over the other ships near the player's).
 
 ---
 

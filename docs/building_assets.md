@@ -53,7 +53,7 @@ The package `builders/ship/` builds a ship from a dict, and `builders/sloop.py` 
 Its modules are the parts: `hull`, `rig`, `sails`, `rigging`, `fittings`, `props`, with `mesh` for the primitives.
 A ship is the hull (with its bowsprit, the masts' channels, fittings and crew), its flag, and for each mast `<Name>Mast<i>` (the mast, its tops and standing rigging, the stays it holds up from behind and its jibs' stays), its two sail states (`<Name>Mast<i>Sailing`, `<Name>Mast<i>Anchored`, of which the game shows one), and `<Name>Mast<i>Stump`, shown when the mast breaks; and each gun's barrel, `<Name>GunStarboard<i>` and `<Name>GunPort<i>` (stern to bow), its origin at its trunnions so the game can aim it (`make_object` takes an origin), the carriages staying in the hull. The masts are numbered in the order of `PARAMS["masts"]`. `build.py` prints the triangles per object, and `--hide <object>` leaves one out of the probe.
 The ship's `SO_ShipType` carries its hull's side along the length, sampled from `half_beam` at the 21 stations (`docs/systems/ship-controller.md`); a reshaped hull samples it again.
-It carries the guns' muzzles too, which `build.py <type> --no-fbx` prints as `guns` (a builder may define `report(params)`, more numbers for the printed JSON); moved gun ports are copied again (`docs/systems/combat.md`).
+It carries the guns' muzzles and the helmsman's eyes too, which `build.py <type> --no-fbx` prints as `guns` and `helm_eye` (a builder may define `report(params)`, more numbers for the printed JSON); moved gun ports are copied again (`docs/systems/combat.md`).
 A new type is a new parameter set (`sloop.py`, `brig.py`). When it needs a part the builder lacks, the part is added to the package as a parameter, never named after the type.
 The ropes are led as a ship's are, so they stay clear of the sails: braces forward to the mast ahead, the lee running backstay let go, the booms swung out only as far as the lee rigging lets them, a jib's stay made fast high enough above the yard behind it.
 `clearance.py` checks it on every build: it prints, per sail state, any rope that passes through a sail or a furl (`clearance SloopSailing: 0 ropes through sails`). A new type, or a new trim, should leave it at 0.
@@ -63,6 +63,7 @@ Ships break two of the props' conventions:
 - The bow points to -Y in Blender, which the FBX export turns into Unity's +Z, the ship's forward; `BuiltModelTests` checks it. The probe's `--view 270 5` shows the starboard side, bow to the right.
 
 Slots are named by the parts and shared by every ship (`BuiltModelTests` lists them). UVs are in metres, so a textured material tiles by metres (a 4 m tile is a tiling of 0.25). Props take their colours from one palette texture (`builders/palette.py`, `textures.py palette`): a face puts its UVs on a swatch, and many colours cost one slot. A type with its own paint gets a material override on its prefab variant.
+Two more textures come from the same script: each ship type's map icon (`textures.py map_icons`: its hull from above, drawn from the builder's numbers, so a new type's comes with it) and the app's icon (`textures.py app_icon`: a flat brig at sea, the adaptive icon's background, `T_AppIconClear` its foreground).
 
 ## 4. The Unity side
 

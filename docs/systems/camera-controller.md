@@ -2,7 +2,13 @@
 
 ## Overview
 
-Third-person chase camera. Follows the ship from a fixed offset with smoothing, and shakes when told.
+The camera that follows the player's ship, in one of three views from the ship's type, and shakes when told.
+
+- **Chase**: behind and above, smoothed.
+- **Bird's eye**: high and a little astern, looking down toward the bow, smoothed.
+- **Helm**: the helmsman's eyes over the bow, held fast; **steady** (the heading only, the horizon level) or **riding** (the hull's pitch and roll).
+
+The view is the player's setting (`GameSettings.Camera`, `HelmRides`, `docs/systems/game-manager.md`); the HUD's CAM button cycles it. A change of view eases from where the camera was to the new view over `SwitchSeconds` (0.5 s). Each type carries a rig (place and look point, in the ship's space) per view (`SO_ShipType.Rig`): the chase's is `CameraOffset` and `CameraLookAt`; the bird's eye about 45 m up and 22 m astern on the sloop, 60 and 30 on the brig; the helm's eye from the ship builder's report (`helm_eye`: behind the wheel or beside the tiller, 1.7 m over the deck).
 
 ---
 
@@ -12,7 +18,7 @@ Third-person chase camera. Follows the ship from a fixed offset with smoothing, 
 - Maintain an offset in target-local space, given with the target
 - Smooth position and rotation
 - Optional look-at on the target
-- Shake: an offset that wanders and dies away, laid over the smoothed position and taken off before the next smoothing step, so it never feeds back into the follow
+- Shake: an offset that wanders and dies away, laid over the pose at the end; the follow keeps its own pose apart from the transform, so neither the shake nor a change of view feeds into the smoothing
 
 ---
 
@@ -40,6 +46,8 @@ Where it sits and what it looks at are the followed ship's: `SO_ShipType.CameraO
 
 ```
 void SetTarget(Transform target, Vector3 offset, Vector3 lookAt)
+void SetShip(Transform root, Transform hull, SO_ShipType type, CameraView view, bool helmRides)
+void SetView(CameraView view, bool helmRides)   // eases into the new view
 void SnapToTarget()              // teleport, used after scene load
 void Shake(float strength)       // metres; a stronger shake replaces a weaker one
 ```
