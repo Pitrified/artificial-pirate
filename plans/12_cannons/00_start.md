@@ -1,6 +1,6 @@
 ---
-status: in progress
-priority: 1
+status: done
+priority: 0
 description: |
   Combat: each ship's cannons fire on their own when an enemy is in range on the beam, the balls fly
   and hit or splash, a hit damages the hull where it lands. Flash, smoke, splinters and splashes from

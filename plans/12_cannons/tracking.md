@@ -19,7 +19,7 @@ Ships' cannons fire on their own at an enemy on the beam; balls hit where they l
 | 03 | Ships at sea      | [`03_ships_at_sea.md`](03_ships_at_sea.md) | done |
 | 04 | The fight         | [`04_the_fight.md`](04_the_fight.md) | done |
 | 05 | Barrels that aim  | [`05_barrels_that_aim.md`](05_barrels_that_aim.md) | done |
-| 06 | Verify            | [`06_verify.md`](06_verify.md) | in progress |
+| 06 | Verify            | [`06_verify.md`](06_verify.md) | done |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -38,3 +38,4 @@ Append-only. Newest at the bottom.
 - 2026-11-23 : phase 06 - review before: nothing to correct. `docs/systems/combat.md` written; the spec (the game, Scope, the HUD, Systems, a release check), `ship-controller.md`, `ui-system.md`, `camera-controller.md` and `building_assets.md` updated; spec check pass, links 0 broken, citations clean. Dev APK built for the phone run. Waiting on the phone (the baseline at `a0e18d4` and a fight on this branch, which also decides the barrels) and Q11.
 - 2026-11-23 : phase 06 - the user's phone report (Pixel 7 Pro, `f95ae39`): 60 fps held through two fights; GPU mean 11.7 ms against 11.2 at `0d14399`, p95 12.8 against 12.3, median unchanged; the barrels stay. Four single 33 ms frames in 140 s, not followed. Waiting on the user's read of the fights and Q11.
 - 2026-11-23 : the user: Q11, pull the camera higher and further back everywhere (sloop (0, 18, -56), brig (0, 24, -80)); the brig's harm is fair; a choice of cameras in settings (one from behind the helm) to the spec's Next. Spec updated, dev APK rebuilt for a look.
+- 2026-11-23 : the user: the camera looks good on the phone; the branch pushed. Phase 06 and the folder done.
