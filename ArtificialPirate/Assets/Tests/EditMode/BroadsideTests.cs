@@ -1,0 +1,235 @@
+namespace Game.Tests.EditMode
+{
+    using System.Collections.Generic;
+    using NUnit.Framework;
+    using UnityEngine;
+    using Game.Gameplay;
+
+    /// <summary>
+    /// <see cref="Broadside"/> and <see cref="Cannonballs"/> with ships built in code on the Ship
+    /// layer, far from anything a scene left loaded: a side bears on a ship within range and within
+    /// the arc of its beam, never on its own side, and fires at the nearest; a volley fires its guns
+    /// one after another and then reloads; the solved arc lands on a still target and, led, on a
+    /// moving one; a ball takes the firer's damage over the target's strength at the point struck,
+    /// passing through its own hull; a ball that hits nothing is dropped.
+    /// </summary>
+    public sealed class BroadsideTests
+    {
+        private const float HalfLength = 10f;
+        private const float HalfBeam = 3f;
+        private const float Draft = 2f;
+        private const float Freeboard = 2f;
+        private const float Range = 90f;
+        private const float Arc = 20f;
+        private const float Speed = 60f;
+        private const float Gap = 0.1f;
+        private const float Reload = 5f;
+        private const float Look = 0.25f;
+        private const float BallDamage = 0.05f;
+        private const float Step = 1f / 60f;
+        private static readonly Vector3 Far = new Vector3(3000f, 0f, 3000f);
+
+        private readonly List<Object> _made = new List<Object>();
+        private LayerMask _ships;
+        private SO_Gunnery _gunnery;
+        private Cannonballs _balls;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _ships = 1 << LayerMask.NameToLayer("Ship");
+            _gunnery = ScriptableObject.CreateInstance<SO_Gunnery>();
+            _gunnery.Set(Range, Arc, Speed, 0f, Gap, Reload, Look);
+            _made.Add(_gunnery);
+            var go = new GameObject("Cannonballs");
+            _made.Add(go);
+            _balls = go.AddComponent<Cannonballs>();
+            _balls.Configure(null, _ships, 16);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (Object made in _made)
+            {
+                Object.DestroyImmediate(made);
+            }
+            _made.Clear();
+        }
+
+        private SO_ShipType Type(float strength)
+        {
+            var type = ScriptableObject.CreateInstance<SO_ShipType>();
+            type.SetHull(HalfLength, HalfBeam, Draft, Freeboard);
+            // Muzzles just inside the hull's box, as a gun amidships can be: its own hull must not stop the ball.
+            type.SetGuns(new[] { new Vector3(HalfBeam - 0.2f, 1f, -4f), new Vector3(HalfBeam - 0.2f, 1f, 0f), new Vector3(HalfBeam - 0.2f, 1f, 4f) }, BallDamage, strength);
+            _made.Add(type);
+            return type;
+        }
+
+        private Broadside Ship(string name, ShipSide side, Vector3 offset, float yawDeg = 0f, float strength = 1f)
+        {
+            SO_ShipType type = Type(strength);
+            var root = new GameObject(name);
+            _made.Add(root);
+            root.transform.SetPositionAndRotation(Far + offset, Quaternion.Euler(0f, yawDeg, 0f));
+            var hull = new GameObject("Hull");
+            hull.layer = LayerMask.NameToLayer("Ship");
+            hull.transform.SetParent(root.transform, false);
+            BoxCollider box = hull.AddComponent<BoxCollider>();
+            box.center = new Vector3(0f, (Freeboard - Draft) / 2f, 0f);
+            box.size = new Vector3(2f * HalfBeam, Draft + Freeboard, 2f * HalfLength);
+            HullContact contact = root.AddComponent<HullContact>();
+            contact.Configure(type, box, _ships, 0.5f);
+            ShipDamage damage = root.AddComponent<ShipDamage>();
+            damage.Configure(contact);
+            Broadside broadside = root.AddComponent<Broadside>();
+            broadside.Configure(side, _gunnery, contact, damage, _balls, 7);
+            Physics.SyncTransforms();
+            return broadside;
+        }
+
+        private static Vector3 Bearing(float distance, float degreesFromStarboardBeam)
+        {
+            return Quaternion.Euler(0f, -degreesFromStarboardBeam, 0f) * Vector3.right * distance;
+        }
+
+        private static float Health(Broadside ship) => ship.GetComponent<ShipDamage>().Health;
+
+        private void Run(float seconds, params Broadside[] ships)
+        {
+            for (float t = 0f; t < seconds; t += Step)
+            {
+                foreach (Broadside ship in ships)
+                {
+                    ship.Tick(Step);
+                }
+                _balls.Tick(Step);
+            }
+        }
+
+        [Test]
+        public void InArc_OnTheBeamAndUpToTheArcBothWays_WithinRange()
+        {
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero);
+            Broadside abeam = Ship("Abeam", ShipSide.Pirates, Bearing(60f, 0f));
+            Broadside forward = Ship("Forward", ShipSide.Pirates, Bearing(60f, Arc - 1f));
+            Broadside aft = Ship("Aft", ShipSide.Pirates, Bearing(60f, -(Arc - 1f)));
+            Broadside beyondArc = Ship("BeyondArc", ShipSide.Pirates, Bearing(60f, Arc + 2f));
+            Broadside ahead = Ship("Ahead", ShipSide.Pirates, Vector3.forward * 60f);
+            Broadside beyondRange = Ship("BeyondRange", ShipSide.Pirates, Bearing(Range + 5f, 0f));
+            Broadside toPort = Ship("ToPort", ShipSide.Pirates, -Bearing(60f, 0f));
+
+            Assert.IsTrue(us.InArc(abeam, true));
+            Assert.IsTrue(us.InArc(forward, true));
+            Assert.IsTrue(us.InArc(aft, true));
+            Assert.IsFalse(us.InArc(beyondArc, true));
+            Assert.IsFalse(us.InArc(ahead, true));
+            Assert.IsFalse(us.InArc(ahead, false));
+            Assert.IsFalse(us.InArc(beyondRange, true));
+            Assert.IsFalse(us.InArc(toPort, true));
+            Assert.IsTrue(us.InArc(toPort, false));
+        }
+
+        [Test]
+        public void Look_TargetsTheNearestOfAnotherSide_NeverItsOwn()
+        {
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero);
+            Ship("Ally", ShipSide.Player, Bearing(30f, 0f));
+            Broadside near = Ship("Near", ShipSide.Pirates, Bearing(55f, 5f));
+            Ship("FarOff", ShipSide.Pirates, Bearing(80f, -5f));
+
+            us.Tick(Step);
+
+            Assert.AreSame(near, us.TargetOf(true));
+            Assert.IsNull(us.TargetOf(false));
+        }
+
+        [Test]
+        public void Volley_FiresEachGunAGapApart_ThenReloads()
+        {
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero);
+            Ship("Them", ShipSide.Pirates, Bearing(60f, 0f));
+            var launches = new List<float>();
+            float now = 0f;
+            _balls.Launched += (muzzle, direction) => launches.Add(now);
+
+            for (; now < Reload; now += Step)
+            {
+                us.Tick(Step);
+            }
+
+            Assert.AreEqual(3, launches.Count, "one volley of the side's three guns");
+            Assert.AreEqual(Gap, launches[1] - launches[0], Step + 1e-4f);
+            Assert.AreEqual(Gap, launches[2] - launches[1], Step + 1e-4f);
+
+            for (; now < 2f * Gap + Reload + 2f * Step; now += Step)
+            {
+                us.Tick(Step);
+            }
+            Assert.AreEqual(4, launches.Count, "the next volley once reloaded");
+        }
+
+        [Test]
+        public void Solve_StillTarget_TheArcPassesThroughIt()
+        {
+            Vector3 from = new Vector3(0f, 2f, 0f);
+            Vector3 to = new Vector3(70f, 1f, 20f);
+
+            Assert.IsTrue(Broadside.Solve(from, to, Vector3.zero, Speed, out Vector3 velocity));
+
+            Vector3 flat = new Vector3(velocity.x, 0f, velocity.z);
+            float time = new Vector3(to.x - from.x, 0f, to.z - from.z).magnitude / flat.magnitude;
+            Vector3 landed = from + velocity * time + 0.5f * time * time * Physics.gravity;
+            Assert.That(Vector3.Distance(landed, to), Is.LessThan(0.01f));
+            Assert.That(velocity.magnitude, Is.EqualTo(Speed).Within(1e-3f));
+        }
+
+        [Test]
+        public void Solve_MovingTarget_LeadsItSoTheyMeet()
+        {
+            Vector3 from = Vector3.zero;
+            Vector3 to = new Vector3(70f, 0f, 0f);
+            Vector3 moving = new Vector3(0f, 0f, 6f);
+
+            Assert.IsTrue(Broadside.Solve(from, to, moving, Speed, out Vector3 velocity));
+
+            Vector3 flat = new Vector3(velocity.x, 0f, velocity.z);
+            float time = 70f / flat.x;
+            Vector3 ball = from + velocity * time + 0.5f * time * time * Physics.gravity;
+            Assert.That(Vector3.Distance(ball, to + moving * time), Is.LessThan(0.2f));
+        }
+
+        [Test]
+        public void Ball_StrikesTheTarget_ForTheFirersDamageOverItsStrength()
+        {
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero);
+            Broadside them = Ship("Them", ShipSide.Pirates, Bearing(50f, 0f), 0f, 2f);
+            var struck = new List<Vector3>();
+            _balls.HitHull += (point, normal) => struck.Add(point);
+
+            Run(3f * Gap + 2f, us);
+
+            Assert.AreEqual(3, struck.Count, "the volley's three balls struck");
+            Assert.AreEqual(1f, Health(us), 1e-5f, "our own hull, which the balls start inside, is untouched");
+            Assert.AreEqual(1f - 3f * BallDamage / 2f, Health(them), 1e-4f);
+            Vector3 local = them.Hull.InverseTransformPoint(struck[0]);
+            Assert.That(local.x, Is.EqualTo(-HalfBeam).Within(0.05f), "struck on the side facing us");
+        }
+
+        [Test]
+        public void Ball_HittingNothing_IsDroppedAfterItsTime()
+        {
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero);
+            _balls.Launch(us.Hull.TransformPoint(new Vector3(HalfBeam + 0.3f, 1f, 0f)), Vector3.right * Speed, us);
+            Assert.AreEqual(1, _balls.Flying);
+
+            for (float t = 0f; t < 7f; t += Step)
+            {
+                _balls.Tick(Step);
+            }
+
+            Assert.AreEqual(0, _balls.Flying);
+        }
+    }
+}

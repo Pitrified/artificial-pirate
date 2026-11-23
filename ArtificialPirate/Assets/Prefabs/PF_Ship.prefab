@@ -179,6 +179,7 @@ GameObject:
   - component: {fileID: 996484746544028862}
   - component: {fileID: 4209681522950572463}
   - component: {fileID: 3138151721611412151}
+  - component: {fileID: 7976537228231545139}
   m_Layer: 0
   m_Name: PF_Ship
   m_TagString: Untagged
@@ -327,3 +328,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.ShipMasts
   _damage: {fileID: 4209681522950572463}
   _masts: []
+--- !u!114 &7976537228231545139
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4700440681567757610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdd6e36fa13feff07869b786cc7e1c6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.Broadside
+  _side: 1
+  _gunnery: {fileID: 11400000, guid: 4757038519e09bf91a9640fe83037db7, type: 2}
+  _contact: {fileID: 996484746544028862}
+  _damage: {fileID: 4209681522950572463}
+  _balls: {fileID: 0}
+  _seed: 1

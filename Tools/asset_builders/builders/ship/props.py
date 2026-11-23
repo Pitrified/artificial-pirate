@@ -38,12 +38,17 @@ def _y(p: dict, t: float) -> float:
     return (t - 0.5) * p["length"]
 
 
+def muzzle_at(port: Vector, side: float) -> Vector:
+    """The centre of a barrel's mouth, run out through its port."""
+    return Vector((port.x + side * BARREL_OUT, port.y, port.z))
+
+
 def cannons(parts: MeshParts, p: dict) -> None:
     iron, wood = swatch_uv("iron"), swatch_uv("carriage")
     for t, side, port in gun_port_centres(p):
         inner = bulwark_inner(p, t)
         base = deck_height(p, t)
-        muzzle = Vector((port.x + side * BARREL_OUT, port.y, port.z))
+        muzzle = muzzle_at(port, side)
         breech = muzzle - Vector((side * BARREL_LENGTH, 0.0, 0.0))
         carriage = Vector((side * (inner - CARRIAGE.x / 2 - 0.3), port.y, base + CARRIAGE.z / 2))
         axis_box(parts, carriage, CARRIAGE, "Palette", wood)

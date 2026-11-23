@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 035d00e3d47f11982a9b2cf8468014b2, type: 3}
+  m_Name: SO_Gunnery
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.SO_Gunnery
+  _range: 90
+  _arcDeg: 20
+  _muzzleSpeed: 60
+  _spreadDeg: 2.5
+  _aimAlongLength: 0.6
+  _volleyGap: 0.12
+  _reloadSeconds: 5
+  _lookSeconds: 0.25

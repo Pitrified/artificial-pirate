@@ -6,7 +6,7 @@ references/brig/niagara_sail.jpg. The draft is not published; 3.4 m is assumed.
 
 from __future__ import annotations
 
-from builders.ship import build  # noqa: F401 - build.py calls the type's build
+from builders.ship import build, report  # noqa: F401 - build.py calls the type's build and report
 
 PARAMS = {
     "name": "Brig",

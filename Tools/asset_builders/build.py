@@ -9,7 +9,7 @@ Run from this folder:
 
 A builder is `builders/<name>.py` with a `PARAMS` dict of defaults and a
 `build(params)` function that makes the model's objects in the current Blender
-scene, in metres, Z up, the origin at the base centre, -Y facing the viewer.
+scene (and optionally `report(params)`, more numbers for the printed JSON), in metres, Z up, the origin at the base centre, -Y facing the viewer.
 Materials are named slots only: Unity makes the real materials (docs/building_assets.md).
 
 The FBX goes to ArtificialPirate/Assets/Art/Models/<Name>.fbx unless --out says otherwise.
@@ -151,6 +151,8 @@ def main() -> None:
     reset_scene()
     module.build(params)
     info = stats()
+    if hasattr(module, "report"):
+        info.update(module.report(params))
     print(json.dumps({"builder": args.name, "params": params, **info}, indent=2))
 
     if not args.no_fbx:

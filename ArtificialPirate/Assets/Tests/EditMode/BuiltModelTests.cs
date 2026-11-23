@@ -22,6 +22,7 @@ namespace Game.Tests.EditMode
         private const float PivotTolerance = 0.005f;
         private const float HullTolerance = 0.05f;
         private const float WaterlineBand = 0.005f;
+        private const float MuzzleTolerance = 0.3f; // the mouth's rim is the barrel's radius from its centre
 
         private static readonly string[] ShipMaterials =
         {
@@ -199,6 +200,23 @@ namespace Game.Tests.EditMode
                 }
             }
             Assert.IsNull(root.transform.Find($"{name}Mast{model.Masts}"), "No more masts");
+        }
+
+        [TestCaseSource(nameof(Ships))]
+        public void Ship_GunsAreAtTheBarrelsMouths(Expected model)
+        {
+            SO_ShipType type = LoadType(model);
+            ModelBounds(Load(model), out List<Vector3> points);
+            Assert.That(type.GunsPerSide, Is.GreaterThan(0), "the type lists its guns");
+            for (int i = 0; i < type.GunsPerSide; i++)
+            {
+                foreach (bool starboard in new[] { true, false })
+                {
+                    Vector3 muzzle = type.Gun(i, starboard);
+                    float nearest = points.Min(p => Vector3.Distance(p, muzzle));
+                    Assert.That(nearest, Is.LessThan(MuzzleTolerance), $"a barrel's mouth at gun {i} {(starboard ? "starboard" : "port")} {muzzle}");
+                }
+            }
         }
 
         [TestCaseSource(nameof(Ships))]

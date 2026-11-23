@@ -89,3 +89,10 @@ def build(params: dict) -> None:
 
     for state, per_mast in (("Sailing", sailing), ("Anchored", anchored)):
         clearance.report(f"{name}{state}", _crossings(standing_ropes, per_mast))
+
+
+def report(params: dict) -> dict:
+    """The starboard guns' muzzles in Unity's axes (X starboard, Y up, Z to the bow), metres from the
+    waterline amidships, for the ship's type; the port guns mirror them."""
+    guns = [props.muzzle_at(port, side) for _, side, port in fittings.gun_port_centres(params) if side > 0]
+    return {"guns": [[round(m.x, 4), round(m.z, 4), round(m.y, 4)] for m in guns]}

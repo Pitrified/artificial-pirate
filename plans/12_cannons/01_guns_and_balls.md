@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 01 - Guns and balls
@@ -30,9 +30,9 @@ Context: [`00_start.md`](00_start.md), Decisions.
   - On a hull: `ShipDamage.Hit(point, firer.BallDamage / target.HullStrength)`; `HitHull(point, normal)`.
   - On the water: the ripple ring (`WaterRipples.AddImpulse`); `HitWater(point)`.
   - On land: `HitGround(point)`.
-  - A ball out of balls is skipped and logged once. No allocation per frame (`AllocationScan` in a test).
+  - A ball out of balls is skipped and logged once. No allocation per frame, by construction (a fixed pool, the non-allocating queries); measured only in a player, so on the phone in phase 06.
 - **The scene**, by a throwaway editor script: `Cannonballs` with the water, ripples and world; `Broadside` on `PF_Ship` with `SO_Gunnery`; the sloop's side `Player`, the brig's `Pirates`; the `Cannonballs` reference on each instance.
-- **Tests (EditMode)**: the arc (a ship on the beam is a target, one ahead is not, the 20 degrees both ways), the range, the own side never a target, the nearest chosen; a volley's gaps and the reload; the solved arc hitting a still target with no spread, and a moving one with the lead; a ball's hull hit at the point with the damage scaled, its own hull skipped; a ball into the water; no allocation per frame; the guns' places against the model.
+- **Tests (EditMode)**: the arc (a ship on the beam is a target, one ahead is not, the 20 degrees both ways), the range, the own side never a target, the nearest chosen; a volley's gaps and the reload; the solved arc hitting a still target with no spread, and a moving one with the lead; a ball's hull hit at the point with the damage scaled, its own hull skipped; a ball that hits nothing dropped; the guns' places against the model.
 
 ## Out of scope
 
@@ -44,3 +44,10 @@ Context: [`00_start.md`](00_start.md), Decisions.
 - A capture of the sloop beside the brig shows balls in flight and hull marks appearing on the side hit.
 
 ## What the implementation found
+
+- Managed allocation can only be measured in a player (`AllocationTests`, `docs/headless-unity.md`), so no EditMode test checks it; the pool and the non-allocating queries are the guarantee, and the phone's report in phase 06 the check. The water's splash is seen in the capture rather than tested: a `WaterSurface` needs the PlayMode scene.
+- The builder's muzzles come out of `build.py <type> --no-fbx` as `guns` (a `report` a builder may define); the models are unchanged (sloop 9,554 triangles, brig 16,450).
+- At New Game the sloop lies 38 m from the anchored brig, the brig about 23 degrees off its starboard beam, just outside the arc: the first turn to port starts the fight. Phase 03 moves the anchored brig if that is too soon.
+- Saving the ship types and the scene through Unity wrote fields that had only their defaults until now (the masts' numbers on both types, `HullBar._half`); the values are the defaults.
+- Capture, the sloop placed with the brig on its beam: its six guns fire 0.12 s apart, all six strike the brig's facing side, 0.038 each (0.06 over 1.6), and the marks appear along it.
+- Gates at the phase's commit: spec pass, compile 0/0, EditMode 242/242, PlayMode 24/24.

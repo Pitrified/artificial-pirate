@@ -60,6 +60,9 @@ namespace Game.Gameplay
         /// <summary>The ship's type, which sets its size.</summary>
         public SO_ShipType Type => _type;
 
+        /// <summary>The layers that hold ships' hulls.</summary>
+        public LayerMask Ships => _ships;
+
         /// <summary>The hull's transform, which carries its model.</summary>
         public Transform Hull => _hull != null ? _hull.transform : null;
 

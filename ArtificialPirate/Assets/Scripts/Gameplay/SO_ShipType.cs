@@ -87,6 +87,16 @@ namespace Game.Gameplay
         [Tooltip("How long a fallen mast sinks before it is gone (s).")]
         [SerializeField] private float _mastSinkSeconds = 8f;
 
+        [Header("Guns")]
+        [Tooltip("The starboard guns' muzzles in the hull's space (m), stern to bow; the port guns mirror them. The builder's report prints them.")]
+        [SerializeField] private Vector3[] _guns = System.Array.Empty<Vector3>();
+
+        [Tooltip("The health one of this ship's balls takes off a hull of strength 1.")]
+        [SerializeField] private float _ballDamage = 0.06f;
+
+        [Tooltip("What a ball's damage is divided by on this hull.")]
+        [SerializeField] private float _hullStrength = 1f;
+
         /// <summary>From the centre to the bow and to the stern at the waterline, in metres.</summary>
         public float HalfLength => _halfLength;
 
@@ -174,6 +184,30 @@ namespace Game.Gameplay
 
         /// <summary>How long a fallen mast sinks before it is gone, in seconds.</summary>
         public float MastSinkSeconds => _mastSinkSeconds;
+
+        /// <summary>How many guns each side carries.</summary>
+        public int GunsPerSide => _guns.Length;
+
+        /// <summary>The muzzle of gun <paramref name="index"/> (stern to bow) on one side, in the hull's space, in metres.</summary>
+        public Vector3 Gun(int index, bool starboard)
+        {
+            Vector3 muzzle = _guns[index];
+            return starboard ? muzzle : new Vector3(-muzzle.x, muzzle.y, muzzle.z);
+        }
+
+        /// <summary>The health one of this ship's balls takes off a hull of strength 1.</summary>
+        public float BallDamage => _ballDamage;
+
+        /// <summary>What a ball's damage is divided by on this hull.</summary>
+        public float HullStrength => _hullStrength;
+
+        /// <summary>Sets the guns and the balls' damage (types made in code: tests).</summary>
+        internal void SetGuns(Vector3[] starboardMuzzles, float ballDamage, float hullStrength)
+        {
+            _guns = starboardMuzzles;
+            _ballDamage = ballDamage;
+            _hullStrength = hullStrength;
+        }
 
         /// <summary>Sets the chances of breaking a mast (types made in code: tests).</summary>
         internal void SetMastBreaking(float whole, float ruined, float breakingHit)

@@ -6,7 +6,7 @@ references/sloop/providence_side.jpg, the sails from references/sloop/providence
 
 from __future__ import annotations
 
-from builders.ship import build  # noqa: F401 - build.py calls the type's build
+from builders.ship import build, report  # noqa: F401 - build.py calls the type's build and report
 
 PARAMS = {
     "name": "Sloop",

@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in progress
 ---
 
 # Phase 02 - Effects
@@ -35,6 +35,6 @@ Context: [`00_start.md`](00_start.md), Effects; depends on [`01_guns_and_balls.m
 
 ## Done when
 
-- A capture sequence shows the flash, smoke, splinters, splash and dirt; tests: an effect emitted per event, damage smoke only below the threshold, no allocation per frame; gates green.
+- A capture sequence shows the flash, smoke, splinters, splash and dirt; tests: an effect emitted per event, damage smoke only below the threshold; gates green.
 
 ## What the implementation found
