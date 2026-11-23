@@ -4,7 +4,6 @@
 
 The sea grows as the ship sails: islands are generated from a seed, cell by cell around the ship.
 Plain, layered and deterministic, so later content (settlements, loot, wrecks) can be another layer on the same island records.
-The research and the choices are in `plans/08_world_map/00_start.md`.
 
 ---
 

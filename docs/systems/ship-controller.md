@@ -102,7 +102,7 @@ Kinematic bodies never collide with each other in PhysX, so ships meet through a
 
 ## Riding the waves (`WaveRider`)
 
-The ship stays kinematic and rides the water without physics (`plans/05_from_guide`, Q1).
+The ship stays kinematic and rides the water without physics, as movement is kinematic across the game ([locked decisions](../functional-specs.md#locked-decisions)).
 
 - `PF_Ship`'s root carries `ShipController`, `WaveRider`, a `WakeSource` (its wake, `docs/systems/water.md`), a `HullContact`, a `ShipDamage`, a `ShipMasts` and a kinematic `Rigidbody`; a `Hull` child, on the `Ship` layer, carries the box collider and, on a variant, the model.
 - Each `LateUpdate`, `WaveRider` samples the water (`WaterSurface.HeightAt`, the same waves the shader draws) at the bow, stern, port and starboard, the type's half length and half beam from the centre, and eases the hull's height, pitch and roll toward them at `_response` per second; `Start` places it at once. `_waterlineOffset` raises or sinks the hull's centre against the mean surface.

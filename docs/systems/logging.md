@@ -38,7 +38,7 @@ Log.Error  (LogCat cat, string message, params object[] args)
 
 ## Diagnostics report
 
-What a person copies or shares off the phone with no adb (built in the guide, unity-setup-project's `plans/05_diagnostics/`), after abyss's log button: header lines, a blank line, then statistics, problems and log lines. Every build carries it.
+What a person copies or shares off the phone with no adb (built in the guide, unity-setup-project), after abyss's log button: header lines, a blank line, then statistics, problems and log lines. Every build carries it.
 
 - **`DiagnosticsRecorder`** (in `Persistent.unity`) collects, with fixed buffers and no allocation per frame: frame times, and the CPU's and GPU's time on each frame from `FrameTimingManager` (frame timing stats on in the player settings), into session histograms (0.5 ms bins) and a last-minute ring; memory and managed heap once a second into histograms and a 600-second series; exceptions, errors and asserts from `Application.logMessageReceived` into a `ProblemLog`, apart from the ring, so a busy log never pushes them out (distinct by message and first stack line, with count, first and last time, top 6 stack lines, at most 10).
 - **`DiagnosticsReport`** writes it on demand:

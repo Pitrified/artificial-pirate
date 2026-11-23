@@ -20,5 +20,5 @@ Agents start from [`CLAUDE.md`](CLAUDE.md), which imports [`.github/copilot-inst
 ## Where it came from
 
 The game was built inside [unity-setup-project](https://github.com/Pitrified/unity-setup-project), which is now a guide to setting up a Unity mobile project.
-It moved here without history at that repo's `8b521a7`; [`plans/01_bootstrap/`](plans/01_bootstrap/00_start.md) records what was copied and renamed.
+It moved here without history at that repo's `8b521a7`: the naval vertical slice and the runtime it runs on, renamed to artificial-pirate.
 The generic docs (the AI workflow, Unity MCP, a dev machine from zero) stay in the guide and are linked from here.

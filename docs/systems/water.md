@@ -4,7 +4,7 @@
 
 Water for a mobile game: Gerstner waves that floating things ride, shore colour and foam from a depth map the world makes at runtime, ripples from splashes and bobbing, a wake behind the ship.
 Decent and reactive, not photoreal; one transparent draw for the surface, no depth or opaque texture, a 256x256 ripple step per frame.
-The choice and the alternatives are in the guide, unity-setup-project's `plans/04_water/00_start.md`.
+The middle ground, with no package: a Gerstner sum in the vertex shader with the same sum in C#, rather than scrolling textures (no shape) or an FFT ocean (compute shaders, large textures); the shore from a depth map rather than URP's depth texture, an extra depth copy each frame on a phone; no planar reflections, which render the scene twice.
 
 ---
 

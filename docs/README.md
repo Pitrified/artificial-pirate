@@ -60,7 +60,7 @@ Split by concern: **what we build**, **how we build it**, **how we ship it**.
 ### Plans and history
 
 - [`plans/`](../plans/) - current work, one folder per feature
-- The setup checklist and diary from before this repo stay in [unity-setup-project](https://github.com/Pitrified/unity-setup-project), where the game was built; [`plans/01_bootstrap/`](../plans/01_bootstrap/00_start.md) says what came from where.
+- The setup checklist and diary from before this repo stay in [unity-setup-project](https://github.com/Pitrified/unity-setup-project), where the game was built.
 
 ---
 

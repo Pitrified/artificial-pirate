@@ -97,7 +97,7 @@ So the proposal is three parts, each weaker alone:
   - a. Fix them here: the history pointers say "the guide, unity-setup-project" without the folder; each system page states the decision it cites in place.
   - b. Leave them; a later plan.
   - Recommended: a, because they are the same fault as the spec (entry points leaning on plans), each a line or two.
-  - NEW_ANS:
+  - ANS: a.
 
 ## Phases (draft, settled after the answers)
 

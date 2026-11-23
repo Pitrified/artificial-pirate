@@ -21,7 +21,7 @@ New work is planned in `plans/NN_name/`, in the shape the `tracked-development` 
 A plan that changes what the game is (scope, a decision, a screen, a control, a system, the save) says so in its `00_start.md`, and updates `docs/functional-specs.md` in its own branch by its last phase, whose "Done when" names it beside the system pages it changes.
 `python3 Tools/plans.py list` shows the folders and their status; `python3 Tools/plans.py check` checks them.
 `Tools/plans.py` is a vendored copy of the skill's script; to update it, copy the skill's file over it.
-The game's history from before this repo (setup checklist, diary) stays in [unity-setup-project](https://github.com/Pitrified/unity-setup-project), where it was built; see `plans/01_bootstrap/00_start.md`.
+The game's history from before this repo (setup checklist, diary) stays in [unity-setup-project](https://github.com/Pitrified/unity-setup-project), where it was built.
 
 ## Gates
 
