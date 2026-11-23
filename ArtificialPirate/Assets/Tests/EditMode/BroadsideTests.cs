@@ -11,7 +11,8 @@ namespace Game.Tests.EditMode
     /// the arc of its beam, never on its own side, and fires at the nearest; a volley fires its guns
     /// one after another and then reloads; the solved arc lands on a still target and, led, on a
     /// moving one; a ball takes the firer's damage over the target's strength at the point struck,
-    /// passing through its own hull; a ball that hits nothing is dropped.
+    /// passing through its own hull; a ball that hits nothing is dropped. Barrels turn toward the
+    /// target within the arc and rise to the shot, run in when they fire and out again over the reload.
     /// </summary>
     public sealed class BroadsideTests
     {
@@ -27,6 +28,8 @@ namespace Game.Tests.EditMode
         private const float Look = 0.25f;
         private const float BallDamage = 0.05f;
         private const float Step = 1f / 60f;
+        private const float Trunnions = 1f;
+        private const float Recoil = 0.5f;
         private static readonly Vector3 Far = new Vector3(3000f, 0f, 3000f);
 
         private readonly List<Object> _made = new List<Object>();
@@ -67,7 +70,7 @@ namespace Game.Tests.EditMode
             return type;
         }
 
-        private Broadside Ship(string name, ShipSide side, Vector3 offset, float yawDeg = 0f, float strength = 1f)
+        private Broadside Ship(string name, ShipSide side, Vector3 offset, float yawDeg = 0f, float strength = 1f, bool barrels = false)
         {
             SO_ShipType type = Type(strength);
             var root = new GameObject(name);
@@ -84,9 +87,25 @@ namespace Game.Tests.EditMode
             ShipDamage damage = root.AddComponent<ShipDamage>();
             damage.Configure(contact);
             Broadside broadside = root.AddComponent<Broadside>();
-            broadside.Configure(side, _gunnery, contact, damage, _balls, 7);
+            broadside.Configure(side, _gunnery, contact, damage, _balls, 7, barrels ? Barrels(hull.transform, type) : null);
             Physics.SyncTransforms();
             return broadside;
+        }
+
+        /// <summary>A barrel for each gun, turning about a point <see cref="Trunnions"/> inboard of its mouth.</summary>
+        private static Transform[] Barrels(Transform hull, SO_ShipType type)
+        {
+            var barrels = new Transform[2 * type.GunsPerSide];
+            for (int i = 0; i < barrels.Length; i++)
+            {
+                bool starboard = i < type.GunsPerSide;
+                Vector3 mouth = type.Gun(i % type.GunsPerSide, starboard);
+                var barrel = new GameObject($"Barrel{i}").transform;
+                barrel.SetParent(hull, false);
+                barrel.localPosition = mouth - Vector3.right * (starboard ? Trunnions : -Trunnions);
+                barrels[i] = barrel;
+            }
+            return barrels;
         }
 
         private static Vector3 Bearing(float distance, float degreesFromStarboardBeam)
@@ -215,6 +234,35 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(1f - 3f * BallDamage / 2f, Health(them), 1e-4f);
             Vector3 local = them.Hull.InverseTransformPoint(struck[0]);
             Assert.That(local.x, Is.EqualTo(-HalfBeam).Within(0.05f), "struck on the side facing us");
+        }
+
+        [Test]
+        public void Barrels_TurnTowardTheTarget_RunInOnFiringAndOutAgain()
+        {
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero, barrels: true);
+            Ship("Them", ShipSide.Pirates, Bearing(60f, 15f));
+            Transform first = us.Hull.Find("Barrel0");
+            Transform port = us.Hull.Find("Barrel3");
+            Vector3 rest = first.localPosition;
+
+            us.Tick(Step);
+            Assert.AreEqual(Recoil, Vector3.Distance(rest, first.localPosition), 0.01f, "the first gun fired and ran in");
+
+            for (float t = 0f; t < 2f; t += Step)
+            {
+                us.Tick(Step);
+            }
+            Vector3 pointing = first.rotation * Vector3.right;
+            float toBow = Vector3.SignedAngle(us.transform.right, new Vector3(pointing.x, 0f, pointing.z), Vector3.up);
+            Assert.That(toBow, Is.LessThan(-5f).And.GreaterThan(-Arc - 0.5f), "turned toward the bow, within the arc");
+            Assert.That(pointing.y, Is.GreaterThan(0f), "raised to the shot");
+            Assert.AreEqual(Quaternion.identity, port.localRotation, "the other side, with no target, at rest");
+
+            for (float t = 0f; t < Reload - 2f; t += Step)
+            {
+                us.Tick(Step);
+            }
+            Assert.That(Vector3.Distance(rest, first.localPosition), Is.LessThan(0.01f), "run out again before the next volley");
         }
 
         [Test]

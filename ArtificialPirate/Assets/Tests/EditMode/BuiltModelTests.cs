@@ -13,8 +13,9 @@ namespace Game.Tests.EditMode
     /// mapped to the project materials (docs/building_assets.md, "The Unity side"). A prop has the
     /// size its builder's parameters give and its pivot at the centre of its base. A ship has its
     /// pivot on the waterline, matches its <see cref="SO_ShipType"/> there (its size and its side
-    /// along the length) and at the keel, faces +Z, and has each mast's objects: the mast, its two
-    /// sail states and its stump. A new model adds a case.
+    /// along the length) and at the keel, faces +Z, has each mast's objects: the mast, its two
+    /// sail states and its stump; and a barrel object for each of its type's guns, a barrel's mouth
+    /// at each muzzle. A new model adds a case.
     /// </summary>
     public sealed class BuiltModelTests
     {
@@ -216,6 +217,23 @@ namespace Game.Tests.EditMode
                     float nearest = points.Min(p => Vector3.Distance(p, muzzle));
                     Assert.That(nearest, Is.LessThan(MuzzleTolerance), $"a barrel's mouth at gun {i} {(starboard ? "starboard" : "port")} {muzzle}");
                 }
+            }
+        }
+
+        [TestCaseSource(nameof(Ships))]
+        public void Ship_HasABarrelForEachGun_OnItsSide(Expected model)
+        {
+            GameObject root = Load(model);
+            int guns = LoadType(model).GunsPerSide;
+            foreach (string side in new[] { "Starboard", "Port" })
+            {
+                for (int i = 0; i < guns; i++)
+                {
+                    Transform barrel = root.transform.Find($"{root.name}Gun{side}{i}");
+                    Assert.IsNotNull(barrel, $"{root.name}Gun{side}{i}");
+                    Assert.AreEqual(side == "Starboard", barrel.localPosition.x > 0f, "turning about a point on its own side");
+                }
+                Assert.IsNull(root.transform.Find($"{root.name}Gun{side}{guns}"), "No more barrels");
             }
         }
 

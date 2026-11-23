@@ -9,8 +9,10 @@ namespace Game.Gameplay
     /// fires a volley at it, one gun after another, then reloads. Each ball is aimed at a point along
     /// the target's hull, led by the target's velocity, on the low arc at the muzzle speed, kept
     /// within the arc and scattered more the farther it flies; <see cref="Cannonballs"/> flies it.
-    /// The guns are the type's (<see cref="SO_ShipType.Gun"/>). A sinking ship does not fire.
-    /// See docs/systems/combat.md.
+    /// The guns are the type's (<see cref="SO_ShipType.Gun"/>). A ship whose barrels are set turns
+    /// each toward its side's target within the arc and raises it to the shot, fires from its mouth,
+    /// and runs it in on firing and out again over the reload; with no target they ease back.
+    /// A sinking ship does not fire. See docs/systems/combat.md.
     /// </summary>
     public sealed class Broadside : MonoBehaviour
     {
@@ -30,6 +32,18 @@ namespace Game.Gameplay
         [Tooltip("Seeds the scatter.")]
         [SerializeField] private int _seed = 1;
 
+        [Tooltip("The barrels, starboard stern to bow then port stern to bow, each turning about its own origin; none, and the guns do not move.")]
+        [SerializeField] private Transform[] _barrels = Array.Empty<Transform>();
+
+        [Tooltip("How fast a barrel turns toward its aim (degrees per second).")]
+        [SerializeField] private float _barrelTurnDeg = 30f;
+
+        [Tooltip("How far a barrel runs in when it fires (m).")]
+        [SerializeField] private float _recoil = 0.5f;
+
+        [Tooltip("The share of the reload a barrel takes to run out again.")]
+        [SerializeField] private float _runOutShare = 0.6f;
+
         private readonly Collider[] _found = new Collider[MaxFound];
         private readonly Battery _starboard = new Battery(true);
         private readonly Battery _port = new Battery(false);
@@ -39,6 +53,10 @@ namespace Game.Gameplay
         private bool _hasLast;
         private Vector3 _velocity;
         private float _lookTimer;
+        private Vector3[] _mouths;
+        private Vector3[] _rests;
+        private Vector3[] _restPositions;
+        private float[] _runIn;
 
         /// <summary>The side this ship fights on.</summary>
         public ShipSide Side => _side;
@@ -79,10 +97,37 @@ namespace Game.Gameplay
         {
             _transform = transform;
             _random = new System.Random(_seed);
+            KeepBarrelsAtRest();
         }
 
+        /// <summary>The barrels' places at rest, each mouth in its barrel's space; while they are unturned.</summary>
+        private void KeepBarrelsAtRest()
+        {
+            int count = _barrels.Length;
+            _mouths = new Vector3[count];
+            _rests = new Vector3[count];
+            _restPositions = new Vector3[count];
+            _runIn = new float[count];
+            SO_ShipType type = Type;
+            if (type == null || Hull == null || count != 2 * type.GunsPerSide)
+            {
+                return;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                bool starboard = i < type.GunsPerSide;
+                Transform barrel = _barrels[i];
+                _mouths[i] = barrel.InverseTransformPoint(Hull.TransformPoint(type.Gun(i % type.GunsPerSide, starboard)));
+                _rests[i] = barrel.localRotation * Vector3.right * (starboard ? 1f : -1f);
+                _restPositions[i] = barrel.localPosition;
+            }
+        }
+
+        private bool HasBarrels => _barrels.Length > 0 && _barrels.Length == _mouths.Length && Type != null && _barrels.Length == 2 * Type.GunsPerSide;
+
         /// <summary>Wires the ship in code (tests).</summary>
-        internal void Configure(ShipSide side, SO_Gunnery gunnery, HullContact contact, ShipDamage damage, Cannonballs balls, int seed)
+        internal void Configure(ShipSide side, SO_Gunnery gunnery, HullContact contact, ShipDamage damage, Cannonballs balls, int seed,
+            Transform[] barrels = null)
         {
             _side = side;
             _gunnery = gunnery;
@@ -91,6 +136,8 @@ namespace Game.Gameplay
             _balls = balls;
             _transform = transform;
             _random = new System.Random(seed);
+            _barrels = barrels ?? Array.Empty<Transform>();
+            KeepBarrelsAtRest();
         }
 
         private void Update()
@@ -126,6 +173,37 @@ namespace Game.Gameplay
             }
             Step(_starboard, dt);
             Step(_port, dt);
+            if (HasBarrels)
+            {
+                Aim(_starboard, dt);
+                Aim(_port, dt);
+            }
+        }
+
+        /// <summary>Turns a side's barrels toward its target's centre on the solved arc, or back to rest, and runs them out.</summary>
+        private void Aim(Battery battery, float dt)
+        {
+            int guns = Type.GunsPerSide;
+            int first = battery.Starboard ? 0 : guns;
+            float runOut = _recoil / Mathf.Max(_gunnery.ReloadSeconds * _runOutShare, Mathf.Epsilon);
+            for (int i = first; i < first + guns; i++)
+            {
+                Transform barrel = _barrels[i];
+                Vector3 aim = _rests[i];
+                if (battery.Target != null)
+                {
+                    Vector3 mouth = barrel.TransformPoint(_mouths[i]);
+                    Vector3 centre = battery.Target.Hull.TransformPoint(new Vector3(0f, battery.Target.Type.Freeboard * 0.5f, 0f));
+                    if (Solve(mouth, centre, battery.Target._velocity, _gunnery.MuzzleSpeed, out Vector3 velocity))
+                    {
+                        aim = barrel.parent.InverseTransformDirection(WithinArc(velocity, battery.Starboard));
+                    }
+                }
+                Quaternion wanted = Quaternion.FromToRotation(_rests[i], aim);
+                barrel.localRotation = Quaternion.RotateTowards(barrel.localRotation, wanted, _barrelTurnDeg * dt);
+                _runIn[i] = Mathf.MoveTowards(_runIn[i], 0f, runOut * dt);
+                barrel.localPosition = _restPositions[i] - barrel.localRotation * _rests[i] * _runIn[i];
+            }
         }
 
         private void Look()
@@ -210,7 +288,12 @@ namespace Game.Gameplay
         private void Fire(int gun, bool starboard, Broadside target)
         {
             Transform hull = Hull;
-            Vector3 muzzle = hull.TransformPoint(Type.Gun(gun, starboard));
+            int barrel = starboard ? gun : Type.GunsPerSide + gun;
+            Vector3 muzzle = HasBarrels ? _barrels[barrel].TransformPoint(_mouths[barrel]) : hull.TransformPoint(Type.Gun(gun, starboard));
+            if (HasBarrels)
+            {
+                _runIn[barrel] = _recoil;
+            }
             Vector3 aim = AimPoint(target);
             if (!Solve(muzzle, aim, target._velocity, _gunnery.MuzzleSpeed, out Vector3 velocity))
             {

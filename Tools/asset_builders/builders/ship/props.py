@@ -1,5 +1,5 @@
 """People and things on deck, coloured from the palette texture (one slot, Palette): cannons run
-out at the gun ports, crew, a stern lantern whose glass glows in its own slot (LanternGlass); and the
+out at the gun ports (the carriages on deck, each barrel its own object turning about its trunnions), crew, a stern lantern whose glass glows in its own slot (LanternGlass); and the
 flag, its own object for its waving material.
 
 Type keys (optional): crew, a list of [t (fraction from the stern), x (fraction of the half beam)].
@@ -17,6 +17,7 @@ from builders.ship.mesh import MeshParts, axis_box, pole, ring
 CARRIAGE = Vector((0.8, 1.0, 0.4))
 BARREL_LENGTH = 1.8
 BARREL_OUT = 0.35
+TRUNNIONS = 0.4  # of the barrel's length from the breech
 
 FIGURE_HEIGHT = 1.75
 SHIRTS = ("shirt_white", "shirt_red", "shirt_blue")
@@ -44,15 +45,28 @@ def muzzle_at(port: Vector, side: float) -> Vector:
 
 
 def cannons(parts: MeshParts, p: dict) -> None:
-    iron, wood = swatch_uv("iron"), swatch_uv("carriage")
+    """The carriages, in the hull."""
+    wood = swatch_uv("carriage")
     for t, side, port in gun_port_centres(p):
         inner = bulwark_inner(p, t)
         base = deck_height(p, t)
-        muzzle = muzzle_at(port, side)
-        breech = muzzle - Vector((side * BARREL_LENGTH, 0.0, 0.0))
         carriage = Vector((side * (inner - CARRIAGE.x / 2 - 0.3), port.y, base + CARRIAGE.z / 2))
         axis_box(parts, carriage, CARRIAGE, "Palette", wood)
+
+
+def barrels(p: dict) -> list[tuple[str, MeshParts, Vector]]:
+    """Each gun's barrel: its name (GunStarboard<i> or GunPort<i>, stern to bow), its mesh and its
+    trunnions, the point it turns about."""
+    iron = swatch_uv("iron")
+    made = []
+    for k, (_, side, port) in enumerate(gun_port_centres(p)):
+        muzzle = muzzle_at(port, side)
+        breech = muzzle - Vector((side * BARREL_LENGTH, 0.0, 0.0))
+        parts = MeshParts()
         pole(parts, breech, muzzle, 0.34, 0.24, 8, "Palette", uv=iron)
+        name = f"Gun{'Starboard' if side > 0 else 'Port'}{k // 2}"
+        made.append((name, parts, breech.lerp(muzzle, TRUNNIONS)))
+    return made
 
 
 def _figure(parts: MeshParts, foot: Vector, facing: float, shirt: str, skin: str) -> None:

@@ -170,10 +170,13 @@ def line(parts: MeshParts, start: Vector, end: Vector, thickness: float, slot: s
     pole(parts, start, end, thickness, thickness, LINE_SIDES, slot, caps=False)
 
 
-def make_object(name: str, parts: MeshParts, preview_rgb: dict[str, list[float]]) -> bpy.types.Object:
-    """One mesh object from the parts, turned half round so the bow faces -Y (Unity's +Z after export)."""
+def make_object(name: str, parts: MeshParts, preview_rgb: dict[str, list[float]],
+                origin: Vector | None = None) -> bpy.types.Object:
+    """One mesh object from the parts, turned half round so the bow faces -Y (Unity's +Z after export);
+    its origin at the given point (a part that turns about it), else at the ship's."""
+    o = origin or Vector((0.0, 0.0, 0.0))
     mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata([(-v.x, -v.y, v.z) for v in parts.verts], [], parts.faces)
+    mesh.from_pydata([(-(v.x - o.x), -(v.y - o.y), v.z - o.z) for v in parts.verts], [], parts.faces)
     mesh.update()
 
     slot_names = list(dict.fromkeys(parts.slots))
@@ -195,6 +198,7 @@ def make_object(name: str, parts: MeshParts, preview_rgb: dict[str, list[float]]
             uv.data[loop].uv = corners[k] if corners else parts.uvs[mesh.loops[loop].vertex_index]
 
     obj = bpy.data.objects.new(name, mesh)
+    obj.location = (-o.x, -o.y, o.z)
     bpy.context.scene.collection.objects.link(obj)
     return obj
 

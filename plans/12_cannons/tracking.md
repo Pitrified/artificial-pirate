@@ -18,8 +18,8 @@ Ships' cannons fire on their own at an enemy on the beam; balls hit where they l
 | 02 | Effects           | [`02_effects.md`](02_effects.md) | done |
 | 03 | Ships at sea      | [`03_ships_at_sea.md`](03_ships_at_sea.md) | done |
 | 04 | The fight         | [`04_the_fight.md`](04_the_fight.md) | done |
-| 05 | Barrels that aim  | [`05_barrels_that_aim.md`](05_barrels_that_aim.md) | in progress |
-| 06 | Verify            | [`06_verify.md`](06_verify.md) | planned |
+| 05 | Barrels that aim  | [`05_barrels_that_aim.md`](05_barrels_that_aim.md) | done |
+| 06 | Verify            | [`06_verify.md`](06_verify.md) | in progress |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -34,3 +34,4 @@ Append-only. Newest at the bottom.
 - 2026-11-23 : phase 02 - review before: one `Emit` call gives a whole burst one velocity, so bursts emit particle by particle. `textures.py particles` (`T_Particles`, puff, flash, splinter, drop); `M_Particles`; `CombatEffects` with five systems in the Game scene, hearing `Cannonballs`; `DamageSmoke` on `PF_Ship`. Found and fixed: the water drawing over the smoke (particles queued after it), damage smoke trapped in the hull (from the rail, longer life), a puff too soft to read. 3 new tests. Gates green (EditMode 245, PlayMode 24).
 - 2026-11-23 : phase 03 - review before: tests that find the ship by type would find the brig (`GameManager.PlayerShip` added); the circle 350 m out is an island in some worlds (moved into the start clearing, Q7 corrected). `CircleHelm`, `ShipRespawn` (the scene's ship as an inactive template, copied, a new copy 60 s after sinking once the player is 300 m away), the ground for every ship that comes back; a second brig under sail circling south-east. 6 new tests. Gates green (EditMode 250, PlayMode 26). The sails' fixed trim looks wrong on half the circle: left.
 - 2026-11-23 : phase 04 - review before: nothing to correct. `ShipBars` on the HUD (a pool of 4, ships within 180 m, red or green by side, fill at health), `CameraController.Shake` (tuning on `SO_CameraTuning`; the player's volleys and hits), wired by `GameSceneWiring`; a PlayMode fight (both hit, a bar over the brig, the sunk brig back). 3 new tests. Gates green (EditMode 252, PlayMode 27). Found: in the chase view the enemy on the beam is off the screen, so its bar never shows: Q11. The brig sinks the sloop in two volleys, as Q3 said: for the phone.
+- 2026-11-23 : phase 05 - review before: the phone's verdict on the barrels moves to phase 06's run. Each barrel its own object turning about its trunnions (`make_object` takes an origin); `Broadside` aims each side's barrels at its target within the arc, fires from the mouth, runs them in by 0.5 m and out over 0.6 of the reload. 2 new tests. Gates green (EditMode 255, PlayMode 27). Capture: barrels off square and raised once the smoke clears.

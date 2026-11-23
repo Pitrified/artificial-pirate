@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in progress
 ---
 
 # Phase 06 - Verify
@@ -13,7 +13,7 @@ Context: [`00_start.md`](00_start.md).
 
 1. The spec: Scope (combat, ships under sail in a circle, respawn moved to In the game; sound and chain shot into Next), the HUD line (the ship bars), the Systems index (`combat.md`).
 2. `docs/systems/combat.md`: guns, balls, sides, effects, the helm, respawn, bars, shake; `ship-controller.md` and `building_assets.md` updated where they change.
-3. The phone: a dev APK, a fight, the diagnostics report against the baseline before the plan.
+3. The phone: a dev APK, a fight, the diagnostics report against the baseline before the plan; it decides whether the aimed barrels (phase 05, 30 more objects) stay.
 
 ## Plan
 

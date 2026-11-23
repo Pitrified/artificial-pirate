@@ -3,7 +3,9 @@ people; its flag (its own material, which waves it); and for each mast i, `<name
 its tops and standing rigging), its two sail states, `<name>Mast<i>Sailing` (trimmed to one wind,
 every sail set, the booms swung out only as far as the lee rigging lets them) and
 `<name>Mast<i>Anchored` (spars squared, sails furled), and `<name>Mast<i>Stump`, what is left when
-it breaks. A game shows the hull, the flag, each mast with one state, and a broken mast's stump.
+it breaks; and each gun's barrel, `<name>GunStarboard<i>` and `<name>GunPort<i>` (stern to bow), its
+origin at its trunnions so it can be aimed. A game shows the hull, the flag, each mast with one state,
+a broken mast's stump, and the barrels.
 The build reports any rope that still passes through a sail.
 
 A ship type is a builder module whose PARAMS fill this dict and whose build is this one's.
@@ -62,6 +64,8 @@ def build(params: dict) -> None:
     rig.standing(standing, masts)
     rigging.standing(body, standing, params, masts)
     make_object(name, body, preview)
+    for gun, barrel, trunnions in props.barrels(params):
+        make_object(f"{name}{gun}", barrel, preview, origin=trunnions)
     standing_ropes = body.ropes + [rope for parts in standing for rope in parts.ropes]
 
     trim = sails.Trim.for_wind(sails.WIND_FROM_DEG)
