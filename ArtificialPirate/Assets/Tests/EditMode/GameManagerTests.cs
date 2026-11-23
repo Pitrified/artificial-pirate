@@ -103,6 +103,8 @@ namespace Game.Tests.EditMode
         }
         public event Action OnMapCloseRequested;
         public void FireMapCloseRequested() => OnMapCloseRequested?.Invoke();
+        public GameSettings BoundSettings { get; private set; }
+        public void BindSettings(GameSettings settings) { BoundSettings = settings; }
     }
 
     // ======================================================================

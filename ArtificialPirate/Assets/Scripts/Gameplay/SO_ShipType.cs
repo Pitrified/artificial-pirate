@@ -1,6 +1,26 @@
 namespace Game.Gameplay
 {
+    using System;
     using UnityEngine;
+    using Game.Systems;
+
+    /// <summary>Where a camera sits and what it looks at, both in the ship's space (m).</summary>
+    [Serializable]
+    public struct CameraRig
+    {
+        /// <summary>The camera's place.</summary>
+        public Vector3 Offset;
+
+        /// <summary>The point it looks at.</summary>
+        public Vector3 LookAt;
+
+        /// <summary>A rig from its two points.</summary>
+        public CameraRig(Vector3 offset, Vector3 lookAt)
+        {
+            Offset = offset;
+            LookAt = lookAt;
+        }
+    }
 
     /// <summary>
     /// One kind of ship: its hull's size, how it handles, and where the chase camera sits.
@@ -39,6 +59,12 @@ namespace Game.Gameplay
 
         [Tooltip("The point the chase camera looks at, in the ship's local space (m): above the deck, so the sails stay in view.")]
         [SerializeField] private Vector3 _cameraLookAt = Vector3.zero;
+
+        [Tooltip("The bird's eye camera: high and a little astern, looking down toward the bow.")]
+        [SerializeField] private CameraRig _birdsEye = new CameraRig(new Vector3(0f, 45f, -22f), new Vector3(0f, 0f, 14f));
+
+        [Tooltip("The helm camera: the helmsman's eyes (the builder's report prints them), looking ahead over the bow.")]
+        [SerializeField] private CameraRig _helm = new CameraRig(new Vector3(0f, 3f, -7f), new Vector3(0f, 3f, 60f));
 
         [Header("Damage")]
         [Tooltip("A blow closing slower than this does no harm (m/s).")]
@@ -140,6 +166,20 @@ namespace Game.Gameplay
         /// <summary>The point the chase camera looks at, in the ship's local space, in metres.</summary>
         public Vector3 CameraLookAt => _cameraLookAt;
 
+        /// <summary>The rig of a camera on this ship.</summary>
+        public CameraRig Rig(CameraView view)
+        {
+            switch (view)
+            {
+                case CameraView.BirdsEye:
+                    return _birdsEye;
+                case CameraView.Helm:
+                    return _helm;
+                default:
+                    return new CameraRig(_cameraOffset, _cameraLookAt);
+            }
+        }
+
         /// <summary>A blow closing slower than this does no harm, in m/s.</summary>
         public float HarmlessSpeed => _harmlessSpeed;
 
@@ -221,6 +261,15 @@ namespace Game.Gameplay
         internal void SetBeamAlongLength(AnimationCurve shares)
         {
             _beamAlongLength = shares;
+        }
+
+        /// <summary>Sets the cameras' rigs (types made in code: tests).</summary>
+        internal void SetRigs(CameraRig chase, CameraRig birdsEye, CameraRig helm)
+        {
+            _cameraOffset = chase.Offset;
+            _cameraLookAt = chase.LookAt;
+            _birdsEye = birdsEye;
+            _helm = helm;
         }
 
         /// <summary>Sets the hull's size (types made in code: tests).</summary>

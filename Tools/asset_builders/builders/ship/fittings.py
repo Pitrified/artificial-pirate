@@ -336,6 +336,22 @@ def wheel(parts: MeshParts, hub: Vector, deck_z: float) -> None:
     axis_box(parts, pedestal, Vector((0.72, 0.12, 0.14)), "Spar")
 
 
+EYE_HEIGHT = 1.7
+BEHIND_WHEEL = 0.8
+
+
+def helm_eye(p: dict) -> Vector:
+    """Where the helmsman's eyes are: behind the wheel, or beside the tiller's grip, standing on the deck."""
+    spec = p.get("deck", {})
+    if spec.get("helm") == "wheel":
+        t = spec.get("helm_at", 0.08)
+        y = _y(p, t) - BEHIND_WHEEL
+    else:
+        y = -p["length"] / 2 + 0.3 + RUDDER_HEAD / 2 + TILLER_LENGTH
+    t = y / p["length"] + 0.5
+    return Vector((0.0, y, deck_height(p, t) + EYE_HEIGHT))
+
+
 def tiller(parts: MeshParts, p: dict) -> None:
     """A rudder head standing above the deck at the stern, the tiller from it rising slightly forward to
     a thinner grip."""

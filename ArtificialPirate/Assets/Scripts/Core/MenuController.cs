@@ -18,6 +18,7 @@ namespace Game.Core
         private Button _btnContinue;
         private Button _btnQuit;
         private Button _btnDiagnostics;
+        private Button _btnSettings;
 
         private void Start()
         {
@@ -33,6 +34,7 @@ namespace Game.Core
             _btnContinue = root.Q<Button>("btn-continue");
             _btnQuit     = root.Q<Button>("btn-quit");
             _btnDiagnostics = root.Q<Button>("btn-diagnostics");
+            _btnSettings = root.Q<Button>("btn-settings");
 
             if (_btnPlay     == null) Log.Error(LogCat.UI, "MenuController: btn-play not found in Menu.uxml.");
             if (_btnContinue == null) Log.Error(LogCat.UI, "MenuController: btn-continue not found in Menu.uxml.");
@@ -42,6 +44,7 @@ namespace Game.Core
             if (_btnContinue != null) _btnContinue.clicked += OnContinueClicked;
             if (_btnQuit     != null) _btnQuit.clicked     += OnQuitClicked;
             if (_btnDiagnostics != null) _btnDiagnostics.clicked += OnDiagnosticsClicked;
+            if (_btnSettings != null) _btnSettings.clicked += OnSettingsClicked;
 
             // Reflect current save state so Continue is only enabled when a save exists.
             RefreshContinueButton();
@@ -55,6 +58,7 @@ namespace Game.Core
             if (_btnContinue != null) _btnContinue.clicked -= OnContinueClicked;
             if (_btnQuit     != null) _btnQuit.clicked     -= OnQuitClicked;
             if (_btnDiagnostics != null) _btnDiagnostics.clicked -= OnDiagnosticsClicked;
+            if (_btnSettings != null) _btnSettings.clicked -= OnSettingsClicked;
         }
 
         // ------------------------------------------------------------------ button handlers
@@ -81,6 +85,13 @@ namespace Game.Core
             GameManager gm = GameManager.Instance;
             if (gm == null) { Log.Error(LogCat.UI, "MenuController: GameManager.Instance is null."); return; }
             gm.UISystem.ShowScreen(Game.UI.ScreenId.Diagnostics);
+        }
+
+        private void OnSettingsClicked()
+        {
+            GameManager gm = GameManager.Instance;
+            if (gm == null) { Log.Error(LogCat.UI, "MenuController: GameManager.Instance is null."); return; }
+            gm.UISystem.ShowScreen(Game.UI.ScreenId.Settings);
         }
 
         private void OnQuitClicked()

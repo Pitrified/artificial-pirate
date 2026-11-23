@@ -1,0 +1,35 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Style src="Pause.uss" />
+    <Style src="Settings.uss" />
+    <!--
+        The player's settings (docs/systems/ui-system.md), over the menu or the pause screen.
+        Wired by SettingsPanel through UISystem; each row lights its chosen button.
+        The ship row shows in development builds only.
+    -->
+    <ui:VisualElement name="settings-overlay" class="pause-overlay">
+        <ui:VisualElement name="safe-area-container" class="safe-area-container">
+            <ui:VisualElement class="pause-panel">
+                <ui:Label class="pause-title" text="Settings" />
+                <ui:Label class="settings-label" text="Camera" />
+                <ui:VisualElement class="settings-row">
+                    <ui:Button name="btn-camera-chase" class="settings-btn" text="Chase" />
+                    <ui:Button name="btn-camera-birdseye" class="settings-btn" text="Bird's eye" />
+                    <ui:Button name="btn-camera-helm" class="settings-btn" text="Helm" />
+                </ui:VisualElement>
+                <ui:Label class="settings-label" text="Helm camera" />
+                <ui:VisualElement class="settings-row">
+                    <ui:Button name="btn-helm-steady" class="settings-btn" text="Steady" />
+                    <ui:Button name="btn-helm-riding" class="settings-btn" text="Riding" />
+                </ui:VisualElement>
+                <ui:VisualElement name="settings-ship" class="settings-group">
+                    <ui:Label class="settings-label" text="Ship (next game)" />
+                    <ui:VisualElement class="settings-row">
+                        <ui:Button name="btn-ship-sloop" class="settings-btn" text="Sloop" />
+                        <ui:Button name="btn-ship-brig" class="settings-btn" text="Brig" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Button name="btn-settings-close" class="pause-btn settings-close" text="Back" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

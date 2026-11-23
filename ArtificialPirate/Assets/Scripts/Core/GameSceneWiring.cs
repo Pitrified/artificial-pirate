@@ -1,6 +1,7 @@
 namespace Game.Core
 {
     using UnityEngine;
+    using UnityEngine.UI;
     using Game.Systems;
     using Game.Gameplay;
     using Game.Gameplay.World;
@@ -11,7 +12,8 @@ namespace Game.Core
     /// systems (InputManager); hands the world to GameManager to begin its seed, then wires the
     /// ship, and the ships that come back when sunk, to the world's ground, opens the map when the minimap is tapped, shows the ship's hull on
     /// the hull bar once its save is restored, bars over the other ships near it, shakes the camera on
-    /// its volleys and the hits it takes, and shows the HUD only
+    /// its volleys and the hits it takes, follows the camera setting (and the HUD's camera button
+    /// cycles it), and shows the HUD only
     /// while playing, since its canvas sorts above the screens shown over the paused game. Place this on
     /// any root object in Game.unity and assign the serialized references in the Inspector.
     /// </summary>
@@ -24,6 +26,9 @@ namespace Game.Core
         [SerializeField] private Minimap _minimap;
         [SerializeField] private HullBar _hullBar;
         [SerializeField] private ShipBars _shipBars;
+
+        [Tooltip("The HUD's camera button, which cycles the cameras.")]
+        [SerializeField] private Button _cameraButton;
         [SerializeField] private GameObject _hud;
 
         [Tooltip("The ships that come back when sunk, given the world's ground as the player's ship is.")]
@@ -81,8 +86,14 @@ namespace Game.Core
             }
             else if (_ship != null)
             {
-                _camera.SetTarget(_ship.transform, _ship.Type.CameraOffset, _ship.Type.CameraLookAt);
+                Transform hull = _ship.TryGetComponent(out HullContact contact) ? contact.Hull : null;
+                _camera.SetShip(_ship.transform, hull, _ship.Type, gm.Settings.Camera, gm.Settings.HelmRides);
                 _camera.SnapToTarget();
+                gm.Settings.Changed += OnSettingsChanged;
+                if (_cameraButton != null)
+                {
+                    _cameraButton.onClick.AddListener(gm.Settings.NextCamera);
+                }
                 Log.Info(LogCat.Gameplay, "GameSceneWiring: CameraController wired to ship");
                 WireFight();
             }
@@ -106,6 +117,8 @@ namespace Game.Core
             }
         }
 
+        private void OnSettingsChanged() => _camera.SetView(_gameManager.Settings.Camera, _gameManager.Settings.HelmRides);
+
         private void OnVolley(bool starboard) => _camera.Shake(_camera.Tuning.VolleyShake);
 
         private void OnPlayerHit(Vector3 point, float amount) => _camera.Shake(amount * _camera.Tuning.HitShakePerHealth);
@@ -119,6 +132,14 @@ namespace Game.Core
             if (_gameManager != null)
             {
                 _gameManager.StateChanged -= OnStateChanged;
+                if (_gameManager.Settings != null)
+                {
+                    _gameManager.Settings.Changed -= OnSettingsChanged;
+                }
+            }
+            if (_cameraButton != null)
+            {
+                _cameraButton.onClick.RemoveAllListeners();
             }
             if (_playerGuns != null)
             {

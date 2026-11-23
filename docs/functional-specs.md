@@ -106,11 +106,12 @@ UI Toolkit screens, in the safe area, routed by `UISystem` by `ScreenId` ([ui-sy
 
 | Screen | `ScreenId` | What it offers |
 | ------ | ---------- | -------------- |
-| Main menu | `Menu` | New Game, Continue (when a save exists), Diagnostics, Quit |
-| Pause | `Pause` | Resume, Main Menu, Diagnostics |
+| Main menu | `Menu` | New Game, Continue (when a save exists), Settings, Diagnostics, Quit |
+| Pause | `Pause` | Resume, Main Menu, Settings, Diagnostics |
 | Map | `Map` | The explored world over the paused game: centre on the ship, reset zoom, close |
 | Game over | `GameOver` | The ship has sunk: Main Menu |
 | Diagnostics | `Diagnostics` | The diagnostics report: copy, share, the previous session's |
+| Settings | `Settings` | The camera (Chase, Bird's eye, Helm), the helm camera steady or riding; in development builds the ship sailed from the next game; Back |
 
 Also: the loading screen (at least 0.5 s, so it does not flash), and the Game scene's HUD in uGUI (the stick, the pause button, the minimap, the hull bar, bars over the other ships near the player's).
 

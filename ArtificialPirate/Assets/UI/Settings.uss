@@ -1,0 +1,39 @@
+/* Settings.uss
+   The settings screen's rows, over Pause.uss's overlay and panel.
+   Buttons stay >= 96 px tall in the 1920x1080 reference resolution.
+*/
+
+.settings-label {
+    color: rgba(200, 205, 220, 1);
+    font-size: 24px;
+    -unity-text-align: middle-center;
+    margin-bottom: 8px;
+}
+
+.settings-row {
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.settings-btn {
+    width: 220px;
+    height: 96px;
+    font-size: 26px;
+    -unity-font-style: bold;
+    margin-left: 8px;
+    margin-right: 8px;
+    border-radius: 12px;
+    border-width: 0;
+    background-color: rgba(45, 50, 66, 1);
+    color: rgba(200, 205, 220, 1);
+}
+
+.settings-btn--on {
+    background-color: rgba(60, 100, 180, 1);
+    color: rgba(255, 255, 255, 1);
+}
+
+.settings-close {
+    margin-top: 8px;
+}

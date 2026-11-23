@@ -96,7 +96,9 @@ def build(params: dict) -> None:
 
 
 def report(params: dict) -> dict:
-    """The starboard guns' muzzles in Unity's axes (X starboard, Y up, Z to the bow), metres from the
-    waterline amidships, for the ship's type; the port guns mirror them."""
+    """For the ship's type, in Unity's axes (X starboard, Y up, Z to the bow), metres from the waterline
+    amidships: the starboard guns' muzzles (the port guns mirror them) and the helmsman's eyes."""
     guns = [props.muzzle_at(port, side) for _, side, port in fittings.gun_port_centres(params) if side > 0]
-    return {"guns": [[round(m.x, 4), round(m.z, 4), round(m.y, 4)] for m in guns]}
+    eye = fittings.helm_eye(params)
+    return {"guns": [[round(m.x, 4), round(m.z, 4), round(m.y, 4)] for m in guns],
+            "helm_eye": [round(eye.x, 3), round(eye.z, 3), round(eye.y, 3)]}

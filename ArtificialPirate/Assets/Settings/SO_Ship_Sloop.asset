@@ -218,6 +218,12 @@ MonoBehaviour:
   _steeringResponseLerp: 6
   _cameraOffset: {x: 0, y: 18, z: -56}
   _cameraLookAt: {x: 0, y: 9, z: 12}
+  _birdsEye:
+    Offset: {x: 0, y: 45, z: -22}
+    LookAt: {x: 0, y: 0, z: 14}
+  _helm:
+    Offset: {x: 0, y: 3.485, z: -7.22}
+    LookAt: {x: 0, y: 3.485, z: 52.78}
   _harmlessSpeed: 1.5
   _sinkingSpeed: 14
   _damagedSpeedFloor: 0.6

@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 01 - Settings and cameras
@@ -35,3 +35,12 @@ Context: [`00_start.md`](00_start.md), Decisions.
 - Tests pass; gates green; the six captures look right.
 
 ## What the implementation found
+
+- **The helm's eye comes from the builder**: `build.py <type> --no-fbx` reports `helm_eye` beside the guns (`fittings.helm_eye`: behind the wheel, or beside the tiller's grip, 1.7 m over the deck): the sloop (0, 3.49, -7.22), the brig (0, 3.73, -14.62). The bird's eye: the sloop (0, 45, -22) looking at (0, 0, 14), the brig (0, 60, -30) at (0, 0, 20).
+- **The pause button is an Input System `OnScreenButton`** (a key pressed on the screen), not a uGUI button; the camera button is a uGUI `Button` on a copy of it, as the minimap is tapped, with no key of its own.
+- **The camera keeps its own follow pose** apart from its transform: a change of view eases from the pose at the change to the new view's, and the shake is laid over at the end, so neither feeds into the smoothing. The existing camera tests pass unchanged.
+- `IUISystem.BindSettings` gives the screen its settings; `GameManager` makes them at `Initialize`, which can come before or after `UISystem.Start`, so the panel is made by whichever is last.
+- `CAPTURE_CAMERA` in the sequence capture shows a view without touching the settings.
+- The spec's Screens table has the Settings row now (`spec_check.py` would fail without it); the rest of the spec is phase 05's.
+- Captures (sloop): the bird's eye over the deck with the brig at the edge; the helm along the deck under the boom to the bow. The brig's views wait for phase 02.
+- Gates at the phase's commit: spec pass, compile 0/0, EditMode 261/261, PlayMode 28/28.

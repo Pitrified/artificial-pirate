@@ -15,6 +15,9 @@ namespace Game.Gameplay
         [SerializeField] private float _rotationLerp = 5f;
         [SerializeField] private bool _lookAtTarget = true;
 
+        [Tooltip("How long a change of camera takes to ease from one view to the next (s).")]
+        [SerializeField] private float _switchSeconds = 0.5f;
+
         [Header("Shake")]
         [Tooltip("The most the camera shakes, each way (m).")]
         [SerializeField] private float _shakeMost = 0.8f;
@@ -39,6 +42,9 @@ namespace Game.Gameplay
 
         /// <summary>When true the camera continuously rotates to look at the target.</summary>
         public bool LookAtTarget => _lookAtTarget;
+
+        /// <summary>How long a change of camera eases over, in seconds.</summary>
+        public float SwitchSeconds => _switchSeconds;
 
         /// <summary>The most the camera shakes, each way, in metres.</summary>
         public float ShakeMost => _shakeMost;

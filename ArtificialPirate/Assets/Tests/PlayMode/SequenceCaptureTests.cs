@@ -25,7 +25,9 @@ namespace Game.Tests.PlayMode
     /// (any value: the HUD drawn through the capture camera, which an overlay canvas is not),
     /// CAPTURE_MAP (a PNG path: the full map's picture of the cells explored, at the end),
     /// CAPTURE_DAMAGE (0 to 1: health the ship's hull loses at the start, struck on its starboard side),
-    /// CAPTURE_BREAK_MAST (a mast's number: brought down at the start on every ship that has it).
+    /// CAPTURE_BREAK_MAST (a mast's number: brought down at the start on every ship that has it),
+    /// CAPTURE_CAMERA (Chase, BirdsEye, Helm or HelmRiding: the game's camera shows that view, the
+    /// settings untouched).
     /// Run alone with <c>-testFilter Game.Tests.PlayMode.SequenceCaptureTests</c>.
     /// </summary>
     public sealed class SequenceCaptureTests
@@ -90,6 +92,14 @@ namespace Game.Tests.PlayMode
             if (damage > 0f)
             {
                 ship.GetComponent<ShipDamage>().Hit(ship.transform.position + ship.transform.right, damage);
+            }
+            string view = Environment.GetEnvironmentVariable("CAPTURE_CAMERA");
+            if (view != null)
+            {
+                bool riding = view == "HelmRiding";
+                CameraController follow = UnityEngine.Object.FindAnyObjectByType<CameraController>();
+                follow.SetView((Game.Systems.CameraView)Enum.Parse(typeof(Game.Systems.CameraView), riding ? "Helm" : view), riding);
+                follow.SnapToTarget();
             }
             string breakMast = Environment.GetEnvironmentVariable("CAPTURE_BREAK_MAST");
             if (breakMast != null)

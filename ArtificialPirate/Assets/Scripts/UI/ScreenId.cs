@@ -16,5 +16,8 @@ namespace Game.UI
         Map,
         /// <summary>The game over screen, shown when the player's ship has sunk.</summary>
         GameOver,
+
+        /// <summary>The player's settings: the camera, the helm camera's motion, the ship in development builds.</summary>
+        Settings,
     }
 }

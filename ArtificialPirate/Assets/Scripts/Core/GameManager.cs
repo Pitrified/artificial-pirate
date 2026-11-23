@@ -53,6 +53,9 @@ namespace Game.Core
         /// <summary>The persistent UI root. Assigned by <see cref="Initialize"/>.</summary>
         public IUISystem UISystem { get; private set; }
 
+        /// <summary>The player's settings, read at <see cref="Initialize"/>.</summary>
+        public GameSettings Settings { get; private set; }
+
         /// <summary>The player's ship, the one saved and followed; set by <see cref="RegisterShip"/>.</summary>
         public ShipController PlayerShip => _activeShip;
 
@@ -79,6 +82,9 @@ namespace Game.Core
             InputManager = inputManager ?? throw new ArgumentNullException(nameof(inputManager));
             AudioManager = audioManager ?? throw new ArgumentNullException(nameof(audioManager));
             UISystem     = uiSystem     ?? throw new ArgumentNullException(nameof(uiSystem));
+
+            Settings = new GameSettings();
+            UISystem.BindSettings(Settings);
 
             UISystem.OnResumeRequested       += ResumeGame;
             UISystem.OnReturnToMenuRequested += HandleReturnToMenuRequested;
