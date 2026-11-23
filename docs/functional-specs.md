@@ -10,9 +10,10 @@ A feature that changes anything here changes this page in its own branch ([Keepi
 
 A 3D naval game for Android phones, played in landscape.
 The player sails a sloop with one virtual stick across a sea that grows as it sails: islands generated from a seed, cell by cell, a minimap and a full map of what has been explored.
-Ships are built from parts (hull, masts, sails, rigging, fittings) by the asset builders, so several types share one model; the sloop and a brig exist, the brig anchored near the start.
-Hulls take damage when they ram a ship or run aground: a damaged ship is slower, sits lower and lists, its hull shows the hits, and a hard hit can bring a mast down.
-A ruined hull sinks; the player's sinking ends the game.
+Ships are built from parts (hull, masts, sails, rigging, fittings, guns) by the asset builders, so several types share one model; the sloop and a brig exist.
+Ships fight with their broadsides: a ship's guns fire on their own at a ship of another side in range on its beam, so the player fights by steering, and the barrels turn to the shot.
+Hulls take damage from the balls where they strike, and when they ram a ship or run aground: a damaged ship is slower, sits lower and lists, its hull shows the hits, a badly damaged one smokes, and a hard hit can bring a mast down.
+A ruined hull sinks; the player's sinking ends the game. A pirate brig lies at anchor near the start and another sails a circle; a sunk one comes back.
 The session is saved and continued from the menu.
 
 Priorities, in order: a steady frame rate on a mid-range phone, code an agent can read and change safely, a fast loop from change to device, then looks.
@@ -23,9 +24,9 @@ Priorities, in order: a steady frame rate on a mid-range phone, code an agent ca
 
 Something moves between these lists through a plan in `plans/`, which updates this page.
 
-**In the game:** sailing (kinematic), the chase camera, the generated world and its maps, stylized water with waves, shore foam and ripples, floating props, two ship types, ship against ship and against the shore, hull damage, broken masts, sinking and game over, the save, the diagnostics report and the debug overlay.
+**In the game:** sailing (kinematic), the chase camera and its shake, the generated world and its maps, stylized water with waves, shore foam and ripples, floating props, two ship types, ship against ship and against the shore, broadsides that fire on their own (sides, aimed barrels, the balls' hits, flash, smoke, splinters, splashes), hull damage, smoke from a wreck, broken masts, sinking and game over, a ship sailing a circle on its own, sunk ships coming back, bars over other ships, the save, the diagnostics report and the debug overlay.
 
-**Next** (wanted, not yet planned; work toward it is not blocked): cannons and combat between ships, other ships under sail, more ship types, things to find on islands.
+**Next** (wanted, not yet planned; work toward it is not blocked): ships that choose where to sail and chase, sails that follow the heading, more ship types, things to find on islands, sound, chain shot at the masts.
 
 **Not planned** (do not build without a plan that moves it): multiplayer, an economy or progression, cloud save, in-app purchases, ads, analytics, localization, accessibility settings, controller support, tablet or foldable layouts, realistic water physics.
 
@@ -111,7 +112,7 @@ UI Toolkit screens, in the safe area, routed by `UISystem` by `ScreenId` ([ui-sy
 | Game over | `GameOver` | The ship has sunk: Main Menu |
 | Diagnostics | `Diagnostics` | The diagnostics report: copy, share, the previous session's |
 
-Also: the loading screen (at least 0.5 s, so it does not flash), and the Game scene's HUD in uGUI (the stick, the pause button, the minimap, the hull bar).
+Also: the loading screen (at least 0.5 s, so it does not flash), and the Game scene's HUD in uGUI (the stick, the pause button, the minimap, the hull bar, bars over the other ships near the player's).
 
 ---
 
@@ -126,6 +127,7 @@ Each has a page under [systems/](systems/):
 | Async additive load and unload | [scene-loader](systems/scene-loader.md) | |
 | Input abstraction | [input-manager](systems/input-manager.md) | |
 | Ships | [ship-controller](systems/ship-controller.md) | ship types, hull contact, damage, masts, hull marks, riding the waves |
+| Combat | [combat](systems/combat.md) | sides, guns and barrels, balls, effects, ships at sea, coming back, bars over ships |
 | Chase camera | [camera-controller](systems/camera-controller.md) | |
 | The world | [world](systems/world.md) | islands, streaming, the water's depth, the minimap and map |
 | Water | [water](systems/water.md) | waves, floating props, ripples, shore |
@@ -158,6 +160,7 @@ A build goes to testers when all of these hold on the reference phone:
 - Menu to game to menu, repeatedly, without leaks.
 - New Game, sail, pause, resume; quit, relaunch, Continue restores the ship, its damage and the world.
 - The ship sinks to game over and back to the menu, with no save left.
+- A fight with each brig: both sides fire and hit, the sunk brig comes back.
 - 60 fps held, by the diagnostics report, as [performance-budget](performance-budget.md) measures it.
 - No errors or warnings in logcat in normal play.
 

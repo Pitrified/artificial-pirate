@@ -66,6 +66,7 @@ The HUD in the Game scene is uGUI (the joystick, the pause button, the minimap i
 Under the minimap, `HullBar` shows the player's hull health: a dark bar holding a fill stretched from its left edge to the health, green when whole, yellow at half, red when ruined.
 `GameSceneWiring` binds it to the ship's `ShipDamage` once the save is restored, and it redraws on `Damaged`, not each frame.
 `HullBarTests` (EditMode): the fill follows the health and reddens.
+Over the other ships near the player's, `ShipBars` places a bar each from a pool of four, red for another side and green for the player's (`docs/systems/combat.md`); it sits under the HUD, so it hides with it.
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Player ship using a **kinematic** model - the Transform is moved directly,
+A ship using a **kinematic** model, the player's or another's - the Transform is moved directly,
 no Rigidbody forces.
 
 ---
@@ -28,13 +28,14 @@ no Rigidbody forces.
 A ship's kind is an `SO_ShipType` in `Assets/Settings/` (`SO_Ship_Sloop`), set on its prefab variant's `ShipController`, `WaveRider`, `WakeSource` and `HullContact`.
 It holds:
 - **the hull**: half length and half beam at the waterline, draft and freeboard. They are the model's numbers (`Tools/asset_builders/builders/<type>.py`), and `BuiltModelTests` checks them against the imported model. The variant's box collider is sized from them.
+- **the guns**: the starboard muzzles, a ball's damage and the hull's strength against balls (`docs/systems/combat.md`);
   Above the water the builder's sides are vertical, so the hull's side along its length is one curve, `_beamAlongLength`: the half-beam as a share of the type's, from -1 (stern) to 1 (bow) of the half length, sampled from the builder's `half_beam` at its 21 stations (`HalfBeamAt(z)`). A new type, or a hull reshaped in the builder, gets its curve sampled again; the marks sit on it.
 - **the handling**: the fields below;
 - **the camera's offset**, handed to the camera by `GameSceneWiring`.
 
 A new type is a model from the ship builder (`docs/building_assets.md`), an `SO_ShipType`, and a variant of `PF_Ship` carrying both.
 A variant whose paint differs overrides the shared slots on its renderer, as `PF_Ship_Brig` does with `M_BrigTopsides` and `M_BrigTrim`.
-`ShipController` is the player's: the Game scene has exactly one, which `GameSceneWiring` wires and `GameManager` saves. A ship nobody steers has its instance's `ShipController` removed, as the Game scene's `AnchoredBrig` does; it rides the waves where it lies, and keeps its `HullContact`, so it can be rammed.
+The player's ship is the one `GameSceneWiring` wires to the input and `GameManager` registers and saves (`GameManager.PlayerShip`). Another ship that moves is steered through `SetInput` by a helm (`CircleHelm`, `docs/systems/combat.md`). A ship that does not move has its instance's `ShipController` removed, as the anchored brig does; it rides the waves where it lies, and keeps its `HullContact`, so it can be rammed.
 
 ## Tunable data (serialized → `SO_ShipType`)
 
@@ -82,7 +83,7 @@ Kinematic bodies never collide with each other in PhysX, so ships meet through a
   - A full-speed grounding (8 m/s) takes about 31%.
   - The sloop ramming the brig at 8 m/s takes about 25% and the brig about 7%.
   - Pushing on against a shore or a hull rebuilds only a frame's acceleration of closing speed, below `h`, so a blow lands once.
-- **`Hit(point, amount)`** takes health directly: what a weapon will call. `Damaged` reports each hit that did harm.
+- **`Hit(point, amount)`** takes health directly, at the point struck: what a cannonball calls (`docs/systems/combat.md`). `Damaged` reports each hit that did harm.
 - **What damage does**, by the type's numbers:
   - `ShipController`'s top speed is `MaxSpeed` times `SpeedFactor`, from 1 down to `DamagedSpeedFloor` (0.6) when ruined, less an equal share of what is above the floor for each mast lost, never below the floor;
   - `WaveRider` settles the hull by `Settle`, up to `DamagedSinkShare` (0.5) of the freeboard;
@@ -95,7 +96,7 @@ Kinematic bodies never collide with each other in PhysX, so ships meet through a
   - A broken mast's shown objects go into a `FallingMast` at its foot, which tips them over the side away from the blow (`MastFallDeg`, 80 degrees, in `MastFallSeconds`, 2.5 s, faster as it goes), then sinks them (`MastSinkSpeed`, 1.5 m/s, for `MastSinkSeconds`, 8 s) and removes them. No physics: the ship sails on and leaves it. The stump shows.
   - The save keeps the broken masts' numbers; a restore hides their objects and shows their stumps.
   - Cost: each mast is its own objects, so a two-masted brig draws 7 more slots than with its masts in the hull, the sloop 2 (the scene went from 48 to 57 material slots with both in view).
-- **Sinking.** At 0 health the ship no longer answers the helm (`ShipController` zeroes its input) and goes under over `SinkSeconds` (8 s): `WaveRider` lowers the hull by `SinkDepth`, slowly at first (30 m at the end), and tips it toward the end last hit, up to `SinkPitchDeg` (25 degrees). Then `Sunk` fires and the ship's object is turned off, so its hull no longer collides. For the player's ship that is game over (`docs/systems/game-manager.md`); the brig is gone until the scene loads again.
+- **Sinking.** At 0 health the ship no longer answers the helm (`ShipController` zeroes its input) and goes under over `SinkSeconds` (8 s): `WaveRider` lowers the hull by `SinkDepth`, slowly at first (30 m at the end), and tips it toward the end last hit, up to `SinkPitchDeg` (25 degrees). Then `Sunk` fires and the ship's object is turned off, so its hull no longer collides. For the player's ship that is game over (`docs/systems/game-manager.md`); another ship comes back later through its `ShipRespawn` (`docs/systems/combat.md`).
 - `ShipDamageTests` (EditMode): a ram shared by mass, a nudge doing no harm, one blow for a grounding with the throttle held, health stopping at 0, the speed, sink and list from the damage, a nearly ruined hull sailing near the floor speed, a ruined one ignoring the helm, going under by the end hit and sinking once, the hits kept in the hull's space with the oldest dropped, and a save restored to the same hull (a ruined one going under again). `SaveRestoreTests` (PlayMode): the damage and the hull bar back on Continue. `ShipMastsTests` (EditMode): the nearest standing mast brought down, falling away from the blow and sinking, the chance rising as the health drops and less for a small hit, the speed's share per mast and the floor, the broken masts restored. `BuiltModelTests`: each mast's four objects, and the hull's side along its length matching the type. `HullMarksTests` (EditMode): a mark on the side hit, on the surface and facing out, bigger for a bigger hit, following the kept hits, drawn on a restore, and on a tapering hull sitting on the narrower side, turned toward the bow. `GameOverTests` (PlayMode): the player's ship sinking to the game over screen and back to the menu with no save. `WaveRiderTests`: a damaged hull settled lower and listing toward the side hit.
 
 ---
