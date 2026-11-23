@@ -16,7 +16,7 @@ Analysis, proposals and questions in [`00_start.md`](00_start.md).
 | 01 | Audit                | [`01_audit.md`](01_audit.md) | done |
 | 02 | The spec             | [`02_spec.md`](02_spec.md) | done |
 | 03 | Keeping it current   | [`03_keep_current.md`](03_keep_current.md) | done |
-| 04 | Verify               | [`04_verify.md`](04_verify.md) | in progress |
+| 04 | Verify               | [`04_verify.md`](04_verify.md) | done |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -32,3 +32,4 @@ Append-only. Newest at the bottom.
 - 2026-11-23 : phase 03 - review before: in `all`, a spec failure must not skip the tests as a compile failure does (written that way). `Tools/spec_check.py` and the `spec` gate; the instructions, `AGENTS.md`, `docs/README.md` (the spec-first rule replaced by Q5's) and `headless-unity.md` §3 updated. Gates green with the spec line.
 - 2026-11-23 : phase 04 - review before: nothing to correct. The check caught each of five breakages on a scratch copy; links and anchors resolve; no new citations of plans. Waiting on the user's read and Q7.
 - 2026-11-23 : Q7, the user: a. The 9 older citations of plans fixed in place; `check --citations` clean. Waiting on the user's read of the spec.
+- 2026-11-23 : phase 04 closed on the user's read of the spec (ok); the folder done. Merged into `main`.

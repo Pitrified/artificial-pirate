@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 04 - Verify
@@ -22,4 +22,4 @@ status: in progress
 - **Citations**: the same 9 older findings, none from this plan (Q7).
 - **Gates** at `17eee05`: spec pass, compile 0 errors 0 warnings, EditMode 233/233, PlayMode 24/24.
 - **Q7, a**: the 9 citations fixed. The three history pointers name unity-setup-project without the folder (the README says what moved: the naval slice and its runtime); `logging.md` names the guide; `ship-controller.md` points at the spec's locked decisions; `water.md` states the choice and its alternatives in place; `world.md`'s pointer dropped, since its layers and rules state the choices. `plans.py check --citations`: 11 folders agree. Spec check pass, links 0 broken.
-- Waiting: the user's read of the spec.
+- 2026-11-23. The user read the spec: ok.

@@ -1,6 +1,6 @@
 ---
-status: in progress
-priority: 1
+status: done
+priority: 0
 description: |
   Rewrite docs/functional-specs.md as the spec of this game (it is still the sample project's), point the
   agent instructions at it truthfully, and make keeping it current part of every feature so it does not
