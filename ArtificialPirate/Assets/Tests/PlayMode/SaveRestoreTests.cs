@@ -87,13 +87,12 @@ namespace Game.Tests.PlayMode
             // _activeShip into GameManager before we move it.
             yield return null;
 
-            ShipController[] ships =
-                Object.FindObjectsByType<ShipController>(FindObjectsInactive.Exclude);
-            Assert.AreEqual(1, ships.Length, "Exactly one ShipController must exist in the Game scene");
+            ShipController ship = GameManager.Instance.PlayerShip;
+            Assert.IsNotNull(ship, "The Game scene registers the player's ship");
 
             // ---- Act: teleport to known position then return to Menu (triggers save) ---- //
 
-            ships[0].Teleport(SavedPos, SavedYaw);
+            ship.Teleport(SavedPos, SavedYaw);
 
             var returnTask = GameManager.Instance.ReturnToMenuAsync();
             while (!returnTask.IsCompleted)
@@ -117,12 +116,8 @@ namespace Game.Tests.PlayMode
 
             // ---- Assert ---- //
 
-            ShipController[] restoredShips =
-                Object.FindObjectsByType<ShipController>(FindObjectsInactive.Exclude);
-            Assert.AreEqual(1, restoredShips.Length,
-                "Exactly one ShipController must exist after scene reload");
-
-            ShipController restored = restoredShips[0];
+            ShipController restored = GameManager.Instance.PlayerShip;
+            Assert.IsNotNull(restored, "The Game scene registers the player's ship after the reload");
 
             float posDelta = Vector3.Distance(restored.transform.position, SavedPos);
             float yawDelta = Mathf.Abs(Mathf.DeltaAngle(restored.transform.eulerAngles.y, SavedYaw));
@@ -154,7 +149,7 @@ namespace Game.Tests.PlayMode
             int seed = world.World.Seed;
             Assert.AreNotEqual(0, seed, "A new game picks a seed");
 
-            ShipController ship = Object.FindAnyObjectByType<ShipController>();
+            ShipController ship = GameManager.Instance.PlayerShip;
             ship.Teleport(SavedPos * 9f, SavedYaw); // two cells away: more cells explored
             yield return null;
             int explored = world.Explored.Count;
@@ -194,7 +189,7 @@ namespace Game.Tests.PlayMode
             yield return WaitForState(GameState.Playing);
             yield return null;
 
-            ShipController ship = Object.FindAnyObjectByType<ShipController>();
+            ShipController ship = GameManager.Instance.PlayerShip;
             ship.Damage.Hit(ship.transform.position + ship.transform.right, Damage);
             float listDeg = ship.Damage.ListDeg;
             ship.GetComponent<ShipMasts>().Break(0, 1f);
@@ -210,7 +205,7 @@ namespace Game.Tests.PlayMode
             yield return WaitForState(GameState.Playing);
             yield return null;
 
-            ShipDamage restored = Object.FindAnyObjectByType<ShipController>().Damage;
+            ShipDamage restored = GameManager.Instance.PlayerShip.Damage;
             Assert.AreEqual(1f - Damage, restored.Health, 1e-4f, "The same health");
             Assert.AreEqual(1, restored.HitCount, "The hit kept");
             Assert.AreEqual(listDeg, restored.ListDeg, 1e-4f, "The same list");

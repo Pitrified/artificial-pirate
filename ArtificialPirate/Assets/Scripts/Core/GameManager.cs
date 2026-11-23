@@ -53,6 +53,9 @@ namespace Game.Core
         /// <summary>The persistent UI root. Assigned by <see cref="Initialize"/>.</summary>
         public IUISystem UISystem { get; private set; }
 
+        /// <summary>The player's ship, the one saved and followed; set by <see cref="RegisterShip"/>.</summary>
+        public ShipController PlayerShip => _activeShip;
+
         // ------------------------------------------------------------------ active scene refs
 
         private ShipController _activeShip;

@@ -8,7 +8,8 @@ namespace Game.Gameplay
     /// hull meets another ship's, its <see cref="HullContact"/> moves it out and shares a ram,
     /// and where it would run aground the step is undone and it stops. A damaged hull
     /// (<see cref="ShipDamage"/>) lowers its top speed, and a sinking one no longer answers the helm.
-    /// Reads movement input from an injected <see cref="IInputManager"/> each frame.
+    /// The player's ship reads movement input from an injected <see cref="IInputManager"/> each frame;
+    /// any other ship is steered through <see cref="SetInput"/> (<see cref="CircleHelm"/>).
     /// </summary>
     public sealed class ShipController : MonoBehaviour
     {

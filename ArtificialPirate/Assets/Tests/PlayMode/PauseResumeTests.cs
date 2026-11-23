@@ -72,11 +72,8 @@ namespace Game.Tests.PlayMode
             // (GameSceneWiring.Start wires InputManager into the ship).
             yield return null;
 
-            ShipController[] ships =
-                Object.FindObjectsByType<ShipController>(FindObjectsInactive.Exclude);
-            Assert.AreEqual(1, ships.Length, "Exactly one ShipController must exist in the Game scene");
-
-            ShipController ship = ships[0];
+            ShipController ship = GameManager.Instance.PlayerShip;
+            Assert.IsNotNull(ship, "The Game scene registers the player's ship");
             Vector3 positionBefore = ship.transform.position;
             float   yawBefore      = ship.transform.eulerAngles.y;
 

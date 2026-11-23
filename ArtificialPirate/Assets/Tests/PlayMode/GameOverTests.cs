@@ -32,7 +32,7 @@ namespace Game.Tests.PlayMode
             yield return WaitForState(GameState.Playing);
             yield return null;
 
-            ShipController ship = Object.FindAnyObjectByType<ShipController>();
+            ShipController ship = GameManager.Instance.PlayerShip;
             ShipDamage damage = ship.Damage;
             Assert.IsNotNull(damage, "The player's ship takes damage");
             Minimap minimap = Object.FindAnyObjectByType<Minimap>();

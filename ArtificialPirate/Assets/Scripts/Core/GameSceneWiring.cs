@@ -9,7 +9,7 @@ namespace Game.Core
     /// <summary>
     /// Wires Game scene components (ShipController, CameraController) with Persistent scene
     /// systems (InputManager); hands the world to GameManager to begin its seed, then wires the
-    /// ship to the world's ground, opens the map when the minimap is tapped, shows the ship's hull on
+    /// ship, and the ships that come back when sunk, to the world's ground, opens the map when the minimap is tapped, shows the ship's hull on
     /// the hull bar once its save is restored, and shows the HUD only
     /// while playing, since its canvas sorts above the screens shown over the paused game. Place this on
     /// any root object in Game.unity and assign the serialized references in the Inspector.
@@ -23,6 +23,9 @@ namespace Game.Core
         [SerializeField] private Minimap _minimap;
         [SerializeField] private HullBar _hullBar;
         [SerializeField] private GameObject _hud;
+
+        [Tooltip("The ships that come back when sunk, given the world's ground as the player's ship is.")]
+        [SerializeField] private ShipRespawn[] _respawns = System.Array.Empty<ShipRespawn>();
 
         private GameManager _gameManager;
 
@@ -120,6 +123,13 @@ namespace Game.Core
             if (_ship.TryGetComponent(out HullContact contact))
             {
                 contact.UseGround(_world.World);
+            }
+            foreach (ShipRespawn respawn in _respawns)
+            {
+                if (respawn != null)
+                {
+                    respawn.UseGround(_world.World);
+                }
             }
         }
     }

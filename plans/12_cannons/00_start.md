@@ -155,6 +155,7 @@ Folded in from Q1 to Q6, 2026-11-23.
   - b. Other: say where and how big.
   - Recommended: a, because steering to the circle survives being pushed, which a fixed rudder does not; the centre and radius are fields on the helm.
   - ANS: a.
+  - Corrected in phase 03: the world's islands come from the seed, which changes with every new game, so open water 350 m out in one world is an island in another. The only water clear in every world is the start clearing, 160 m round the origin (`SO_WorldSettings`). The circle is inside it: 90 m across (radius 45), its centre 99 m south-east of the origin, about 130 m from the anchored brig and out of the guns' range of the player's start. The rest of the answer holds.
 - Q8: Sunk ships coming back.
   - a. A sunk ship that is not the player's comes back whole at its own start (the anchored brig at its anchor, the circling one on its circle) once 60 s have passed and the player's ship is more than 300 m from that start, so it never appears in sight.
   - b. Somewhere new each time.

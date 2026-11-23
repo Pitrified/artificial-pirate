@@ -71,7 +71,7 @@ namespace Game.Tests.PlayMode
             float captureFps = EnvFloat("CAPTURE_FPS", DefaultCaptureFps);
             int every = Mathf.Max(1, Mathf.RoundToInt(SimulationFps / captureFps));
 
-            ShipController ship = UnityEngine.Object.FindAnyObjectByType<ShipController>();
+            ShipController ship = GameManager.Instance.PlayerShip;
             Assert.IsNotNull(ship, "The Game scene has a ship");
             float throttle = EnvFloat("CAPTURE_THROTTLE", 0f);
             float steering = EnvFloat("CAPTURE_STEERING", 0f);
