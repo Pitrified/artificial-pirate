@@ -125,3 +125,30 @@ Folded in from Q1 to Q7, 2026-11-23.
 | 03 | Map icons | the icons by `textures.py`; the minimap's ships; the full map's markers |
 | 04 | App icon | candidates (stills, a flat SVG), the user's pick, the Android icons |
 | 05 | Verify | the spec and the system pages; the phone |
+
+## The phone read
+
+2026-11-23, the user on a Pixel 7 Pro: the icon, the three cameras, both ships, the minimap and the full map work.
+The helm view is sickening in both motions (the boat moving under a level view, or the world moving around a still boat); might suit a milder sea.
+Sinking in the helm view breaks the view.
+Diagnostics: GPU p50 10.3 ms, p95 13.3, mean 10.2 (the cannons run: 11.8, 12.8, 11.7); 6 slow frames in 180 s.
+
+Why the sinking breaks the helm view: `WaveRider` carries the hull down and tips it bow or stern down (`ShipDamage.SinkDepth`, `SinkPitchDeg`) while the ship's root stays at the surface.
+A riding helm is measured from the hull, so it goes under and tips with it; a steady helm is measured from the root, so it hangs at eye height over the water while the deck drops away beneath it.
+
+- Q8: The helm view while the player's ship sinks.
+  - a. Ease to the chase view once the player's ship is sinking, the setting left as it is (a new game starts in the chosen view again).
+  - b. Keep the helm, held at the surface and turned to look down at the hull as it goes.
+  - Recommended: a, because the chase already frames a sinking ship well and it reuses the views' ease; b is a fourth pose to tune for a few seconds.
+  - ANS: a.
+- Q9: The helm's motion at sea.
+  - a. Keep both motions as they are; add "the helm view in a milder sea" to Next, for when the sea can change.
+  - b. A third motion, riding a share of the hull's pitch and roll (a third, say), to try on the phone.
+  - c. Drop the helm view.
+  - Recommended: a, because both ends were rough, so a share between them is likely rough too, and the sea's height is the real cause.
+  - ANS: a.
+
+Folded in from Q8 and Q9, 2026-11-23.
+
+- **A sinking player's ship is seen from the chase** (Q8): the scene's wiring shows the chase once the player's ship is sinking, whatever the setting, which stays as chosen. Phase 06.
+- **The helm stays as it is** (Q9): both motions kept; "the helm view in a milder sea" joins the spec's Next.

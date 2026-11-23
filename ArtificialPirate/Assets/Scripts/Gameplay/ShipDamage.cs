@@ -46,6 +46,9 @@ namespace Game.Gameplay
         /// <summary>Raised on each hit that did harm: where (world) and how much health it took.</summary>
         public event Action<Vector3, float> Damaged;
 
+        /// <summary>Raised once, when the hull's health runs out and it starts to go under.</summary>
+        public event Action SinkingStarted;
+
         /// <summary>Raised once, when a sinking ship has gone under; the ship is then turned off.</summary>
         public event Action Sunk;
 
@@ -189,6 +192,7 @@ namespace Game.Gameplay
             {
                 _sinking = true;
                 Log.Info(LogCat.Gameplay, "ShipDamage: {0} is sinking", name);
+                SinkingStarted?.Invoke();
             }
         }
 

@@ -12,8 +12,9 @@ namespace Game.Tests.PlayMode
 
     /// <summary>
     /// The ship chosen in the settings is the one sailed: with the brig chosen a new game sails the
-    /// brig, the sloop off and the brig on its side; back to the sloop for the next game. The
-    /// settings' keys are saved and put back around the test.
+    /// brig, the sloop off and the brig on its side; back to the sloop for the next game. A sinking
+    /// ship is seen from the chase whatever the setting. The settings' keys are saved and put back
+    /// around each test.
     /// </summary>
     public sealed class PlayerShipTests
     {
@@ -82,6 +83,26 @@ namespace Game.Tests.PlayMode
             gm.Settings.SetShip(PlayerShipKind.Sloop);
             yield return NewGame();
             Assert.AreEqual("SO_Ship_Sloop", gm.PlayerShip.Type.name, "the sloop sails again");
+        }
+
+        [UnityTest]
+        public IEnumerator SinkingShip_IsSeenFromTheChase_TheSettingKept()
+        {
+            yield return SceneManager.LoadSceneAsync(SceneNames.Boot, LoadSceneMode.Single);
+            yield return WaitForState(GameState.Menu);
+            GameManager gm = GameManager.Instance;
+            gm.Settings.SetCamera(CameraView.Helm);
+            yield return NewGame();
+            CameraController camera = Camera.main.GetComponent<CameraController>();
+            Assert.AreEqual(CameraView.Helm, camera.View);
+
+            ShipController ship = gm.PlayerShip;
+            ship.Damage.Hit(ship.transform.position, 1f);
+            Assert.AreEqual(CameraView.Chase, camera.View, "the chase once sinking");
+            Assert.AreEqual(CameraView.Helm, gm.Settings.Camera, "the setting kept");
+
+            gm.Settings.SetHelmRides(true);
+            Assert.AreEqual(CameraView.Chase, camera.View, "still the chase on a change of setting");
         }
 
         private static IEnumerator NewGame()

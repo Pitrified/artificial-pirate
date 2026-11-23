@@ -204,10 +204,14 @@ namespace Game.Tests.EditMode
             SO_ShipType type = Type(1f);
             ShipDamage damage = Ship("Ship", type, Vector3.zero);
             int sunk = 0;
+            int started = 0;
             damage.Sunk += () => sunk++;
+            damage.SinkingStarted += () => started++;
 
             damage.Hit(new Vector3(0f, 0f, HalfLength), 1f);
+            damage.Hit(new Vector3(0f, 0f, HalfLength), 1f);
             Assert.IsTrue(damage.Sinking);
+            Assert.AreEqual(1, started, "the sinking starts once");
             damage.Tick(type.SinkSeconds * 0.5f);
 
             Assert.That(damage.SinkDepth, Is.EqualTo(0.25f * type.SinkDepth).Within(Tolerance), "slow at first");

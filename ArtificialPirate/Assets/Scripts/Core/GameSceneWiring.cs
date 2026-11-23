@@ -14,7 +14,7 @@ namespace Game.Core
     /// ship, and the ships that come back when sunk, to the world's ground, opens the map when the minimap is tapped, shows the ship's hull on
     /// the hull bar once its save is restored, bars over the other ships near it, shakes the camera on
     /// its volleys and the hits it takes, follows the camera setting (and the HUD's camera button
-    /// cycles it), and shows the HUD only
+    /// cycles it) but shows the chase while the ship sinks, and shows the HUD only
     /// while playing, since its canvas sorts above the screens shown over the paused game. Place this on
     /// any root object in Game.unity and assign the serialized references in the Inspector.
     /// </summary>
@@ -129,7 +129,7 @@ namespace Game.Core
                 Transform hull = _ship.TryGetComponent(out HullContact contact) ? contact.Hull : null;
                 _camera.SetShip(_ship.transform, hull, _ship.Type, gm.Settings.Camera, gm.Settings.HelmRides);
                 _camera.SnapToTarget();
-                gm.Settings.Changed += OnSettingsChanged;
+                gm.Settings.Changed += ShowView;
                 if (_cameraButton != null)
                 {
                     _cameraButton.onClick.AddListener(gm.Settings.NextCamera);
@@ -150,6 +150,8 @@ namespace Game.Core
             if (_playerDamage != null)
             {
                 _playerDamage.Damaged += OnPlayerHit;
+                _playerDamage.SinkingStarted += ShowView;
+                _playerDamage.Restored += ShowView;
             }
             if (_shipBars != null)
             {
@@ -157,7 +159,13 @@ namespace Game.Core
             }
         }
 
-        private void OnSettingsChanged() => _camera.SetView(_gameManager.Settings.Camera, _gameManager.Settings.HelmRides);
+        /// <summary>Shows the chosen view, or the chase while the player's ship sinks.</summary>
+        private void ShowView()
+        {
+            GameSettings settings = _gameManager.Settings;
+            CameraView view = _playerDamage != null && _playerDamage.Sinking ? CameraView.Chase : settings.Camera;
+            _camera.SetView(view, settings.HelmRides);
+        }
 
         private void OnVolley(bool starboard) => _camera.Shake(_camera.Tuning.VolleyShake);
 
@@ -174,7 +182,7 @@ namespace Game.Core
                 _gameManager.StateChanged -= OnStateChanged;
                 if (_gameManager.Settings != null)
                 {
-                    _gameManager.Settings.Changed -= OnSettingsChanged;
+                    _gameManager.Settings.Changed -= ShowView;
                 }
             }
             if (_cameraButton != null)
@@ -188,6 +196,8 @@ namespace Game.Core
             if (_playerDamage != null)
             {
                 _playerDamage.Damaged -= OnPlayerHit;
+                _playerDamage.SinkingStarted -= ShowView;
+                _playerDamage.Restored -= ShowView;
             }
         }
 
