@@ -1,13 +1,15 @@
 namespace Game.UI
 {
     using System;
+    using System.Collections.Generic;
     using UnityEngine;
     using UnityEngine.UIElements;
 
     /// <summary>
     /// The full map's view: a square window on the map picture that one finger drags and two
-    /// pinch (<see cref="MapView"/>), the ship's arrow placed on the picture and turned by the
-    /// heading, and buttons to centre on the ship, reset the zoom and close. Bound by
+    /// pinch (<see cref="MapView"/>), the ships' icons placed on the picture, turned by their headings
+    /// and tinted by side (the player's first), and buttons to centre on the player's ship, reset the
+    /// zoom and close. Bound by
     /// <see cref="UISystem"/> to its document. See docs/systems/world.md.
     /// </summary>
     public sealed class MapPanel
@@ -25,7 +27,7 @@ namespace Game.UI
         private readonly VisualElement _window;
         private readonly VisualElement _image;
         private readonly VisualElement _ship;
-        private readonly Texture2D _arrow;
+        private readonly List<VisualElement> _others = new List<VisualElement>();
         private readonly MapView _view = new MapView();
         private float _side;
 
@@ -39,11 +41,6 @@ namespace Game.UI
             _window = root.Q<VisualElement>(WindowName);
             _image = root.Q<VisualElement>(ImageName);
             _ship = root.Q<VisualElement>(ShipName);
-            _arrow = MapArrow.Create();
-            if (_ship != null)
-            {
-                _ship.style.backgroundImage = new StyleBackground(Background.FromTexture2D(_arrow));
-            }
             _frame?.RegisterCallback<GeometryChangedEvent>(_ => Layout());
             if (_window != null)
             {
@@ -62,30 +59,53 @@ namespace Game.UI
         /// <summary>The view's state, for tests.</summary>
         internal MapView View => _view;
 
+        /// <summary>The icons of the ships other than the player's showing, for tests.</summary>
+        internal int OthersShowing { get; private set; }
+
         /// <summary>
-        /// Shows <paramref name="map"/> with the ship at <paramref name="shipUv"/> (0 to 1 from the
-        /// south-west corner) heading <paramref name="shipYawDeg"/> degrees clockwise from north,
-        /// the view centred on the ship showing <paramref name="startView"/> of the map's side and
-        /// zooming in to <paramref name="closestView"/>.
+        /// Shows <paramref name="map"/> with <paramref name="ships"/> on it, the player's first, the
+        /// view centred on it showing <paramref name="startView"/> of the map's side and zooming in to
+        /// <paramref name="closestView"/>.
         /// </summary>
-        public void Show(Texture2D map, Vector2 shipUv, float shipYawDeg, float startView, float closestView)
+        public void Show(Texture2D map, MapMarker[] ships, float startView, float closestView)
         {
-            if (_image == null || _ship == null)
+            if (_image == null || _ship == null || ships == null || ships.Length == 0)
             {
                 return;
             }
             _image.style.backgroundImage = new StyleBackground(Background.FromTexture2D(map));
-            _ship.style.left = Length.Percent(shipUv.x * Percent);
-            _ship.style.top = Length.Percent((1f - shipUv.y) * Percent);
-            _ship.style.rotate = new Rotate(new Angle(shipYawDeg, AngleUnit.Degree));
-            _view.Show(shipUv, startView, closestView);
+            Mark(_ship, ships[0]);
+            for (int i = 1; i < ships.Length; i++)
+            {
+                if (_others.Count < i)
+                {
+                    var icon = new VisualElement { pickingMode = PickingMode.Ignore };
+                    icon.AddToClassList(ShipName);
+                    _ship.parent.Add(icon);
+                    _others.Add(icon);
+                }
+                Mark(_others[i - 1], ships[i]);
+                _others[i - 1].style.display = DisplayStyle.Flex;
+            }
+            for (int i = ships.Length - 1; i < _others.Count; i++)
+            {
+                _others[i].style.display = DisplayStyle.None;
+            }
+            OthersShowing = ships.Length - 1;
+            _ship.BringToFront();
+            _view.Show(ships[0].Uv, startView, closestView);
             Layout();
         }
 
-        /// <summary>Destroys the arrow texture.</summary>
-        public void Dispose()
+        private static void Mark(VisualElement icon, MapMarker ship)
         {
-            UnityEngine.Object.Destroy(_arrow);
+            icon.style.left = Length.Percent(ship.Uv.x * Percent);
+            icon.style.top = Length.Percent((1f - ship.Uv.y) * Percent);
+            icon.style.width = ship.Pixels;
+            icon.style.height = ship.Pixels;
+            icon.style.rotate = new Rotate(new Angle(ship.YawDeg, AngleUnit.Degree));
+            icon.style.backgroundImage = ship.Icon != null ? new StyleBackground(Background.FromTexture2D(ship.Icon)) : new StyleBackground(StyleKeyword.None);
+            icon.style.unityBackgroundImageTintColor = ship.Tint;
         }
 
         private static void Bind(VisualElement root, string name, Action action)

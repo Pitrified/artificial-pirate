@@ -36,6 +36,25 @@ namespace Game.Gameplay.World
         [Tooltip("A cell not yet explored.")]
         [SerializeField] private Color32 _unexplored = new Color32(28, 30, 36, 255);
 
+        [Header("Ships")]
+        [Tooltip("The player's ship's icon.")]
+        [SerializeField] private Color _playerTint = Color.white;
+
+        [Tooltip("A ship of another side.")]
+        [SerializeField] private Color _enemyTint = new Color(0.92f, 0.28f, 0.22f, 1f);
+
+        [Tooltip("A ship of the player's side.")]
+        [SerializeField] private Color _allyTint = new Color(0.4f, 0.85f, 0.45f, 1f);
+
+        [Tooltip("An icon's pixels per metre of its ship's length, on the minimap.")]
+        [SerializeField] private float _minimapPixelsPerMetre = 0.5f;
+
+        [Tooltip("An icon's pixels per metre of its ship's length, on the full map.")]
+        [SerializeField] private float _fullMapPixelsPerMetre = 1f;
+
+        [Tooltip("The smallest an icon is drawn, in pixels.")]
+        [SerializeField] private float _iconLeastPixels = 8f;
+
         /// <summary>Pixels along a cell's side.</summary>
         public int TileSize => _tileSize;
 
@@ -47,6 +66,15 @@ namespace Game.Gameplay.World
 
         /// <summary>A cell not yet explored.</summary>
         public Color32 Unexplored => _unexplored;
+
+        /// <summary>A ship's icon's tint: the player's own, a ship of its side, or of another.</summary>
+        public Color Tint(bool players, bool sameSide) => players ? _playerTint : sameSide ? _allyTint : _enemyTint;
+
+        /// <summary>The side of a ship's icon in pixels on the minimap, from the ship's length in metres.</summary>
+        public float MinimapIconPixels(float length) => Mathf.Max(_iconLeastPixels, length * _minimapPixelsPerMetre);
+
+        /// <summary>The side of a ship's icon in pixels on the full map, from the ship's length in metres.</summary>
+        public float FullMapIconPixels(float length) => Mathf.Max(_iconLeastPixels, length * _fullMapPixelsPerMetre);
 
         /// <summary>The colour of ground at <paramref name="height"/> metres (the waterline is 0).</summary>
         public Color32 ColourAt(float height)

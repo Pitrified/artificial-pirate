@@ -66,6 +66,10 @@ namespace Game.Gameplay
         [Tooltip("The helm camera: the helmsman's eyes (the builder's report prints them), looking ahead over the bow.")]
         [SerializeField] private CameraRig _helm = new CameraRig(new Vector3(0f, 3f, -7f), new Vector3(0f, 3f, 60f));
 
+        [Header("Map")]
+        [Tooltip("The ship seen from above, bow up, white on clear (textures.py map_icons); the maps tint and size it.")]
+        [SerializeField] private Texture2D _mapIcon;
+
         [Header("Damage")]
         [Tooltip("A blow closing slower than this does no harm (m/s).")]
         [SerializeField] private float _harmlessSpeed = 1.5f;
@@ -165,6 +169,9 @@ namespace Game.Gameplay
 
         /// <summary>The point the chase camera looks at, in the ship's local space, in metres.</summary>
         public Vector3 CameraLookAt => _cameraLookAt;
+
+        /// <summary>The ship seen from above, bow up, for the maps.</summary>
+        public Texture2D MapIcon => _mapIcon;
 
         /// <summary>The rig of a camera on this ship.</summary>
         public CameraRig Rig(CameraView view)

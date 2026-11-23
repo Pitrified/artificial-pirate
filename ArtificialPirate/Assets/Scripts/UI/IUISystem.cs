@@ -23,13 +23,12 @@ namespace Game.UI
         void HideScreen(ScreenId id);
 
         /// <summary>
-        /// Shows the full map: <paramref name="map"/>, with the ship at <paramref name="shipUv"/>
-        /// (0 to 1 from its south-west corner) heading <paramref name="shipYawDeg"/> degrees
-        /// clockwise from north. The view starts centred on the ship showing <paramref name="startView"/>
-        /// of the map's side and zooms in to <paramref name="closestView"/>. Hidden with
-        /// <see cref="HideScreen"/> and <see cref="ScreenId.Map"/>.
+        /// Shows the full map: <paramref name="map"/>, with <paramref name="ships"/> on it, the
+        /// player's first. The view starts centred on the player's ship showing
+        /// <paramref name="startView"/> of the map's side and zooms in to <paramref name="closestView"/>.
+        /// Hidden with <see cref="HideScreen"/> and <see cref="ScreenId.Map"/>.
         /// </summary>
-        void ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg, float startView, float closestView);
+        void ShowMap(Texture2D map, MapMarker[] ships, float startView, float closestView);
 
         /// <summary>Gives the settings screen the settings it shows and changes.</summary>
         void BindSettings(GameSettings settings);

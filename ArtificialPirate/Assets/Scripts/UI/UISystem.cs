@@ -124,11 +124,6 @@ namespace Game.UI
             Log.Info(LogCat.UI, "UISystem initialized.");
         }
 
-        private void OnDestroy()
-        {
-            _map?.Dispose();
-        }
-
         private void Update()
         {
             // Safe area should only change when the device rotates or keyboard appears;
@@ -178,7 +173,7 @@ namespace Game.UI
         }
 
         /// <inheritdoc/>
-        public void ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg, float startView, float closestView)
+        public void ShowMap(Texture2D map, MapMarker[] ships, float startView, float closestView)
         {
             if (_map == null)
             {
@@ -187,7 +182,7 @@ namespace Game.UI
             }
             SetVisible(_mapRoot, true);
             _mapVisible = true;
-            _map.Show(map, shipUv, shipYawDeg, startView, closestView);
+            _map.Show(map, ships, startView, closestView);
             Log.Info(LogCat.UI, "Map shown.");
         }
 

@@ -33,6 +33,9 @@ namespace Game.Gameplay.World
         /// <summary>Cells across the full map's view zoomed in as far as it goes.</summary>
         public float ClosestCells => _style.ClosestCells;
 
+        /// <summary>How the maps are drawn: the ground's colours, the ships' icons.</summary>
+        public SO_MapStyle Style => _style;
+
         /// <summary>Wires the streamer and the style (maps built in code: tests).</summary>
         internal void Configure(WorldStreamer streamer, SO_MapStyle style)
         {

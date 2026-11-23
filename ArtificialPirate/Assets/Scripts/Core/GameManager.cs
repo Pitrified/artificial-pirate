@@ -62,6 +62,7 @@ namespace Game.Core
         // ------------------------------------------------------------------ active scene refs
 
         private ShipController _activeShip;
+        private readonly Collider[] _mapHulls = new Collider[32];
         private WorldStreamer _activeWorld;
 
         // ------------------------------------------------------------------ initializer
@@ -312,11 +313,45 @@ namespace Game.Core
 
             Vector3 at = ship.position;
             Texture2D picture = map.ComposeExplored(map.World.CellAt(at.x, at.z), out Rect area);
-            var shipUv = new Vector2((at.x - area.x) / area.width, (at.z - area.y) / area.height);
             float cell = map.World.Settings.CellSize;
             InputManager?.SetEnabled(false);
-            UISystem?.ShowMap(picture, shipUv, ship.eulerAngles.y, map.ViewCells * cell / area.width, map.ClosestCells * cell / area.width);
+            UISystem?.ShowMap(picture, ShipsOn(map.Style, area, ship), map.ViewCells * cell / area.width, map.ClosestCells * cell / area.width);
             TransitionTo(GameState.Paused);
+        }
+
+        /// <summary>The ships over the map's <paramref name="area"/>, the player's first, each placed, turned and tinted.</summary>
+        private MapMarker[] ShipsOn(SO_MapStyle style, Rect area, Transform player)
+        {
+            var ships = new System.Collections.Generic.List<MapMarker> { Marker(style, area, player, true, true) };
+            if (player.TryGetComponent(out HullContact contact) && player.TryGetComponent(out Broadside guns))
+            {
+                var centre = new Vector3(area.center.x, 0f, area.center.y);
+                int count = Physics.OverlapSphereNonAlloc(centre, area.width * 0.75f, _mapHulls, contact.Ships, QueryTriggerInteraction.Ignore);
+                for (int i = 0; i < count; i++)
+                {
+                    Broadside other = _mapHulls[i].GetComponentInParent<Broadside>();
+                    Vector3 p = other != null ? other.transform.position : Vector3.zero;
+                    if (other != null && other != guns && other.Afloat && area.Contains(new Vector2(p.x, p.z)))
+                    {
+                        ships.Add(Marker(style, area, other.transform, false, other.Side == guns.Side));
+                    }
+                }
+            }
+            return ships.ToArray();
+        }
+
+        private static MapMarker Marker(SO_MapStyle style, Rect area, Transform ship, bool players, bool sameSide)
+        {
+            Vector3 at = ship.position;
+            SO_ShipType type = ship.TryGetComponent(out HullContact contact) ? contact.Type : null;
+            return new MapMarker
+            {
+                Uv = new Vector2((at.x - area.x) / area.width, (at.z - area.y) / area.height),
+                YawDeg = ship.eulerAngles.y,
+                Icon = type != null ? type.MapIcon : null,
+                Tint = style.Tint(players, sameSide),
+                Pixels = style.FullMapIconPixels(type != null ? 2f * type.HalfLength : 0f),
+            };
         }
 
         private void CloseMap()

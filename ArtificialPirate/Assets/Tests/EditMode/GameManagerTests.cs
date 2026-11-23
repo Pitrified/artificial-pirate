@@ -95,10 +95,10 @@ namespace Game.Tests.EditMode
         public Texture2D ShownMap { get; private set; }
         public Vector2 ShownShipUv { get; private set; }
         public float ShownStartView { get; private set; }
-        public void ShowMap(Texture2D map, Vector2 shipUv, float shipYawDeg, float startView, float closestView)
+        public void ShowMap(Texture2D map, MapMarker[] ships, float startView, float closestView)
         {
             ShownMap = map;
-            ShownShipUv = shipUv;
+            ShownShipUv = ships[0].Uv;
             ShownStartView = startView;
         }
         public event Action OnMapCloseRequested;

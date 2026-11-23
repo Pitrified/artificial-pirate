@@ -238,6 +238,26 @@ namespace Game.Tests.EditMode
         }
 
         [TestCaseSource(nameof(Ships))]
+        public void Ship_HasAMapIcon_BowUp(Expected model)
+        {
+            Texture2D icon = LoadType(model).MapIcon;
+            Assert.IsNotNull(icon, "the type's map icon (textures.py map_icons)");
+            int Width(int row)
+            {
+                int filled = 0;
+                for (int x = 0; x < icon.width; x++)
+                {
+                    filled += icon.GetPixel(x, row).a > 0.5f ? 1 : 0;
+                }
+                return filled;
+            }
+            int middle = Width(icon.height / 2);
+            Assert.That(middle, Is.GreaterThan(icon.width / 6), "the hull's beam amidships");
+            Assert.That(Width(icon.height * 9 / 10), Is.LessThan(middle / 2), "narrow at the top: the bow up");
+            Assert.That(Width(icon.height / 20), Is.GreaterThan(middle / 3), "the transom at the bottom");
+        }
+
+        [TestCaseSource(nameof(Ships))]
         public void Ship_KeelIsAtItsDraft(Expected model)
         {
             Bounds bounds = ModelBounds(Load(model), out _);

@@ -224,6 +224,7 @@ MonoBehaviour:
   _helm:
     Offset: {x: 0, y: 3.726, z: -14.617}
     LookAt: {x: 0, y: 3.726, z: 45.383}
+  _mapIcon: {fileID: 2800000, guid: eabfbea4b85eddd5b85e7e8adecf6fcf, type: 3}
   _harmlessSpeed: 1.5
   _sinkingSpeed: 14
   _damagedSpeedFloor: 0.6

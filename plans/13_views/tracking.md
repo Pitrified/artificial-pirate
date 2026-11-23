@@ -15,8 +15,8 @@ An app icon of a brig at sea, boats on the minimap with an icon per kind of ship
 | -- | ---------------------- | ---- | ------ |
 | 01 | Settings and cameras   | [`01_settings_and_cameras.md`](01_settings_and_cameras.md) | done |
 | 02 | The player's ship      | [`02_player_ship.md`](02_player_ship.md) | done |
-| 03 | Map icons              | [`03_map_icons.md`](03_map_icons.md) | in progress |
-| 04 | App icon               | [`04_app_icon.md`](04_app_icon.md) | planned |
+| 03 | Map icons              | [`03_map_icons.md`](03_map_icons.md) | done |
+| 04 | App icon               | [`04_app_icon.md`](04_app_icon.md) | in progress |
 | 05 | Verify                 | [`05_verify.md`](05_verify.md) | planned |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
@@ -31,3 +31,4 @@ Append-only. Newest at the bottom.
 - 2026-11-23 : phase 01 - review before: nothing to correct. `GameSettings` (`PlayerPrefs`); the Settings screen (`ScreenId.Settings`, from menu and pause); rigs per type (bird's eye, helm from the builder's `helm_eye`); `CameraController` views with a half-second ease and a steady or riding helm; a CAM button on the HUD (a uGUI copy of the pause button, which is an `OnScreenButton`). 6 new tests. Gates green (EditMode 261, PlayMode 28). Captures of the sloop's bird's eye and helm.
 - 2026-11-23 : phase 02 (in progress) - review before: six components follow the player's ship, not two (`Follow` setters added). A player's brig in the scene, both player ships inactive, the chosen one turned on in `Awake` (release builds the sloop); the brig's scene references set directly (copied modifications targeted the sloop's prefab; pruned). Found: the settings tests left Brig in the editor's `PlayerPrefs` (a delete never saved), so every PlayMode test sailed the brig and a floating barrel sat on its deck at the start; teardowns now save, and `SettingsIsolation` runs the PlayMode suite on default settings. Gates green (EditMode 261, PlayMode 29). Left: a capture of the brig sailed and its three views, then close.
 - 2026-11-23 : phase 02 closed: the player's brig starts at (0, 0, 72), clear of the floating props; the brig's helm crew moved off the helm view (model rebuilt); `CAPTURE_SHIP`; captures of the brig's three views. Gates green (EditMode 261, PlayMode 29).
+- 2026-11-23 : phase 03 - review before: nothing to correct. `T_MapIcon_<Type>` from the builders' hulls; `SO_ShipType.MapIcon`; tints and sizes on `SO_MapStyle`; the minimap's ships (a pool of 8) and the full map's `MapMarker`s; `MapArrow` removed. 2 new tests. Gates green (EditMode 263, PlayMode 30). Capture of the minimap with both brigs.

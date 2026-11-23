@@ -3,7 +3,7 @@
 Run from this folder:
 
     uv run --no-sync python textures.py water_normals   (or palette, sail_canvas, hull_planks, deck_planks, flag, hull_marks,
-                                                         spar_wood, ship_wood, particles)
+                                                         spar_wood, ship_wood, particles, map_icons)
 
 Each texture is a function below. Tiling comes from building the height field out of
 waves with integer frequencies over the tile, so the edges meet. The same seed gives
@@ -234,6 +234,38 @@ def particles() -> Path:
     return _save(Image.fromarray(np.round(np.clip(rgba, 0, 1) * 255).astype(np.uint8), "RGBA"), "T_Particles")
 
 
+MAP_ICON_SIZE = 64
+MAP_ICON_SUPERSAMPLE = 4
+MAP_ICON_STATIONS = 40
+
+
+def map_icons() -> list[Path]:
+    """Each ship type's map icon: its hull from above, the deck's outline from the stern's transom to
+    the stem, bow up, white on clear, the length filling the square; the maps size it by the length."""
+    import importlib  # noqa: PLC0415 - the ship builders load Blender's modules, only needed here
+
+    import bpy  # noqa: F401, PLC0415 - loading Blender makes mathutils importable for the ship builders
+
+    from builders.ship.hull import half_beam  # noqa: PLC0415
+
+    made = []
+    for name in ("sloop", "brig"):
+        p = importlib.import_module(f"builders.{name}").PARAMS
+        big = MAP_ICON_SIZE * MAP_ICON_SUPERSAMPLE
+        margin = big * 0.03
+        scale = (big - 2 * margin) / p["length"]
+        centre = big / 2
+        side = []
+        for i in range(MAP_ICON_STATIONS + 1):
+            s = i / MAP_ICON_STATIONS
+            side.append((centre + half_beam(p, s) * scale, big - margin - s * p["length"] * scale))
+        outline = side + [(centre, margin)] + [(2 * centre - x, y) for x, y in reversed(side)]
+        image = Image.new("RGBA", (big, big), (255, 255, 255, 0))
+        ImageDraw.Draw(image).polygon(outline, fill=(255, 255, 255, 255))
+        made.append(_save(image.resize((MAP_ICON_SIZE, MAP_ICON_SIZE), Image.LANCZOS), f"T_MapIcon_{name.title()}"))
+    return made
+
+
 TEXTURES = {
     "water_normals": water_normals,
     "palette": palette,
@@ -245,6 +277,7 @@ TEXTURES = {
     "spar_wood": spar_wood,
     "ship_wood": ship_wood,
     "particles": particles,
+    "map_icons": map_icons,
 }
 
 
