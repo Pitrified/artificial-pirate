@@ -50,6 +50,9 @@ namespace Game.UI
         /// <summary>Whether every cell around the ship is drawn, for tests.</summary>
         internal bool Complete => _complete;
 
+        /// <summary>Centres the minimap on <paramref name="target"/>: the player's ship.</summary>
+        public void Follow(Transform target) => _target = target;
+
         /// <summary>Wires the map, the target and the images (minimaps built in code: tests).</summary>
         internal void Configure(WorldMap map, Transform target, RawImage image, RawImage ship)
         {

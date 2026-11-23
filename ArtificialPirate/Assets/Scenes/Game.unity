@@ -5965,6 +5965,118 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 897045620}
   m_CullTransparentMesh: 1
+--- !u!1001 &989446843
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 857939079365237835, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: _ripples
+      value: 
+      objectReference: {fileID: 2642162988430377879}
+    - target: {fileID: 976801789615671426, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 55
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.00000004371139
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2027473061047137545, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4435749694553186597, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4847006418373706159, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5992932046391386519, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: _water
+      value: 
+      objectReference: {fileID: 5951401769955080441}
+    - target: {fileID: 6496588948836048397, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: _effects
+      value: 
+      objectReference: {fileID: 193731120}
+    - target: {fileID: 6511225709581689455, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: _seed
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6511225709581689455, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: _side
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6511225709581689455, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: _balls
+      value: 
+      objectReference: {fileID: 186524568}
+    - target: {fileID: 7670001626834549256, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8490849856784324214, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_Name
+      value: PlayerBrig
+      objectReference: {fileID: 0}
+    - target: {fileID: 8490849856784324214, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+--- !u!114 &989446844 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7743276584444787375, guid: e654b76e34dfb0bb1a01fa83583a3b60, type: 3}
+  m_PrefabInstance: {fileID: 989446843}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d482e55da14e4be8db0200c16396d22a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.ShipController
 --- !u!1 &1003752132
 GameObject:
   m_ObjectHideFlags: 0
@@ -21363,10 +21475,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8878724640efb25108ebcd6763da5907, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Core::Game.Core.GameSceneWiring
-  _ship: {fileID: 876271250}
+  _ships:
+  - {fileID: 876271250}
+  - {fileID: 989446844}
   _camera: {fileID: 1007081538}
   _world: {fileID: 1220623505}
   _worldMap: {fileID: 1220623508}
+  _depthMap: {fileID: 1220623507}
+  _water: {fileID: 5951401769955080441}
+  _ripples: {fileID: 2642162988430377879}
   _minimap: {fileID: 1643885581}
   _hullBar: {fileID: 116125788}
   _shipBars: {fileID: 576535906}
@@ -27069,6 +27186,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ship
       objectReference: {fileID: 0}
+    - target: {fileID: 1726399634171960305, guid: a05cf38ee98964670ac18434b1b0044d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3534132011148504080, guid: a05cf38ee98964670ac18434b1b0044d, type: 3}
       propertyPath: _water
       value: 
@@ -27920,3 +28041,4 @@ SceneRoots:
   - {fileID: 1561485598}
   - {fileID: 1568120358}
   - {fileID: 1246421280}
+  - {fileID: 989446843}

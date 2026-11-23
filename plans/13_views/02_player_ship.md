@@ -18,7 +18,8 @@ Context: [`00_start.md`](00_start.md), Decisions; depends on [`01_settings_and_c
 
 - **The scene**, by a throwaway editor script: a `PlayerBrig`, a `PF_Ship_Brig` instance with the same scene references as `Ship`, side `Player`, its sails set, inactive, at the same start place.
 - **`GameSceneWiring`**: `_ships` (one per `PlayerShip` value) in place of `_ship`; both are saved inactive in the scene, and in `Awake` it turns on the chosen one (turning the other off after its own `Awake` and `OnEnable` had run would race them), and keeps it as the ship it wires (input, `RegisterShip`, camera, hull bar, bars, shake, map, ground).
-- **What else points at `Ship`**: the minimap's target and each `ShipRespawn`'s player get a public setter, called by the wiring; a check over the scene for any other reference to `Ship` (the throwaway script lists them).
+- **What else points at `Ship`** (listed from the scene: the plan first named only the first two): the minimap's target, each `ShipRespawn`'s player, the world streamer's and the depth map's target, the water's and the ripples' follow. Each gets a public `Follow(Transform)`, called by the wiring in `Awake`. Both ships start at the same place, so nothing has moved away from them by then.
+- **Release builds sail the sloop** whatever a development build left in `PlayerPrefs` on the same phone.
 - **The save** keeps no kind: the damage and place go onto the ship that sails; a broken mast's number beyond its masts is already ignored.
 - **Tests (PlayMode)**: with the brig chosen, a new game sails the brig: it is `GameManager.PlayerShip`, the camera follows it, the minimap is on it, the sloop is off; the choice back to the sloop on the next game. The setting's key is restored after.
 

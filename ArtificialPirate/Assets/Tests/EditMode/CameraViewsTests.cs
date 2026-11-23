@@ -73,6 +73,7 @@ namespace Game.Tests.EditMode
                 }
             }
             _saved.Clear();
+            PlayerPrefs.Save(); // the settings save as they change, so the restore must too
         }
 
         [Test]

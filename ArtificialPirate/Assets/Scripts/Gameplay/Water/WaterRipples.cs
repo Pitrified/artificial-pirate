@@ -98,6 +98,9 @@ namespace Game.Gameplay.Water
             }
         }
 
+        /// <summary>Keeps the ripples' square round <paramref name="target"/>: the player's ship.</summary>
+        public void Follow(Transform target) => _follow = target;
+
         /// <summary>Configures the area and steps in code (tests); <paramref name="follow"/> may be null.</summary>
         internal void Configure(Material simulation, Vector2 centre, float size, int resolution, float stepsPerSecond,
             Transform follow = null)

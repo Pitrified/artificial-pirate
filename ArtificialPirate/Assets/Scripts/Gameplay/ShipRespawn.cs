@@ -48,6 +48,9 @@ namespace Game.Gameplay
             _clearance = clearance;
         }
 
+        /// <summary>The player's ship, which must be clear of the place for a sunk ship to come back.</summary>
+        public void Follow(Transform player) => _player = player;
+
         /// <summary>Gives every ship it makes the world's ground, so a moving one stops at the shore.</summary>
         public void UseGround(WorldGenerator ground)
         {

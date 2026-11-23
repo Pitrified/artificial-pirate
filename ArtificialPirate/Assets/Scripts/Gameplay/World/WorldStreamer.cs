@@ -56,6 +56,9 @@ namespace Game.Gameplay.World
         /// <summary>Islands waiting to be built, for tests.</summary>
         internal int QueuedCount => _queue.Count;
 
+        /// <summary>Streams the world around <paramref name="target"/>: the player's ship.</summary>
+        public void Follow(Transform target) => _target = target;
+
         /// <summary>Wires the settings, the target and the materials (streamers built in code: tests).</summary>
         internal void Configure(SO_WorldSettings settings, Transform target, Material sand, Material grass, int loadRadius)
         {

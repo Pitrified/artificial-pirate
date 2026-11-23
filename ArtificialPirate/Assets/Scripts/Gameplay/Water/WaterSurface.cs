@@ -95,6 +95,9 @@ namespace Game.Gameplay.Water
             Push();
         }
 
+        /// <summary>Keeps the water's grid round <paramref name="target"/>: the player's ship.</summary>
+        public void Follow(Transform target) => _follow = target;
+
         /// <summary>Makes the grid follow <paramref name="target"/> in steps of <paramref name="step"/> (water built in code: tests).</summary>
         internal void UseFollow(Transform target, float step)
         {

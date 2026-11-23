@@ -49,6 +49,9 @@ namespace Game.Gameplay.World
         internal bool Filling => _fillRow >= 0;
 
         /// <summary>Wires the water, the world and the target (maps built in code: tests).</summary>
+        /// <summary>Draws the depth around <paramref name="target"/>: the player's ship.</summary>
+        public void Follow(Transform target) => _target = target;
+
         internal void Configure(WaterSurface water, WorldStreamer streamer, Transform target)
         {
             _water = water;
