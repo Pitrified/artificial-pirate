@@ -30,6 +30,9 @@ Context: [`00_start.md`](00_start.md).
 
 ## What the implementation found
 
+- **Q11, the user's answer: the camera further out.** The sloop's chase offset from (0, 12, -42) to (0, 18, -56), the brig's in proportion from (0, 16, -60) to (0, 24, -80); the look points unchanged. In a capture of the fight from the game's camera the brig and its smoke are now in the frame beside the sloop. Gates green (EditMode 255, PlayMode 27).
+- The brig's harm stands (the user: a ship twice the size should hurt; exploring takes care).
+
 - **The phone, 2026-11-23** (Pixel 7 Pro, `f95ae39`, 144 s, two fights won, both brigs sunk): 60 fps held (frame p50 and p95 16.8 ms). GPU p50 11.8 ms, p95 12.8, mean 11.7 over the session; the last 60 s, fighting the sailing brig, p95 12.3, mean 11.6. Against `0d14399` (p50 11.8, p95 12.3, mean 11.2): the median unchanged, the mean and the session's p95 about 0.5 ms up, inside the 16.7 ms frame. GC p95 0.1 kB a frame, no problems logged. The aimed barrels stay.
 - Six frames over 33 ms: the load (350 and 183 ms), the pause at the end (133 ms), and four single 33 ms frames at 10.7, 23.9, 61.2 and 99.5 s; the first is just before the first volley's hits, the others line up with nothing logged. Not followed: one each in a minute.
 - The anchored brig, sunk at 44 s, did not come back: the player fought the second brig within 300 m of its anchorage, as the respawn intends.

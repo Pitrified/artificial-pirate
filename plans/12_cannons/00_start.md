@@ -180,4 +180,4 @@ Folded in from Q1 to Q6, 2026-11-23.
   - c. Leave the camera; a marker at the screen's edge pointing to an enemy off the screen.
   - d. Leave it for the phone run to judge.
   - Recommended: a, because a broadside game is played looking at the enemy's side, and the camera already follows a point it can move; b alone still leaves the enemy at the edge; c tells where the enemy is without showing the fight.
-  - NEW_ANS:
+  - ANS: none of them as written: pull the chase camera higher and further behind in every situation, for more of what is happening around. A choice of cameras in the settings (one from behind the helm) goes to Next, not now. And on Q3's numbers: a volley from a ship twice the size doing great harm is fair; the player must be careful exploring.

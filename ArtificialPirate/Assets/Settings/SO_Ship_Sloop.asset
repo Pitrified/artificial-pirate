@@ -216,7 +216,7 @@ MonoBehaviour:
   _reverseFactor: 0.3
   _yawRateDeg: 30
   _steeringResponseLerp: 6
-  _cameraOffset: {x: 0, y: 12, z: -42}
+  _cameraOffset: {x: 0, y: 18, z: -56}
   _cameraLookAt: {x: 0, y: 9, z: 12}
   _harmlessSpeed: 1.5
   _sinkingSpeed: 14
