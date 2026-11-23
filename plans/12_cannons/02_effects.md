@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 02 - Effects
@@ -18,7 +18,7 @@ Context: [`00_start.md`](00_start.md), Effects; depends on [`01_guns_and_balls.m
 ## Plan
 
 - **The atlas**: `textures.py particles` writes `T_Particles`, a 2 x 2 atlas: a soft puff, a flash star, a splinter, a drop. One material, `M_Particles`, URP Particles Unlit, alpha blended; the flash's brightness from its colour over 1.
-- **`CombatEffects`** (`Game.Gameplay`), in the Game scene, holding one ParticleSystem each: flash, smoke, splinters, splash, dirt. Each a world-space system with `Emit(EmitParams, count)` at a point and direction; sizes, lifetimes and counts on the systems, set by the throwaway editor script that builds them.
+- **`CombatEffects`** (`Game.Gameplay`), in the Game scene, holding one ParticleSystem each: flash, smoke, splinters, splash, dirt. Each a world-space system, emitted particle by particle (`Emit(EmitParams, 1)`, each with its own direction in a cone: one call for the whole burst gives them all the same velocity); sizes, lifetimes and counts on the systems, set by the throwaway editor script that builds them.
   - flash: 3 particles, 0.08 s, along the muzzle's direction;
   - smoke: 6 to 8 puffs, growing, rising a little, 2.5 s;
   - splinters: 12 chips thrown out along the hull's normal, gravity, 1.2 s;
@@ -38,3 +38,11 @@ Context: [`00_start.md`](00_start.md), Effects; depends on [`01_guns_and_balls.m
 - A capture sequence shows the flash, smoke, splinters, splash and dirt; tests: an effect emitted per event, damage smoke only below the threshold; gates green.
 
 ## What the implementation found
+
+- **The water hid the smoke.** The particles and the water share the transparent queue and neither writes depth, so whichever sorted later won; with both centred on the ship the water often drew over the smoke wherever the sea was behind it. `M_Particles` is queued after the water (3010). The cost: a particle that falls below the surface (a splinter, a drop) shows through until it fades.
+- **Damage smoke** started at the hit, which can be inside the hull at the waterline, and the smoke's cap on speed kept it there: it rises from the rail above the hit, lives 6 s (a burst may set its own life and colour), three puffs at a time, darker. The smoke's speed cap is 1 m/s (muzzle smoke still slows from 4).
+- **The puff** in the atlas was too soft: the visible core under half the particle. Fuller now; a broadside leaves a bank of smoke along the side.
+- In EditMode a particle system that has never stepped drops what is emitted into it; the tests step each system once when made. In play the engine steps them.
+- The systems always simulate (`AlwaysSimulate`): they live at the scene's origin and emit anywhere.
+- Captures: a volley's flash and smoke from off the firing side; splinters, dust and the balls arriving on the brig's side; a sloop at 20% health smoking from its deck.
+- Gates at the phase's commit: spec pass, compile 0/0, EditMode 245/245, PlayMode 24/24.

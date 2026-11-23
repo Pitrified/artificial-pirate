@@ -3,7 +3,7 @@
 Run from this folder:
 
     uv run --no-sync python textures.py water_normals   (or palette, sail_canvas, hull_planks, deck_planks, flag, hull_marks,
-                                                         spar_wood, ship_wood)
+                                                         spar_wood, ship_wood, particles)
 
 Each texture is a function below. Tiling comes from building the height field out of
 waves with integer frequencies over the tile, so the edges meet. The same seed gives
@@ -202,6 +202,38 @@ def hull_marks() -> Path:
     return _save(Image.fromarray(np.round(np.clip(rgba, 0, 1) * 255).astype(np.uint8), "RGBA"), "T_HullMarks")
 
 
+def particles() -> Path:
+    """Combat's particles, a 2 x 2 atlas in the order a texture sheet counts its frames, top left first:
+    a soft puff of smoke, a flash (a bright core with spikes), a splinter (a thin shard) and a drop.
+    White with alpha: each particle's colour tints it."""
+    cell = 128
+    rng = np.random.default_rng(61)
+    y, x = (np.mgrid[0:cell, 0:cell] + 0.5) / cell - 0.5
+    r = np.hypot(x, y)
+    angle = np.arctan2(y, x)
+    lumps = tiling_height(cell, waves=30, min_freq=2, max_freq=8, falloff=1.0, seed=62)
+    puff_alpha = np.clip(1 - (r / 0.46) ** 2, 0, 1) ** 0.8 * (0.75 + 0.25 * lumps)
+    puff_shade = 0.8 + 0.2 * np.clip(0.5 - y, 0, 1)  # lit from above
+    spikes = 1 + 0.6 * np.sum([np.cos(k * angle + rng.uniform(0, 2 * np.pi)) ** 8 for k in (3, 5, 7)], axis=0)
+    inside = np.maximum(np.abs(x), np.abs(y)) < 0.47  # clear of the cell's border, so mips do not bleed
+    flash_alpha = np.clip(1 - r / (0.22 * spikes), 0, 1) ** 1.2 * inside
+    shard = (np.abs(y + 0.15 * x) < 0.05 * (1 - np.abs(x) / 0.45)) & (np.abs(x) < 0.45)
+    drop_alpha = np.clip(1 - r / 0.3, 0, 1) ** 0.7
+    cells = [
+        (np.ones_like(r) * puff_shade, puff_alpha),
+        (np.ones_like(r), flash_alpha),
+        (0.8 + 0.2 * lumps, shard.astype(float)),
+        (np.ones_like(r), drop_alpha),
+    ]
+    rgba = np.zeros((2 * cell, 2 * cell, 4))
+    for i, (shade, alpha) in enumerate(cells):
+        ys = slice((i // 2) * cell, (i // 2 + 1) * cell)
+        xs = slice((i % 2) * cell, (i % 2 + 1) * cell)
+        rgba[ys, xs, :3] = shade[..., None]
+        rgba[ys, xs, 3] = alpha
+    return _save(Image.fromarray(np.round(np.clip(rgba, 0, 1) * 255).astype(np.uint8), "RGBA"), "T_Particles")
+
+
 TEXTURES = {
     "water_normals": water_normals,
     "palette": palette,
@@ -212,6 +244,7 @@ TEXTURES = {
     "hull_marks": hull_marks,
     "spar_wood": spar_wood,
     "ship_wood": ship_wood,
+    "particles": particles,
 }
 
 
