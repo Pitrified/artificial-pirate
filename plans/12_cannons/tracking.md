@@ -17,8 +17,8 @@ Ships' cannons fire on their own at an enemy on the beam; balls hit where they l
 | 01 | Guns and balls    | [`01_guns_and_balls.md`](01_guns_and_balls.md) | done |
 | 02 | Effects           | [`02_effects.md`](02_effects.md) | done |
 | 03 | Ships at sea      | [`03_ships_at_sea.md`](03_ships_at_sea.md) | done |
-| 04 | The fight         | [`04_the_fight.md`](04_the_fight.md) | in progress |
-| 05 | Barrels that aim  | [`05_barrels_that_aim.md`](05_barrels_that_aim.md) | planned |
+| 04 | The fight         | [`04_the_fight.md`](04_the_fight.md) | done |
+| 05 | Barrels that aim  | [`05_barrels_that_aim.md`](05_barrels_that_aim.md) | in progress |
 | 06 | Verify            | [`06_verify.md`](06_verify.md) | planned |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
@@ -33,3 +33,4 @@ Append-only. Newest at the bottom.
 - 2026-11-23 : phase 01 - review before: the allocation check moved to the phone (only a player measures it). The builder reports each type's muzzles; `SO_ShipType` carries them with `BallDamage` and `HullStrength` (brig 1.6); `SO_Gunnery`; `Broadside` (side, arcs, volleys, the solved and led arc, scatter); `Cannonballs` (pool of 32, a ray per step skipping the firer, damage at the point, water splash and foam, ground); wired on `PF_Ship` and in the Game scene by a throwaway editor script. 9 new tests. Capture: a volley of six all striking the brig, marks along its side. Gates green (EditMode 242, PlayMode 24).
 - 2026-11-23 : phase 02 - review before: one `Emit` call gives a whole burst one velocity, so bursts emit particle by particle. `textures.py particles` (`T_Particles`, puff, flash, splinter, drop); `M_Particles`; `CombatEffects` with five systems in the Game scene, hearing `Cannonballs`; `DamageSmoke` on `PF_Ship`. Found and fixed: the water drawing over the smoke (particles queued after it), damage smoke trapped in the hull (from the rail, longer life), a puff too soft to read. 3 new tests. Gates green (EditMode 245, PlayMode 24).
 - 2026-11-23 : phase 03 - review before: tests that find the ship by type would find the brig (`GameManager.PlayerShip` added); the circle 350 m out is an island in some worlds (moved into the start clearing, Q7 corrected). `CircleHelm`, `ShipRespawn` (the scene's ship as an inactive template, copied, a new copy 60 s after sinking once the player is 300 m away), the ground for every ship that comes back; a second brig under sail circling south-east. 6 new tests. Gates green (EditMode 250, PlayMode 26). The sails' fixed trim looks wrong on half the circle: left.
+- 2026-11-23 : phase 04 - review before: nothing to correct. `ShipBars` on the HUD (a pool of 4, ships within 180 m, red or green by side, fill at health), `CameraController.Shake` (tuning on `SO_CameraTuning`; the player's volleys and hits), wired by `GameSceneWiring`; a PlayMode fight (both hit, a bar over the brig, the sunk brig back). 3 new tests. Gates green (EditMode 252, PlayMode 27). Found: in the chase view the enemy on the beam is off the screen, so its bar never shows: Q11. The brig sinks the sloop in two volleys, as Q3 said: for the phone.

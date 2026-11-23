@@ -15,6 +15,22 @@ namespace Game.Gameplay
         [SerializeField] private float _rotationLerp = 5f;
         [SerializeField] private bool _lookAtTarget = true;
 
+        [Header("Shake")]
+        [Tooltip("The most the camera shakes, each way (m).")]
+        [SerializeField] private float _shakeMost = 0.8f;
+
+        [Tooltip("How fast a shake dies away (1/s): it falls to about a third in 1 / this seconds.")]
+        [SerializeField] private float _shakeDecay = 6f;
+
+        [Tooltip("How quickly the shake moves (Hz).")]
+        [SerializeField] private float _shakeFrequency = 12f;
+
+        [Tooltip("The shake of the followed ship's own volley (m).")]
+        [SerializeField] private float _volleyShake = 0.12f;
+
+        [Tooltip("The shake of a hit on the followed ship, per share of health it takes (m).")]
+        [SerializeField] private float _hitShakePerHealth = 10f;
+
         /// <summary>Per-second position smoothing coefficient for framerate-independent Lerp.</summary>
         public float PositionLerp => _positionLerp;
 
@@ -23,5 +39,20 @@ namespace Game.Gameplay
 
         /// <summary>When true the camera continuously rotates to look at the target.</summary>
         public bool LookAtTarget => _lookAtTarget;
+
+        /// <summary>The most the camera shakes, each way, in metres.</summary>
+        public float ShakeMost => _shakeMost;
+
+        /// <summary>How fast a shake dies away, per second.</summary>
+        public float ShakeDecay => _shakeDecay;
+
+        /// <summary>How quickly the shake moves, in Hz.</summary>
+        public float ShakeFrequency => _shakeFrequency;
+
+        /// <summary>The shake of the followed ship's own volley, in metres.</summary>
+        public float VolleyShake => _volleyShake;
+
+        /// <summary>The shake of a hit on the followed ship, per share of health it takes, in metres.</summary>
+        public float HitShakePerHealth => _hitShakePerHealth;
     }
 }

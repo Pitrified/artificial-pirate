@@ -10,7 +10,8 @@ namespace Game.Core
     /// Wires Game scene components (ShipController, CameraController) with Persistent scene
     /// systems (InputManager); hands the world to GameManager to begin its seed, then wires the
     /// ship, and the ships that come back when sunk, to the world's ground, opens the map when the minimap is tapped, shows the ship's hull on
-    /// the hull bar once its save is restored, and shows the HUD only
+    /// the hull bar once its save is restored, bars over the other ships near it, shakes the camera on
+    /// its volleys and the hits it takes, and shows the HUD only
     /// while playing, since its canvas sorts above the screens shown over the paused game. Place this on
     /// any root object in Game.unity and assign the serialized references in the Inspector.
     /// </summary>
@@ -22,12 +23,15 @@ namespace Game.Core
         [SerializeField] private WorldMap _worldMap;
         [SerializeField] private Minimap _minimap;
         [SerializeField] private HullBar _hullBar;
+        [SerializeField] private ShipBars _shipBars;
         [SerializeField] private GameObject _hud;
 
         [Tooltip("The ships that come back when sunk, given the world's ground as the player's ship is.")]
         [SerializeField] private ShipRespawn[] _respawns = System.Array.Empty<ShipRespawn>();
 
         private GameManager _gameManager;
+        private Broadside _playerGuns;
+        private ShipDamage _playerDamage;
 
         private void Start()
         {
@@ -80,8 +84,31 @@ namespace Game.Core
                 _camera.SetTarget(_ship.transform, _ship.Type.CameraOffset, _ship.Type.CameraLookAt);
                 _camera.SnapToTarget();
                 Log.Info(LogCat.Gameplay, "GameSceneWiring: CameraController wired to ship");
+                WireFight();
             }
         }
+
+        private void WireFight()
+        {
+            _ship.TryGetComponent(out _playerGuns);
+            _playerDamage = _ship.Damage;
+            if (_playerGuns != null)
+            {
+                _playerGuns.VolleyFired += OnVolley;
+            }
+            if (_playerDamage != null)
+            {
+                _playerDamage.Damaged += OnPlayerHit;
+            }
+            if (_shipBars != null)
+            {
+                _shipBars.Show(_playerGuns, _camera.GetComponent<Camera>());
+            }
+        }
+
+        private void OnVolley(bool starboard) => _camera.Shake(_camera.Tuning.VolleyShake);
+
+        private void OnPlayerHit(Vector3 point, float amount) => _camera.Shake(amount * _camera.Tuning.HitShakePerHealth);
 
         private void OnDestroy()
         {
@@ -92,6 +119,14 @@ namespace Game.Core
             if (_gameManager != null)
             {
                 _gameManager.StateChanged -= OnStateChanged;
+            }
+            if (_playerGuns != null)
+            {
+                _playerGuns.VolleyFired -= OnVolley;
+            }
+            if (_playerDamage != null)
+            {
+                _playerDamage.Damaged -= OnPlayerHit;
             }
         }
 

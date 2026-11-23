@@ -171,3 +171,13 @@ Folded in from Q1 to Q6, 2026-11-23.
   - b. A draft folder each now, on its own branch.
   - Recommended: a, because the Next list is where wanted but unplanned work lives since `11_game_spec`; a folder when one is picked up.
   - ANS: a.
+
+## Open questions, third batch
+
+- Q11: Raised by phase 04. The chase camera looks ahead of the ship, and a broadside fight puts the enemy on the beam: it sits at the edge of the screen or beyond, so the smoke and splashes are half seen and the bar over it does not show (the capture from the game's camera, `04_the_fight.md`).
+  - a. When a side has a target, the camera turns part way toward it and pulls back a little, easing back when the fight ends; its own phase after the barrels, before verify.
+  - b. A wider field of view during a fight, nothing else.
+  - c. Leave the camera; a marker at the screen's edge pointing to an enemy off the screen.
+  - d. Leave it for the phone run to judge.
+  - Recommended: a, because a broadside game is played looking at the enemy's side, and the camera already follows a point it can move; b alone still leaves the enemy at the edge; c tells where the enemy is without showing the fight.
+  - NEW_ANS:
