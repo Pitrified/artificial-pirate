@@ -11,7 +11,7 @@ namespace Game.Core
     /// Turns on the player's ship of the kind chosen in the settings and points what follows the
     /// player's ship at it; wires Game scene components (ShipController, CameraController) with
     /// Persistent scene systems (InputManager); hands the world to GameManager to begin its seed, then wires the
-    /// ship, and the ships that come back when sunk, to the world's ground, opens the map when the minimap is tapped, shows the ship's hull on
+    /// ship, and the ships that come back when sunk, to the world's ground and wind, opens the map when the minimap is tapped, shows the ship's hull on
     /// the hull bar once its save is restored, bars over the other ships near it, shakes the camera on
     /// its volleys and the hits it takes, follows the camera setting (and the HUD's camera button
     /// cycles it) but shows the chase while the ship sinks, and shows the HUD only
@@ -85,7 +85,7 @@ namespace Game.Core
             {
                 gm.RegisterWorld(_world);
             }
-            WireGround();
+            WireWorld();
             if (_minimap != null)
             {
                 _minimap.Clicked += OpenMap;
@@ -219,7 +219,7 @@ namespace Game.Core
             }
         }
 
-        private void WireGround()
+        private void WireWorld()
         {
             if (_world == null || _ship == null)
             {
@@ -230,11 +230,15 @@ namespace Game.Core
             {
                 contact.UseGround(_world.World);
             }
+            if (_ship.TryGetComponent(out ShipSails sails))
+            {
+                sails.UseWind(_world.World.WindFromDeg);
+            }
             foreach (ShipRespawn respawn in _respawns)
             {
                 if (respawn != null)
                 {
-                    respawn.UseGround(_world.World);
+                    respawn.UseWorld(_world.World);
                 }
             }
         }

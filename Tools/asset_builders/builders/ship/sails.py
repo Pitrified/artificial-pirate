@@ -1,4 +1,7 @@
-"""Sails, set for one wind or furled, with the yards, booms and gaffs that carry them.
+"""Sails, set for a wind or furled, with the yards, booms and gaffs that carry them.
+
+A ship's sails are set for each of WIND_BANDS_DEG, the wind's direction off the bow, and the game shows
+the band nearest the wind it sails in.
 
 A set sail is a two-sided grid bellied downwind: camber about a tenth of the chord, deepest 40% back
 from the luff on a fore-and-aft sail and in the middle of a square one, and its free edges cut
@@ -17,10 +20,13 @@ from mathutils import Vector
 from builders.ship.mesh import Cloth, MeshParts, frame, pole
 from builders.ship.rig import Mast, boom_ends, bowsprit, gaff_ends, spars, yard_ends
 
-WIND_FROM_DEG = 130.0  # the one wind for now: from the starboard quarter, degrees clockwise from the bow
+# Where the wind comes from, degrees clockwise from the bow: close-hauled, abeam, on the quarter and
+# dead astern, on either tack. The game reads the same list (SO_SailTrim).
+WIND_BANDS_DEG = (60.0, 90.0, 135.0, 180.0, -135.0, -90.0, -60.0)
 MAX_BRACE_DEG = 40.0
+SHEET_FROM_DEG = 20.0  # the wind's angle off the bow at which the boom and jib sheets lie amidships
 GAFF_TWIST = 1.2
-BOOM_IN_STEP_DEG = 1.0
+EASE_STEP_DEG = 1.0
 JIB_SHEET = 0.6
 
 ROWS = 6
@@ -59,20 +65,34 @@ class Trim:
 
     @classmethod
     def for_wind(cls, wind_from_deg: float) -> Trim:
-        to = math.radians(((wind_from_deg + 360.0) % 360.0) - 180.0)  # where the wind blows, from the bow
-        half = math.degrees(to) / 2
+        """Trimmed to a wind from wind_from_deg off the bow (positive on starboard): the booms and jibs
+        sheeted out to leeward as the wind comes aft, the yards braced round as it comes forward."""
+        off_bow = abs(((wind_from_deg + 180.0) % 360.0) - 180.0)
+        lee = -1.0 if wind_from_deg % 360.0 <= 180.0 else 1.0  # a wind from starboard puts the lee to port
+        sheet = max(0.0, off_bow - SHEET_FROM_DEG) / 2
+        to = math.radians(wind_from_deg - 180.0)  # where the wind blows, from the bow
         return cls(
-            brace_deg=max(-MAX_BRACE_DEG, min(MAX_BRACE_DEG, half)),
-            boom_deg=half,
-            gaff_deg=half * GAFF_TWIST,
-            jib_deg=half * JIB_SHEET,
+            brace_deg=lee * min(MAX_BRACE_DEG, (180.0 - off_bow) / 2),
+            boom_deg=lee * sheet,
+            gaff_deg=lee * sheet * GAFF_TWIST,
+            jib_deg=lee * sheet * JIB_SHEET,
             downwind=Vector((math.sin(to), math.cos(to), 0.0)),
         )
 
-    def boom_in(self) -> Trim:
-        """The boom and gaff a step closer to the centreline."""
-        boom = math.copysign(max(0.0, abs(self.boom_deg) - BOOM_IN_STEP_DEG), self.boom_deg)
-        return dataclasses.replace(self, boom_deg=boom, gaff_deg=boom * GAFF_TWIST)
+    def eased(self, kinds: set[str]) -> Trim:
+        """A step closer to the centreline for each kind of sail named: the boom and gaff for a gaff
+        sail, the yards for a square one, the jib sheets for a jib."""
+        def step(deg: float) -> float:
+            return math.copysign(max(0.0, abs(deg) - EASE_STEP_DEG), deg)
+
+        boom = step(self.boom_deg) if "gaff" in kinds else self.boom_deg
+        return dataclasses.replace(
+            self,
+            brace_deg=step(self.brace_deg) if "square" in kinds else self.brace_deg,
+            boom_deg=boom,
+            gaff_deg=boom * GAFF_TWIST,
+            jib_deg=step(self.jib_deg) if "jib" in kinds else self.jib_deg,
+        )
 
     @classmethod
     def at_anchor(cls) -> Trim:

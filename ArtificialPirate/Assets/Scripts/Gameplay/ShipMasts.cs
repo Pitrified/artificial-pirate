@@ -37,7 +37,7 @@ namespace Game.Gameplay
         public event Action<int> Broke;
 
         /// <summary>Whether mast <paramref name="index"/> has been brought down.</summary>
-        public bool IsBroken(int index) => _broken[index];
+        public bool IsBroken(int index) => index < _broken.Length && _broken[index];
 
         /// <summary>Wires the hull and the masts, rolling from <paramref name="seed"/> (masts built in code: tests).</summary>
         internal void Configure(ShipDamage damage, MastParts[] masts, int seed)

@@ -10,7 +10,7 @@ namespace Game.Gameplay
     /// template's place when the scene starts, and when the copy sinks a whole new one is made there
     /// once the delay has passed and the player's ship is far enough from that place that it does
     /// not appear in sight. A copy keeps the template's references to the scene (the water, the
-    /// balls, the effects); each is given the world's ground. Fallen masts are destroyed as they
+    /// balls, the effects); each is given the world's ground and wind. Fallen masts are destroyed as they
     /// sink, so a new copy is the only way back to a whole ship. See docs/systems/combat.md.
     /// </summary>
     public sealed class ShipRespawn : MonoBehaviour
@@ -29,7 +29,7 @@ namespace Game.Gameplay
 
         private GameObject _current;
         private ShipDamage _currentDamage;
-        private WorldGenerator _ground;
+        private WorldGenerator _world;
         private bool _waiting;
         private float _sinceSunk;
 
@@ -51,11 +51,14 @@ namespace Game.Gameplay
         /// <summary>The player's ship, which must be clear of the place for a sunk ship to come back.</summary>
         public void Follow(Transform player) => _player = player;
 
-        /// <summary>Gives every ship it makes the world's ground, so a moving one stops at the shore.</summary>
-        public void UseGround(WorldGenerator ground)
+        /// <summary>
+        /// Gives every ship it makes the world's ground, so a moving one stops at the shore, and its
+        /// wind, which the sails are trimmed to.
+        /// </summary>
+        public void UseWorld(WorldGenerator world)
         {
-            _ground = ground;
-            WireGround();
+            _world = world;
+            WireWorld();
         }
 
         private void Start()
@@ -117,7 +120,7 @@ namespace Game.Gameplay
             {
                 _currentDamage.Sunk += OnSunk;
             }
-            WireGround();
+            WireWorld();
             _current.SetActive(true);
             _waiting = false;
             Made++;
@@ -130,11 +133,19 @@ namespace Game.Gameplay
             _sinceSunk = 0f;
         }
 
-        private void WireGround()
+        private void WireWorld()
         {
-            if (_current != null && _ground != null && _current.TryGetComponent(out HullContact contact))
+            if (_current == null || _world == null)
             {
-                contact.UseGround(_ground);
+                return;
+            }
+            if (_current.TryGetComponent(out HullContact contact))
+            {
+                contact.UseGround(_world);
+            }
+            if (_current.TryGetComponent(out ShipSails sails))
+            {
+                sails.UseWind(_world.WindFromDeg);
             }
         }
     }

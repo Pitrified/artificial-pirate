@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 02 - The wind
@@ -35,3 +35,11 @@ Context: [`00_start.md`](00_start.md), Decisions.
 - Tests pass; gates green; clearance 0 for every band; the captures read; the user judges the jumps on the phone.
 
 ## What the implementation found
+- **The old trim was right for one wind only**: `Trim.for_wind` halved the downwind angle, which happened to suit 130 degrees and swung the boom the wrong way for a wind from ahead or astern. It now trims by the point of sail: the boom and jib sheets out to leeward by half the wind's angle beyond 20 degrees, the yards braced by half its angle from astern (at most 40), the lee side by the wind's side.
+- **Close-hauled is 60 degrees, not 45**: at 45 the square sails bellied aft into the lee shrouds however little the yards were braced (the checker found 18 ropes through the brig's sails). Square riggers point no closer than about 60 to 67 degrees, so the bands are 60, 90, 135, 180 and their mirrors. The boom-in loop became `Trim.eased`, a step in for each kind of sail a rope crosses (yards, boom and gaff, jib sheets); every band clears at 0 on both ships.
+- The flag is built streaming aft with its origin at the masthead, and turned about the hull's up in the parent's space.
+- `ShipSails` on `PF_Ship` owns set or furled (`_set`, off on the anchored brig), replacing the scene's per-object overrides, which were pruned. `ShipMasts.IsBroken` no longer throws before the masts wake. `ShipRespawn.UseGround` became `UseWorld` (the ground and the wind).
+- The wind is `WorldGenerator.WindFromDeg`, a stream of the seed; no save change.
+- Triangles in the model with every band: sloop 20,186, brig 36,502; drawn at once, as before (one band per mast).
+- The jumps between bands are left for the phone (phase 06).
+- Gates: spec pass, compile 0/0, EditMode 276/276, PlayMode 31/31. Capture: the circling brig from above over a minute, the sails changing round the circle.

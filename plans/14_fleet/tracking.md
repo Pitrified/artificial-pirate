@@ -13,7 +13,7 @@ Gun carriages in place of boxes, sails trimmed to a wind as the ship turns, chas
 | #  | Phase                | Plan | Status |
 | -- | -------------------- | ---- | ------ |
 | 01 | Carriages            | [`01_carriages.md`](01_carriages.md) | done |
-| 02 | The wind             | [`02_wind.md`](02_wind.md) | planned |
+| 02 | The wind             | [`02_wind.md`](02_wind.md) | done |
 | 03 | Chase and stern guns | [`03_chase_guns.md`](03_chase_guns.md) | planned |
 | 04 | The frigate          | [`04_frigate.md`](04_frigate.md) | planned |
 | 05 | The giant            | [`05_giant.md`](05_giant.md) | planned |
@@ -29,3 +29,4 @@ Append-only. Newest at the bottom.
 - 2026-11-24 : the user: Q1 a (test how the jumps look; the ropes matter), Q2 a (the sailed wind a note), Q3 a, Q4 a, Q5 b (the Vespucci's own look), Q6 a (islands for big ships a note), Q7 a. Folded in; sub-plans 01 to 06 written. Review of the sub-plans: the flag's origin is the model's, not the masthead (the wind phase builds it at the masthead); the boom's clearance loop runs per band; the frigate's strength figure marked as one to try. `VolleyFired`'s one subscriber is `GameSceneWiring`. Waiting on the user's go.
 - 2026-11-24 : the user: the islands are placed further from the start, so the giant anchors in a widened start clearing (`StartClearing`, 160 m now). Phase 05 corrected.
 - 2026-11-24 : phase 01 - review before: the ports sat 0.3 to 0.45 m over the deck, too low for a truck carriage; `gun_ports.above_deck` puts each port over the deck at its station. Truck carriages and a ringed barrel; sloop and brig rebuilt, the types' guns moved up. About 390 triangles a gun. Captures from both helms. Gates green (EditMode 263, PlayMode 31).
+- 2026-11-24 : phase 02 - review before: the trim's formula only suited the one wind; the flag's origin was the model's; the scene chose set or furled by per-object overrides. A wind per world from the seed; seven bands baked per mast (close-hauled at 60 degrees: at 45 the sails pressed into the shrouds), `Trim.eased` clearing every band; `ShipSails` showing the band by the heading with 8 degrees of hysteresis, furled at anchor, a broken mast left alone, the flag turned downwind. 13 new tests. Gates green (EditMode 276, PlayMode 31). The phone judges the jumps in phase 06.

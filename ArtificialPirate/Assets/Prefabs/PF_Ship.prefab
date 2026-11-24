@@ -181,6 +181,7 @@ GameObject:
   - component: {fileID: 3138151721611412151}
   - component: {fileID: 7976537228231545139}
   - component: {fileID: 7982166528301968721}
+  - component: {fileID: 876223074631522740}
   m_Layer: 0
   m_Name: PF_Ship
   m_TagString: Untagged
@@ -347,6 +348,10 @@ MonoBehaviour:
   _damage: {fileID: 4209681522950572463}
   _balls: {fileID: 0}
   _seed: 1
+  _barrels: []
+  _barrelTurnDeg: 30
+  _recoil: 0.5
+  _runOutShare: 0.6
 --- !u!114 &7982166528301968721
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -364,3 +369,21 @@ MonoBehaviour:
   _belowHealth: 0.25
   _interval: 0.3
   _sinkingPuffs: 3
+--- !u!114 &876223074631522740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4700440681567757610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daf3d1c781a35d3d1bdf6ae5b22dca45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.ShipSails
+  _trim: {fileID: 11400000, guid: a8fa6a04ae7799d9bb0bf7df653e4783, type: 2}
+  _set: 1
+  _masts: []
+  _shipMasts: {fileID: 3138151721611412151}
+  _flag: {fileID: 0}
+  _flagMast: 0

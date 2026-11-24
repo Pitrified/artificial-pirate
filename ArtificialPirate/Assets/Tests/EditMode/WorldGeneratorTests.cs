@@ -14,6 +14,9 @@ namespace Game.Tests.EditMode
     public sealed class WorldGeneratorTests
     {
         private const int Seed = 12345;
+        private const int WindSeeds = 32;
+        private const float WindSectorDeg = 45f;
+        private const int WindSectorsSeen = 6;
         private const int Span = 20; // cells each way from the origin
         private const float Tolerance = 1e-4f;
 
@@ -76,6 +79,20 @@ namespace Game.Tests.EditMode
             }
 
             Assert.That(differing, Is.GreaterThan(Span));
+        }
+
+        [Test]
+        public void Wind_IsTheSameForASeed_AndVariesWithIt()
+        {
+            Assert.AreEqual(new WorldGenerator(Seed, _settings).WindFromDeg, new WorldGenerator(Seed, _settings).WindFromDeg);
+            var sectors = new System.Collections.Generic.HashSet<int>();
+            for (int s = 0; s < WindSeeds; s++)
+            {
+                float wind = new WorldGenerator(Seed + s, _settings).WindFromDeg;
+                Assert.That(wind, Is.InRange(0f, 360f));
+                sectors.Add((int)(wind / WindSectorDeg));
+            }
+            Assert.That(sectors.Count, Is.GreaterThanOrEqualTo(WindSectorsSeen), "the wind comes from all round over many worlds");
         }
 
         [Test]

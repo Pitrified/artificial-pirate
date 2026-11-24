@@ -42,6 +42,8 @@ namespace Game.Gameplay.World
         private const int LobeCXStream = 13;
         private const int LobeCZStream = 14;
         private const int LobeCSizeStream = 15;
+        private const int WindStream = 16;
+        private const float FullTurnDeg = 360f;
 
         private readonly SO_WorldSettings _settings;
         private readonly int _seed;
@@ -56,6 +58,9 @@ namespace Game.Gameplay.World
 
         /// <summary>The world's seed.</summary>
         public int Seed => _seed;
+
+        /// <summary>Where the world's wind comes from, in degrees clockwise from north: steady, and the same for the same seed.</summary>
+        public float WindFromDeg => Draw(new CellCoord(0, 0), WindStream) * FullTurnDeg;
 
         /// <summary>The settings it is shaped by.</summary>
         public SO_WorldSettings Settings => _settings;

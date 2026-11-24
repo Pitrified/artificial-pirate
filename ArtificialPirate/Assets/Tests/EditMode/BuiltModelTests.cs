@@ -189,16 +189,22 @@ namespace Game.Tests.EditMode
         }
 
         [TestCaseSource(nameof(Ships))]
-        public void Ship_HasEachMastsObjects(Expected model)
+        public void Ship_HasEachMastsObjects_ASailingStatePerBand(Expected model)
         {
             GameObject root = Load(model);
             string name = root.name;
+            int bands = AssetDatabase.LoadAssetAtPath<SO_SailTrim>("Assets/Settings/SO_SailTrim.asset").BandCount;
             for (int i = 0; i < model.Masts; i++)
             {
-                foreach (string part in new[] { "", "Sailing", "Anchored", "Stump" })
+                foreach (string part in new[] { "", "Anchored", "Stump" })
                 {
                     Assert.IsNotNull(root.transform.Find($"{name}Mast{i}{part}"), $"{name}Mast{i}{part}");
                 }
+                for (int b = 0; b < bands; b++)
+                {
+                    Assert.IsNotNull(root.transform.Find($"{name}Mast{i}Sailing{b}"), $"{name}Mast{i}Sailing{b}");
+                }
+                Assert.IsNull(root.transform.Find($"{name}Mast{i}Sailing{bands}"), "No more bands than the trim's");
             }
             Assert.IsNull(root.transform.Find($"{name}Mast{model.Masts}"), "No more masts");
         }

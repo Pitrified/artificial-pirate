@@ -1,11 +1,12 @@
 """A sailing ship from a dict of numbers, as objects: the hull with its bowsprit, fittings and
-people; its flag (its own material, which waves it); and for each mast i, `<name>Mast<i>` (the mast,
-its tops and standing rigging), its two sail states, `<name>Mast<i>Sailing` (trimmed to one wind,
-every sail set, the booms swung out only as far as the lee rigging lets them) and
-`<name>Mast<i>Anchored` (spars squared, sails furled), and `<name>Mast<i>Stump`, what is left when
-it breaks; and each gun's barrel, `<name>GunStarboard<i>` and `<name>GunPort<i>` (stern to bow), its
-origin at its trunnions so it can be aimed. A game shows the hull, the flag, each mast with one state,
-a broken mast's stump, and the barrels.
+people; its flag (its own material, which waves it), streaming aft from its origin at the masthead,
+which the game turns to the wind; and for each mast i, `<name>Mast<i>` (the mast, its tops and
+standing rigging), its sail states, `<name>Mast<i>Sailing<b>` for each of the wind's bands b
+(sails.WIND_BANDS_DEG: every sail set, the booms swung out only as far as the lee rigging lets them)
+and `<name>Mast<i>Anchored` (spars squared, sails furled), and `<name>Mast<i>Stump`, what is left
+when it breaks; and each gun's barrel, `<name>GunStarboard<i>` and `<name>GunPort<i>` (stern to
+bow), its origin at its trunnions so it can be aimed. A game shows the hull, the flag, each mast with
+one state, a broken mast's stump, and the barrels.
 The build reports any rope that still passes through a sail.
 
 A ship type is a builder module whose PARAMS fill this dict and whose build is this one's.
@@ -32,6 +33,8 @@ furniture) are described in builders/ship/fittings.py.
 from __future__ import annotations
 
 from builders.ship import clearance, fittings, hull, props, rig, rigging, sails
+from mathutils import Vector
+
 from builders.ship.mesh import MeshParts, make_object
 
 
@@ -68,16 +71,23 @@ def build(params: dict) -> None:
         make_object(f"{name}{gun}", barrel, preview, origin=trunnions)
     standing_ropes = body.ropes + [rope for parts in standing for rope in parts.ropes]
 
-    trim = sails.Trim.for_wind(sails.WIND_FROM_DEG)
+    head = max(masts, key=lambda m: m.head.z).head
     flag = MeshParts()
-    props.flag(flag, params, max(masts, key=lambda m: m.head.z).head, trim.downwind)
-    make_object(f"{name}Flag", flag, preview)
+    props.flag(flag, params, head, Vector((0.0, -1.0, 0.0)))
+    make_object(f"{name}Flag", flag, preview, origin=head)
 
-    gaff_sails = {sails.sail_name(i, spec) for i, spec in enumerate(params["sails"]) if spec["kind"] == "gaff"}
-    sailing = _sailing(params, masts, trim)
-    while trim.boom_deg and any(c.cloth in gaff_sails for c in _crossings(standing_ropes, sailing)):
-        trim = trim.boom_in()
+    kind_of = {sails.sail_name(i, spec): spec["kind"] for i, spec in enumerate(params["sails"])}
+    bands = []
+    for wind in sails.WIND_BANDS_DEG:
+        trim = sails.Trim.for_wind(wind)
         sailing = _sailing(params, masts, trim)
+        while crossed := {kind_of[c.cloth] for c in _crossings(standing_ropes, sailing)}:
+            eased = trim.eased(crossed)
+            if eased == trim:
+                break
+            trim = eased
+            sailing = _sailing(params, masts, trim)
+        bands.append(sailing)
 
     anchored = [MeshParts() for _ in masts]
     sails.anchored(anchored, params, masts)
@@ -85,20 +95,24 @@ def build(params: dict) -> None:
 
     for i, mast in enumerate(masts):
         make_object(f"{name}Mast{i}", standing[i], preview)
-        make_object(f"{name}Mast{i}Sailing", sailing[i], preview)
+        for b, sailing in enumerate(bands):
+            make_object(f"{name}Mast{i}Sailing{b}", sailing[i], preview)
         make_object(f"{name}Mast{i}Anchored", anchored[i], preview)
         stump = MeshParts()
         rig.stump(stump, mast)
         make_object(f"{name}Mast{i}Stump", stump, preview)
 
-    for state, per_mast in (("Sailing", sailing), ("Anchored", anchored)):
-        clearance.report(f"{name}{state}", _crossings(standing_ropes, per_mast))
+    for b, per_mast in enumerate(bands):
+        clearance.report(f"{name}Sailing{b}", _crossings(standing_ropes, per_mast))
+    clearance.report(f"{name}Anchored", _crossings(standing_ropes, anchored))
 
 
 def report(params: dict) -> dict:
     """For the ship's type, in Unity's axes (X starboard, Y up, Z to the bow), metres from the waterline
-    amidships: the starboard guns' muzzles (the port guns mirror them) and the helmsman's eyes."""
+    amidships: the starboard guns' muzzles (the port guns mirror them), the helmsman's eyes, and the wind's
+    bands the sailing states are set for."""
     guns = [props.muzzle_at(port, side) for _, side, port in fittings.gun_port_centres(params) if side > 0]
     eye = fittings.helm_eye(params)
     return {"guns": [[round(m.x, 4), round(m.z, 4), round(m.y, 4)] for m in guns],
-            "helm_eye": [round(eye.x, 3), round(eye.z, 3), round(eye.y, 3)]}
+            "helm_eye": [round(eye.x, 3), round(eye.z, 3), round(eye.y, 3)],
+            "wind_bands_deg": list(sails.WIND_BANDS_DEG)}
