@@ -8,7 +8,8 @@ namespace Game.Tests.EditMode
     /// <summary>
     /// <see cref="Broadside"/> and <see cref="Cannonballs"/> with ships built in code on the Ship
     /// layer, far from anything a scene left loaded: a side bears on a ship within range and within
-    /// the arc of its beam, never on its own side, and fires at the nearest; a volley fires its guns
+    /// the arc of its beam, never on its own side, and fires at the nearest; a type's bow chasers bear
+    /// on a ship ahead and its stern guns on one astern, and fire on it; a volley fires its guns
     /// one after another and then reloads; the solved arc lands on a still target and, led, on a
     /// moving one; a ball takes the firer's damage over the target's strength at the point struck,
     /// passing through its own hull; a ball that hits nothing is dropped. Barrels turn toward the
@@ -60,19 +61,25 @@ namespace Game.Tests.EditMode
             _made.Clear();
         }
 
-        private SO_ShipType Type(float strength)
+        private SO_ShipType Type(float strength, bool chasers)
         {
             var type = ScriptableObject.CreateInstance<SO_ShipType>();
             type.SetHull(HalfLength, HalfBeam, Draft, Freeboard);
             // Muzzles just inside the hull's box, as a gun amidships can be: its own hull must not stop the ball.
             type.SetGuns(new[] { new Vector3(HalfBeam - 0.2f, 1f, -4f), new Vector3(HalfBeam - 0.2f, 1f, 0f), new Vector3(HalfBeam - 0.2f, 1f, 4f) }, BallDamage, strength);
+            if (chasers)
+            {
+                type.SetChasers(new[] { new Vector3(-0.5f, 1f, HalfLength - 0.2f), new Vector3(0.5f, 1f, HalfLength - 0.2f) },
+                    new[] { new Vector3(0f, 1f, -(HalfLength - 0.2f)) });
+            }
             _made.Add(type);
             return type;
         }
 
-        private Broadside Ship(string name, ShipSide side, Vector3 offset, float yawDeg = 0f, float strength = 1f, bool barrels = false)
+        private Broadside Ship(string name, ShipSide side, Vector3 offset, float yawDeg = 0f, float strength = 1f, bool barrels = false,
+            bool chasers = false)
         {
-            SO_ShipType type = Type(strength);
+            SO_ShipType type = Type(strength, chasers);
             var root = new GameObject(name);
             _made.Add(root);
             root.transform.SetPositionAndRotation(Far + offset, Quaternion.Euler(0f, yawDeg, 0f));
@@ -92,20 +99,25 @@ namespace Game.Tests.EditMode
             return broadside;
         }
 
-        /// <summary>A barrel for each gun, turning about a point <see cref="Trunnions"/> inboard of its mouth.</summary>
+        /// <summary>A barrel for each gun of each battery in turn, turning about a point <see cref="Trunnions"/> inboard of its mouth.</summary>
         private static Transform[] Barrels(Transform hull, SO_ShipType type)
         {
-            var barrels = new Transform[2 * type.GunsPerSide];
-            for (int i = 0; i < barrels.Length; i++)
+            var barrels = new List<Transform>();
+            var outward = new Dictionary<Battery, Vector3>
             {
-                bool starboard = i < type.GunsPerSide;
-                Vector3 mouth = type.Gun(i % type.GunsPerSide, starboard);
-                var barrel = new GameObject($"Barrel{i}").transform;
-                barrel.SetParent(hull, false);
-                barrel.localPosition = mouth - Vector3.right * (starboard ? Trunnions : -Trunnions);
-                barrels[i] = barrel;
+                { Battery.Starboard, Vector3.right }, { Battery.Port, Vector3.left }, { Battery.Bow, Vector3.forward }, { Battery.Stern, Vector3.back },
+            };
+            foreach (Battery battery in new[] { Battery.Starboard, Battery.Port, Battery.Bow, Battery.Stern })
+            {
+                for (int k = 0; k < type.GunCount(battery); k++)
+                {
+                    var barrel = new GameObject($"Barrel{battery}{k}").transform;
+                    barrel.SetParent(hull, false);
+                    barrel.localPosition = type.Gun(battery, k) - outward[battery] * Trunnions;
+                    barrels.Add(barrel);
+                }
             }
-            return barrels;
+            return barrels.ToArray();
         }
 
         private static Vector3 Bearing(float distance, float degreesFromStarboardBeam)
@@ -139,15 +151,15 @@ namespace Game.Tests.EditMode
             Broadside beyondRange = Ship("BeyondRange", ShipSide.Pirates, Bearing(Range + 5f, 0f));
             Broadside toPort = Ship("ToPort", ShipSide.Pirates, -Bearing(60f, 0f));
 
-            Assert.IsTrue(us.InArc(abeam, true));
-            Assert.IsTrue(us.InArc(forward, true));
-            Assert.IsTrue(us.InArc(aft, true));
-            Assert.IsFalse(us.InArc(beyondArc, true));
-            Assert.IsFalse(us.InArc(ahead, true));
-            Assert.IsFalse(us.InArc(ahead, false));
-            Assert.IsFalse(us.InArc(beyondRange, true));
-            Assert.IsFalse(us.InArc(toPort, true));
-            Assert.IsTrue(us.InArc(toPort, false));
+            Assert.IsTrue(us.InArc(abeam, Battery.Starboard));
+            Assert.IsTrue(us.InArc(forward, Battery.Starboard));
+            Assert.IsTrue(us.InArc(aft, Battery.Starboard));
+            Assert.IsFalse(us.InArc(beyondArc, Battery.Starboard));
+            Assert.IsFalse(us.InArc(ahead, Battery.Starboard));
+            Assert.IsFalse(us.InArc(ahead, Battery.Port));
+            Assert.IsFalse(us.InArc(beyondRange, Battery.Starboard));
+            Assert.IsFalse(us.InArc(toPort, Battery.Starboard));
+            Assert.IsTrue(us.InArc(toPort, Battery.Port));
         }
 
         [Test]
@@ -160,8 +172,8 @@ namespace Game.Tests.EditMode
 
             us.Tick(Step);
 
-            Assert.AreSame(near, us.TargetOf(true));
-            Assert.IsNull(us.TargetOf(false));
+            Assert.AreSame(near, us.TargetOf(Battery.Starboard));
+            Assert.IsNull(us.TargetOf(Battery.Port));
         }
 
         [Test]
@@ -241,8 +253,8 @@ namespace Game.Tests.EditMode
         {
             Broadside us = Ship("Us", ShipSide.Player, Vector3.zero, barrels: true);
             Ship("Them", ShipSide.Pirates, Bearing(60f, 15f));
-            Transform first = us.Hull.Find("Barrel0");
-            Transform port = us.Hull.Find("Barrel3");
+            Transform first = us.Hull.Find("BarrelStarboard0");
+            Transform port = us.Hull.Find("BarrelPort0");
             Vector3 rest = first.localPosition;
 
             us.Tick(Step);
@@ -278,6 +290,56 @@ namespace Game.Tests.EditMode
             }
 
             Assert.AreEqual(0, _balls.Flying);
+        }
+
+        [Test]
+        public void Chasers_BearAheadAndStern_Astern_TheBroadsidesOnTheBeam()
+        {
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero, chasers: true);
+            Broadside ahead = Ship("Ahead", ShipSide.Pirates, Quaternion.Euler(0f, 25f, 0f) * Vector3.forward * 60f);
+            Broadside astern = Ship("Astern", ShipSide.Pirates, Vector3.back * 60f);
+            Broadside abeam = Ship("Abeam", ShipSide.Pirates, Bearing(40f, 0f));
+
+            Assert.IsTrue(us.InArc(ahead, Battery.Bow));
+            Assert.IsFalse(us.InArc(ahead, Battery.Starboard));
+            Assert.IsTrue(us.InArc(astern, Battery.Stern));
+            Assert.IsFalse(us.InArc(abeam, Battery.Bow));
+            Assert.IsFalse(us.InArc(abeam, Battery.Stern));
+
+            us.Tick(Step);
+
+            Assert.AreSame(ahead, us.TargetOf(Battery.Bow));
+            Assert.AreSame(astern, us.TargetOf(Battery.Stern));
+            Assert.AreSame(abeam, us.TargetOf(Battery.Starboard));
+        }
+
+        [Test]
+        public void NoChasers_NothingBearsAheadOrAstern()
+        {
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero);
+            Ship("Ahead", ShipSide.Pirates, Vector3.forward * 60f);
+            Ship("Astern", ShipSide.Pirates, Vector3.back * 60f);
+
+            us.Tick(Step);
+
+            foreach (Battery battery in new[] { Battery.Starboard, Battery.Port, Battery.Bow, Battery.Stern })
+            {
+                Assert.IsNull(us.TargetOf(battery), battery.ToString());
+            }
+        }
+
+        [Test]
+        public void Chasers_FireTheirVolley_AndHitTheShipAhead()
+        {
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero, barrels: true, chasers: true);
+            Broadside ahead = Ship("Ahead", ShipSide.Pirates, Vector3.forward * 50f);
+            var volleys = new List<Battery>();
+            us.VolleyFired += volleys.Add;
+
+            Run(2f, us);
+
+            Assert.AreEqual(new[] { Battery.Bow }, volleys.ToArray());
+            Assert.Less(Health(ahead), 1f, "the chasers hit the ship ahead");
         }
     }
 }

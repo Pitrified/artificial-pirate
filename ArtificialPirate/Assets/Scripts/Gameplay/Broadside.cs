@@ -4,20 +4,26 @@ namespace Game.Gameplay
     using UnityEngine;
 
     /// <summary>
-    /// A ship's guns, fired on their own: each side (starboard, port) looks for the nearest ship of
-    /// another <see cref="ShipSide"/> within the gunnery's range and arc of its beam, and when loaded
-    /// fires a volley at it, one gun after another, then reloads. Each ball is aimed at a point along
-    /// the target's hull, led by the target's velocity, on the low arc at the muzzle speed, kept
-    /// within the arc and scattered more the farther it flies; <see cref="Cannonballs"/> flies it.
-    /// The guns are the type's (<see cref="SO_ShipType.Gun"/>). A ship whose barrels are set turns
-    /// each toward its side's target within the arc and raises it to the shot, fires from its mouth,
-    /// and runs it in on firing and out again over the reload; with no target they ease back.
+    /// A ship's guns, fired on their own: each <see cref="Battery"/> (the broadsides, and the bow
+    /// chasers and stern guns of a type that carries them) looks for the nearest ship of another
+    /// <see cref="ShipSide"/> within the gunnery's range and its arc (the beam's, or the chase arc
+    /// ahead or astern), and when loaded fires a volley at it, one gun after another, then reloads.
+    /// Each ball is aimed at a point along the target's hull, led by the target's velocity, on the
+    /// low arc at the muzzle speed, kept within the arc and scattered more the farther it flies;
+    /// <see cref="Cannonballs"/> flies it. The guns are the type's (<see cref="SO_ShipType.Gun"/>). A
+    /// ship whose barrels are set turns each toward its battery's target within the arc and raises it
+    /// to the shot, fires from its mouth, and runs it in on firing and out again over the reload; with
+    /// no target they ease back.
     /// A sinking ship does not fire. See docs/systems/combat.md.
     /// </summary>
     public sealed class Broadside : MonoBehaviour
     {
         private const int MaxFound = 8;
         private const int LeadIterations = 2;
+        private const float StarboardDeg = 90f;
+        private const float PortDeg = 270f;
+        private const float AheadDeg = 0f;
+        private const float AsternDeg = 180f;
 
         [Tooltip("The side this ship fights on.")]
         [SerializeField] private ShipSide _side = ShipSide.Pirates;
@@ -32,7 +38,7 @@ namespace Game.Gameplay
         [Tooltip("Seeds the scatter.")]
         [SerializeField] private int _seed = 1;
 
-        [Tooltip("The barrels, starboard stern to bow then port stern to bow, each turning about its own origin; none, and the guns do not move.")]
+        [Tooltip("The barrels, starboard stern to bow, port stern to bow, then the bow chasers and the stern guns as the type lists them, each turning about its own origin; none, and the guns do not move.")]
         [SerializeField] private Transform[] _barrels = Array.Empty<Transform>();
 
         [Tooltip("How fast a barrel turns toward its aim (degrees per second).")]
@@ -45,8 +51,13 @@ namespace Game.Gameplay
         [SerializeField] private float _runOutShare = 0.6f;
 
         private readonly Collider[] _found = new Collider[MaxFound];
-        private readonly Battery _starboard = new Battery(true);
-        private readonly Battery _port = new Battery(false);
+        private readonly Guns[] _batteries =
+        {
+            new Guns(Battery.Starboard, StarboardDeg),
+            new Guns(Battery.Port, PortDeg),
+            new Guns(Battery.Bow, AheadDeg),
+            new Guns(Battery.Stern, AsternDeg),
+        };
         private System.Random _random;
         private Transform _transform;
         private Vector3 _lastPosition;
@@ -73,23 +84,29 @@ namespace Game.Gameplay
         /// <summary>Whether the ship can fight: active and not sinking.</summary>
         public bool Afloat => isActiveAndEnabled && (_damage == null || !_damage.Sinking);
 
-        /// <summary>The ship a side is firing at, or null.</summary>
-        public Broadside TargetOf(bool starboard) => (starboard ? _starboard : _port).Target;
+        /// <summary>The ship a battery is firing at, or null.</summary>
+        public Broadside TargetOf(Battery battery) => _batteries[(int)battery].Target;
 
-        /// <summary>Raised once per volley as its first gun fires: the side.</summary>
-        public event Action<bool> VolleyFired;
+        /// <summary>Raised once per volley as its first gun fires: the battery.</summary>
+        public event Action<Battery> VolleyFired;
 
-        private sealed class Battery
+        /// <summary>A battery's bearing off the bow, its first barrel and count, and its volley.</summary>
+        private sealed class Guns
         {
-            public readonly bool Starboard;
+            public readonly Battery Battery;
+            public readonly float BearingDeg;
+            public int First;
+            public int Count;
             public Broadside Target;
+            public float Best;
             public bool Firing;
             public int NextGun;
             public float Timer;
 
-            public Battery(bool starboard)
+            public Guns(Battery battery, float bearingDeg)
             {
-                Starboard = starboard;
+                Battery = battery;
+                BearingDeg = bearingDeg;
             }
         }
 
@@ -100,30 +117,43 @@ namespace Game.Gameplay
             KeepBarrelsAtRest();
         }
 
-        /// <summary>The barrels' places at rest, each mouth in its barrel's space; while they are unturned.</summary>
+        /// <summary>
+        /// Each battery's guns from the type, and the barrels' places at rest, each mouth in its
+        /// barrel's space and its axis from the trunnions to the mouth; while they are unturned.
+        /// </summary>
         private void KeepBarrelsAtRest()
         {
+            SO_ShipType type = Type;
+            int guns = 0;
+            foreach (Guns battery in _batteries)
+            {
+                battery.First = guns;
+                battery.Count = type != null ? type.GunCount(battery.Battery) : 0;
+                guns += battery.Count;
+            }
             int count = _barrels.Length;
             _mouths = new Vector3[count];
             _rests = new Vector3[count];
             _restPositions = new Vector3[count];
             _runIn = new float[count];
-            SO_ShipType type = Type;
-            if (type == null || Hull == null || count != 2 * type.GunsPerSide)
+            if (type == null || Hull == null || count != guns)
             {
                 return;
             }
-            for (int i = 0; i < count; i++)
+            foreach (Guns battery in _batteries)
             {
-                bool starboard = i < type.GunsPerSide;
-                Transform barrel = _barrels[i];
-                _mouths[i] = barrel.InverseTransformPoint(Hull.TransformPoint(type.Gun(i % type.GunsPerSide, starboard)));
-                _rests[i] = barrel.localRotation * Vector3.right * (starboard ? 1f : -1f);
-                _restPositions[i] = barrel.localPosition;
+                for (int k = 0; k < battery.Count; k++)
+                {
+                    int i = battery.First + k;
+                    Transform barrel = _barrels[i];
+                    _mouths[i] = barrel.InverseTransformPoint(Hull.TransformPoint(type.Gun(battery.Battery, k)));
+                    _rests[i] = (barrel.localRotation * _mouths[i]).normalized;
+                    _restPositions[i] = barrel.localPosition;
+                }
             }
         }
 
-        private bool HasBarrels => _barrels.Length > 0 && _barrels.Length == _mouths.Length && Type != null && _barrels.Length == 2 * Type.GunsPerSide;
+        private bool HasBarrels => _barrels.Length > 0 && _barrels.Length == _mouths.Length;
 
         /// <summary>Wires the ship in code (tests).</summary>
         internal void Configure(ShipSide side, SO_Gunnery gunnery, HullContact contact, ShipDamage damage, Cannonballs balls, int seed,
@@ -159,10 +189,11 @@ namespace Game.Gameplay
 
             if (!Afloat)
             {
-                _starboard.Target = null;
-                _port.Target = null;
-                _starboard.Firing = false;
-                _port.Firing = false;
+                foreach (Guns battery in _batteries)
+                {
+                    battery.Target = null;
+                    battery.Firing = false;
+                }
                 return;
             }
             _lookTimer -= dt;
@@ -171,22 +202,21 @@ namespace Game.Gameplay
                 _lookTimer = _gunnery.LookSeconds;
                 Look();
             }
-            Step(_starboard, dt);
-            Step(_port, dt);
-            if (HasBarrels)
+            foreach (Guns battery in _batteries)
             {
-                Aim(_starboard, dt);
-                Aim(_port, dt);
+                Step(battery, dt);
+                if (HasBarrels)
+                {
+                    Aim(battery, dt);
+                }
             }
         }
 
-        /// <summary>Turns a side's barrels toward its target's centre on the solved arc, or back to rest, and runs them out.</summary>
-        private void Aim(Battery battery, float dt)
+        /// <summary>Turns a battery's barrels toward its target's centre on the solved arc, or back to rest, and runs them out.</summary>
+        private void Aim(Guns battery, float dt)
         {
-            int guns = Type.GunsPerSide;
-            int first = battery.Starboard ? 0 : guns;
             float runOut = _recoil / Mathf.Max(_gunnery.ReloadSeconds * _runOutShare, Mathf.Epsilon);
-            for (int i = first; i < first + guns; i++)
+            for (int i = battery.First; i < battery.First + battery.Count; i++)
             {
                 Transform barrel = _barrels[i];
                 Vector3 aim = _rests[i];
@@ -196,7 +226,7 @@ namespace Game.Gameplay
                     Vector3 centre = battery.Target.Hull.TransformPoint(new Vector3(0f, battery.Target.Type.Freeboard * 0.5f, 0f));
                     if (Solve(mouth, centre, battery.Target._velocity, _gunnery.MuzzleSpeed, out Vector3 velocity))
                     {
-                        aim = barrel.parent.InverseTransformDirection(WithinArc(velocity, battery.Starboard));
+                        aim = barrel.parent.InverseTransformDirection(WithinArc(velocity, battery));
                     }
                 }
                 Quaternion wanted = Quaternion.FromToRotation(_rests[i], aim);
@@ -208,10 +238,11 @@ namespace Game.Gameplay
 
         private void Look()
         {
-            _starboard.Target = null;
-            _port.Target = null;
-            float bestStarboard = float.MaxValue;
-            float bestPort = float.MaxValue;
+            foreach (Guns battery in _batteries)
+            {
+                battery.Target = null;
+                battery.Best = float.MaxValue;
+            }
             int count = Physics.OverlapSphereNonAlloc(_transform.position, _gunnery.Range, _found, _contact.Ships, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
@@ -221,31 +252,31 @@ namespace Game.Gameplay
                     continue;
                 }
                 float distance = Flat(other._transform.position - _transform.position).magnitude;
-                if (InArc(other, true) && distance < bestStarboard)
+                foreach (Guns battery in _batteries)
                 {
-                    bestStarboard = distance;
-                    _starboard.Target = other;
-                }
-                else if (InArc(other, false) && distance < bestPort)
-                {
-                    bestPort = distance;
-                    _port.Target = other;
+                    if (battery.Count > 0 && distance < battery.Best && InArc(other, battery))
+                    {
+                        battery.Best = distance;
+                        battery.Target = other;
+                    }
                 }
             }
         }
 
-        /// <summary>Whether <paramref name="other"/>'s centre is within range and within the arc of one side's beam.</summary>
-        internal bool InArc(Broadside other, bool starboard)
+        /// <summary>Whether <paramref name="other"/>'s centre is within range and within the arc of <paramref name="battery"/>.</summary>
+        internal bool InArc(Broadside other, Battery battery) => InArc(other, _batteries[(int)battery]);
+
+        private bool InArc(Broadside other, Guns battery)
         {
             Vector3 to = Flat(other.transform.position - _transform.position);
             if (to.magnitude > _gunnery.Range)
             {
                 return false;
             }
-            return Vector3.Angle(Beam(starboard), to) <= _gunnery.ArcDeg;
+            return Vector3.Angle(Bearing(battery), to) <= Arc(battery);
         }
 
-        private void Step(Battery battery, float dt)
+        private void Step(Guns battery, float dt)
         {
             battery.Timer -= dt;
             if (!battery.Firing)
@@ -255,7 +286,7 @@ namespace Game.Gameplay
                     battery.Firing = true;
                     battery.NextGun = 0;
                     battery.Timer = 0f;
-                    VolleyFired?.Invoke(battery.Starboard);
+                    VolleyFired?.Invoke(battery.Battery);
                 }
                 else
                 {
@@ -264,32 +295,33 @@ namespace Game.Gameplay
             }
             while (battery.Firing && battery.Timer <= 0f)
             {
-                if (battery.Target == null || !battery.Target.Afloat || !InArc(battery.Target, battery.Starboard))
+                if (battery.Target == null || !battery.Target.Afloat || !InArc(battery.Target, battery))
                 {
                     EndVolley(battery);
                     return;
                 }
-                Fire(battery.NextGun, battery.Starboard, battery.Target);
+                Fire(battery, battery.NextGun);
                 battery.NextGun++;
                 battery.Timer += _gunnery.VolleyGap;
-                if (battery.NextGun >= Type.GunsPerSide)
+                if (battery.NextGun >= battery.Count)
                 {
                     EndVolley(battery);
                 }
             }
         }
 
-        private void EndVolley(Battery battery)
+        private void EndVolley(Guns battery)
         {
             battery.Firing = false;
             battery.Timer = _gunnery.ReloadSeconds;
         }
 
-        private void Fire(int gun, bool starboard, Broadside target)
+        private void Fire(Guns battery, int gun)
         {
             Transform hull = Hull;
-            int barrel = starboard ? gun : Type.GunsPerSide + gun;
-            Vector3 muzzle = HasBarrels ? _barrels[barrel].TransformPoint(_mouths[barrel]) : hull.TransformPoint(Type.Gun(gun, starboard));
+            Broadside target = battery.Target;
+            int barrel = battery.First + gun;
+            Vector3 muzzle = HasBarrels ? _barrels[barrel].TransformPoint(_mouths[barrel]) : hull.TransformPoint(Type.Gun(battery.Battery, gun));
             if (HasBarrels)
             {
                 _runIn[barrel] = _recoil;
@@ -299,7 +331,7 @@ namespace Game.Gameplay
             {
                 return;
             }
-            velocity = WithinArc(velocity, starboard);
+            velocity = WithinArc(velocity, battery);
             float stray = _gunnery.SpreadDeg * Mathf.Clamp01(Flat(aim - muzzle).magnitude / _gunnery.Range);
             Quaternion scatter = Quaternion.AngleAxis(Random(stray), Vector3.up) * Quaternion.AngleAxis(Random(stray), hull.right);
             if (_balls != null)
@@ -357,21 +389,26 @@ namespace Game.Gameplay
             return true;
         }
 
-        private Vector3 WithinArc(Vector3 velocity, bool starboard)
+        private Vector3 WithinArc(Vector3 velocity, Guns battery)
         {
             Vector3 flat = Flat(velocity);
-            Vector3 beam = Beam(starboard);
-            float yaw = Vector3.SignedAngle(beam, flat, Vector3.up);
-            float clamped = Mathf.Clamp(yaw, -_gunnery.ArcDeg, _gunnery.ArcDeg);
-            Vector3 heading = Quaternion.AngleAxis(clamped, Vector3.up) * beam * flat.magnitude;
+            Vector3 bearing = Bearing(battery);
+            float arc = Arc(battery);
+            float yaw = Vector3.SignedAngle(bearing, flat, Vector3.up);
+            float clamped = Mathf.Clamp(yaw, -arc, arc);
+            Vector3 heading = Quaternion.AngleAxis(clamped, Vector3.up) * bearing * flat.magnitude;
             return heading + Vector3.up * velocity.y;
         }
 
-        private Vector3 Beam(bool starboard)
+        /// <summary>The way a battery bears, flat, from the ship's heading.</summary>
+        private Vector3 Bearing(Guns battery)
         {
-            Vector3 right = Flat(_transform.right).normalized;
-            return starboard ? right : -right;
+            Vector3 forward = Flat(_transform.forward).normalized;
+            return Quaternion.AngleAxis(battery.BearingDeg, Vector3.up) * forward;
         }
+
+        private float Arc(Guns battery) =>
+            battery.Battery == Battery.Bow || battery.Battery == Battery.Stern ? _gunnery.ChaseArcDeg : _gunnery.ArcDeg;
 
         private float Random(float most) => most * (float)(_random.NextDouble() * 2.0 - 1.0);
 

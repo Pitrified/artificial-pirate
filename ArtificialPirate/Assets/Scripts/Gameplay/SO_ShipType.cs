@@ -121,6 +121,12 @@ namespace Game.Gameplay
         [Tooltip("The starboard guns' muzzles in the hull's space (m), stern to bow; the port guns mirror them. The builder's report prints them.")]
         [SerializeField] private Vector3[] _guns = System.Array.Empty<Vector3>();
 
+        [Tooltip("The bow chasers' muzzles in the hull's space (m), each listed; most ships carry none.")]
+        [SerializeField] private Vector3[] _bowGuns = System.Array.Empty<Vector3>();
+
+        [Tooltip("The stern guns' muzzles in the hull's space (m), each listed; most ships carry none.")]
+        [SerializeField] private Vector3[] _sternGuns = System.Array.Empty<Vector3>();
+
         [Tooltip("The health one of this ship's balls takes off a hull of strength 1.")]
         [SerializeField] private float _ballDamage = 0.06f;
 
@@ -235,11 +241,32 @@ namespace Game.Gameplay
         /// <summary>How many guns each side carries.</summary>
         public int GunsPerSide => _guns.Length;
 
-        /// <summary>The muzzle of gun <paramref name="index"/> (stern to bow) on one side, in the hull's space, in metres.</summary>
-        public Vector3 Gun(int index, bool starboard)
+        /// <summary>How many guns <paramref name="battery"/> has.</summary>
+        public int GunCount(Battery battery)
         {
-            Vector3 muzzle = _guns[index];
-            return starboard ? muzzle : new Vector3(-muzzle.x, muzzle.y, muzzle.z);
+            switch (battery)
+            {
+                case Battery.Bow: return _bowGuns.Length;
+                case Battery.Stern: return _sternGuns.Length;
+                default: return _guns.Length;
+            }
+        }
+
+        /// <summary>
+        /// The muzzle of gun <paramref name="index"/> of <paramref name="battery"/> in the hull's space, in
+        /// metres: a broadside's stern to bow, the port side's mirroring the starboard's.
+        /// </summary>
+        public Vector3 Gun(Battery battery, int index)
+        {
+            switch (battery)
+            {
+                case Battery.Bow: return _bowGuns[index];
+                case Battery.Stern: return _sternGuns[index];
+                case Battery.Port:
+                    Vector3 muzzle = _guns[index];
+                    return new Vector3(-muzzle.x, muzzle.y, muzzle.z);
+                default: return _guns[index];
+            }
         }
 
         /// <summary>The health one of this ship's balls takes off a hull of strength 1.</summary>
@@ -254,6 +281,13 @@ namespace Game.Gameplay
             _guns = starboardMuzzles;
             _ballDamage = ballDamage;
             _hullStrength = hullStrength;
+        }
+
+        /// <summary>Sets the bow chasers and the stern guns (types made in code: tests).</summary>
+        internal void SetChasers(Vector3[] bow, Vector3[] stern)
+        {
+            _bowGuns = bow;
+            _sternGuns = stern;
         }
 
         /// <summary>Sets the chances of breaking a mast (types made in code: tests).</summary>

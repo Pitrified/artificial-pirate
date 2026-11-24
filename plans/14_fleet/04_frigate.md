@@ -19,6 +19,7 @@ Context: [`00_start.md`](00_start.md), Decisions; depends on [`02_wind.md`](02_w
 
 - **Reference**: a frigate with published particulars and a sail plan or profile drawing we may keep (licence in `CREDITS.md`), measured for the main proportions only.
 - **Builder**: the raised decks change the deck height along the hull (`deck_height`), the bulwark and rail above them, the helm's place and `helm_eye`; the guns on them sit at their deck. Sloop and brig rebuilt unchanged (their triangles the same).
+- **Chase and stern ports** (moved here from phase 03): bow and stern ports as parameters (count and height over the deck), the barrels `<Name>GunBow<i>` and `<Name>GunStern<i>` turning about their trunnions, the report printing their muzzles for `SO_ShipType`'s bow and stern guns; the variant's `Broadside` barrels in battery order (starboard, port, bow, stern).
 - **Unity**: the FBX, the variant from `PF_Ship`, the type asset, the map icon from `textures.py map_icons`, the ship choice extended to a third kind (`PlayerShipKind`), a player's frigate in the Game scene inactive like the brig; all by a throwaway editor script.
 - **Tuning**: speed and turning between the brig and a giant; strength between the brig's and the giant's (a figure to try, such as the brig needing about 40 hits); its bar's height and the camera rigs measured from the model.
 - **Tests**: `BuiltModelTests` covers it as it covers the others (masts, bands, barrels at muzzles, map icon); `PlayerShipTests` sails it.

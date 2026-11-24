@@ -17,6 +17,9 @@ namespace Game.Gameplay
         [Tooltip("How far toward the bow or the stern from the beam the guns can bear (degrees).")]
         [SerializeField] private float _arcDeg = 20f;
 
+        [Tooltip("How far either side of dead ahead or dead astern the chasers and stern guns can bear (degrees).")]
+        [SerializeField] private float _chaseArcDeg = 30f;
+
         [Tooltip("A ball's speed out of the muzzle (m/s).")]
         [SerializeField] private float _muzzleSpeed = 60f;
 
@@ -40,6 +43,9 @@ namespace Game.Gameplay
 
         /// <summary>How far from the beam the guns bear, in degrees.</summary>
         public float ArcDeg => _arcDeg;
+
+        /// <summary>How far either side of dead ahead or astern the chasers and stern guns bear, in degrees.</summary>
+        public float ChaseArcDeg => _chaseArcDeg;
 
         /// <summary>A ball's speed out of the muzzle, in m/s.</summary>
         public float MuzzleSpeed => _muzzleSpeed;

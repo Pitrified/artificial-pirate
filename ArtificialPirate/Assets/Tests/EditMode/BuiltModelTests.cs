@@ -209,37 +209,43 @@ namespace Game.Tests.EditMode
             Assert.IsNull(root.transform.Find($"{name}Mast{model.Masts}"), "No more masts");
         }
 
+        private static readonly Battery[] Batteries = { Battery.Starboard, Battery.Port, Battery.Bow, Battery.Stern };
+
         [TestCaseSource(nameof(Ships))]
         public void Ship_GunsAreAtTheBarrelsMouths(Expected model)
         {
             SO_ShipType type = LoadType(model);
             ModelBounds(Load(model), out List<Vector3> points);
             Assert.That(type.GunsPerSide, Is.GreaterThan(0), "the type lists its guns");
-            for (int i = 0; i < type.GunsPerSide; i++)
+            foreach (Battery battery in Batteries)
             {
-                foreach (bool starboard in new[] { true, false })
+                for (int i = 0; i < type.GunCount(battery); i++)
                 {
-                    Vector3 muzzle = type.Gun(i, starboard);
+                    Vector3 muzzle = type.Gun(battery, i);
                     float nearest = points.Min(p => Vector3.Distance(p, muzzle));
-                    Assert.That(nearest, Is.LessThan(MuzzleTolerance), $"a barrel's mouth at gun {i} {(starboard ? "starboard" : "port")} {muzzle}");
+                    Assert.That(nearest, Is.LessThan(MuzzleTolerance), $"a barrel's mouth at {battery} gun {i} {muzzle}");
                 }
             }
         }
 
         [TestCaseSource(nameof(Ships))]
-        public void Ship_HasABarrelForEachGun_OnItsSide(Expected model)
+        public void Ship_HasABarrelForEachGun_OfEachBattery(Expected model)
         {
             GameObject root = Load(model);
-            int guns = LoadType(model).GunsPerSide;
-            foreach (string side in new[] { "Starboard", "Port" })
+            SO_ShipType type = LoadType(model);
+            foreach (Battery battery in Batteries)
             {
+                int guns = type.GunCount(battery);
                 for (int i = 0; i < guns; i++)
                 {
-                    Transform barrel = root.transform.Find($"{root.name}Gun{side}{i}");
-                    Assert.IsNotNull(barrel, $"{root.name}Gun{side}{i}");
-                    Assert.AreEqual(side == "Starboard", barrel.localPosition.x > 0f, "turning about a point on its own side");
+                    Transform barrel = root.transform.Find($"{root.name}Gun{battery}{i}");
+                    Assert.IsNotNull(barrel, $"{root.name}Gun{battery}{i}");
+                    if (battery == Battery.Starboard || battery == Battery.Port)
+                    {
+                        Assert.AreEqual(battery == Battery.Starboard, barrel.localPosition.x > 0f, "turning about a point on its own side");
+                    }
                 }
-                Assert.IsNull(root.transform.Find($"{root.name}Gun{side}{guns}"), "No more barrels");
+                Assert.IsNull(root.transform.Find($"{root.name}Gun{battery}{guns}"), "No more barrels");
             }
         }
 

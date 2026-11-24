@@ -167,7 +167,7 @@ namespace Game.Core
             _camera.SetView(view, settings.HelmRides);
         }
 
-        private void OnVolley(bool starboard) => _camera.Shake(_camera.Tuning.VolleyShake);
+        private void OnVolley(Battery battery) => _camera.Shake(_camera.Tuning.VolleyShake);
 
         private void OnPlayerHit(Vector3 point, float amount) => _camera.Shake(amount * _camera.Tuning.HitShakePerHealth);
 
