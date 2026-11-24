@@ -68,7 +68,7 @@ Any other transition is rejected with a logged warning.
   - `InputManager`
   - `AudioManager`
   - `UISystem`
-- `GameSettings Settings`: the player's settings in `PlayerPrefs`, made at `Initialize` and handed to the UI: the camera (`CameraView`), whether the helm camera rides the hull, and the ship sailed (`PlayerShipKind`; offered in development builds only, a release sails the sloop). Each change is written at once and raised as `Changed`. The PlayMode tests run on default settings (`SettingsIsolation`).
+- `GameSettings Settings`: the player's settings in `PlayerPrefs`, made at `Initialize` and handed to the UI: the camera (`CameraView`), whether the helm camera rides the hull, and the ship sailed (`PlayerShipKind`: Sloop, Brig, Frigate, Giant; offered in development builds only, a release sails the sloop). Each change is written at once and raised as `Changed`. The PlayMode tests run on default settings (`SettingsIsolation`).
 - `ShipController PlayerShip`: the ship `GameSceneWiring` registered, the one saved and followed. The Game scene holds a player's ship of each kind, inactive; the wiring turns on the chosen one in `Awake` and points what follows the player's ship (the world, the water, the ripples, the minimap, the respawns) at it (`Follow`).
 
 ---

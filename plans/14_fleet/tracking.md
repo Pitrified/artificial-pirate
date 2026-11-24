@@ -17,7 +17,7 @@ Gun carriages in place of boxes, sails trimmed to a wind as the ship turns, chas
 | 03 | Chase and stern guns | [`03_chase_guns.md`](03_chase_guns.md) | done |
 | 04 | The frigate          | [`04_frigate.md`](04_frigate.md) | done |
 | 05 | The giant            | [`05_giant.md`](05_giant.md) | done |
-| 06 | Verify               | [`06_verify.md`](06_verify.md) | planned |
+| 06 | Verify               | [`06_verify.md`](06_verify.md) | in progress |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 

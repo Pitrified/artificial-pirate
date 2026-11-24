@@ -24,7 +24,8 @@ Plain, layered and deterministic, so later content (settlements, loot, wrecks) c
   - the point is first pushed about by noise (`Warp`, features about 1.6 radii apart), which bends the island and gives it hooks and bays;
   - it is measured against each lobe: the main one, and up to `Lobes` more set out to `LobeSpread` radii, each an ellipse stretched up to `Stretch` along the island's turned length, its edge wandering by `CoastWobble`;
   - inside the highest lobe the land is a cone to the lobe's centre (smaller lobes rise less), varied by hills and raised to `Redistribution`, which flattens the shores and sharpens the peaks; under the waterline a smooth slope reaches the seabed over `ShelfWidth`.
-- **The start island** sits in the origin's cell in every world, at the origin, round and unwarped, with a fixed seed: the scene's deck props stand on it, and the floating props, the sloop and the brig lie in its water. No other island reaches within `StartClearing` (160 m) of the origin.
+- **The start island** sits in the origin's cell in every world, at the origin, round and unwarped, with a fixed seed: the scene's deck props stand on it, and the floating props, the sloop and the brig lie in its water. No other island reaches within `StartClearing` (340 m) of the origin: wide enough for the giant to lie at anchor in open water near the start, since a ship that size cannot get among the islands (`docs/systems/combat.md`).
+- **The wind** (`WindFromDeg`) comes from one bearing for the whole world, drawn from its seed like the islands, so a world keeps its wind across a save with no saved field. The ships' sails are trimmed to it (`docs/systems/ship-controller.md`); it does not change their speed.
 - **One height function.** Everything that needs the ground samples `HeightAt`.
 - Plain C# over `SO_WorldSettings`, no scene objects, tested in EditMode. A cell's island is kept once worked out (a dictionary that grows by one entry a cell asked for), since a point asks nine cells.
 
@@ -89,7 +90,7 @@ On the `World` object, with the water, the streamer and the ship.
 | `ShelfWidth` | 25 m | |
 | `Seabed` | -20 m | |
 | `StartRadius`, `StartPeak` | 24 m, 8 m | |
-| `StartClearing` | 160 m | Open water kept around the origin |
+| `StartClearing` | 340 m | Open water kept around the origin, the giant's anchorage in it |
 
 ## Tests
 
