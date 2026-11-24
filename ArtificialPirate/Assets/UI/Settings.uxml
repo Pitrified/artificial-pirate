@@ -27,6 +27,7 @@
                         <ui:Button name="btn-ship-sloop" class="settings-btn" text="Sloop" />
                         <ui:Button name="btn-ship-brig" class="settings-btn" text="Brig" />
                         <ui:Button name="btn-ship-frigate" class="settings-btn" text="Frigate" />
+                        <ui:Button name="btn-ship-giant" class="settings-btn" text="Giant" />
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:Button name="btn-settings-close" class="pause-btn settings-close" text="Back" />

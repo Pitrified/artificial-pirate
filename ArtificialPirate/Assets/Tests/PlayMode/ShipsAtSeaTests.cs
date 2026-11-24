@@ -8,6 +8,7 @@ namespace Game.Tests.PlayMode
     using UnityEngine.TestTools;
     using Game.Core;
     using Game.Gameplay;
+    using Game.Gameplay.World;
 
     /// <summary>
     /// Ships other than the player's. <see cref="ShipRespawn"/> with a ship built in code: a copy is
@@ -17,6 +18,8 @@ namespace Game.Tests.PlayMode
     /// </summary>
     public sealed class ShipsAtSeaTests
     {
+        private const int GiantWorlds = 3;
+        private const float GiantStep = 5f;
         private const float Delay = 0.5f;
         private const float Clearance = 300f;
         private const int WaitFrames = 900;
@@ -125,6 +128,45 @@ namespace Game.Tests.PlayMode
 
             Assert.That(worst, Is.LessThan(6f), "on its circle after the first lap's approach");
             Assert.That(sailed, Is.GreaterThan(150f), "still sailing: it did not run aground");
+        }
+
+        [UnityTest]
+        public IEnumerator GameScene_AnchoredGiant_LiesInWaterDeeperThanItsDraft_InEveryWorld()
+        {
+            yield return SceneManager.LoadSceneAsync(SceneNames.Boot, LoadSceneMode.Single);
+            yield return WaitForState(GameState.Menu);
+            GameManager gm = GameManager.Instance;
+            for (int world = 0; world < GiantWorlds; world++)
+            {
+                var start = gm.StartNewGameAsync();
+                while (!start.IsCompleted)
+                {
+                    yield return null;
+                }
+                yield return WaitForState(GameState.Playing);
+                yield return null;
+
+                HullContact giant = System.Array.Find(Object.FindObjectsByType<HullContact>(FindObjectsInactive.Exclude),
+                    c => c.Type != null && c.Type.name == "SO_Ship_Giant");
+                Assert.IsNotNull(giant, "a giant at anchor in the Game scene");
+                WorldGenerator ground = Object.FindAnyObjectByType<WorldStreamer>().World;
+                SO_ShipType type = giant.Type;
+                for (float along = -type.HalfLength; along <= type.HalfLength; along += GiantStep)
+                {
+                    foreach (float across in new[] { -type.HalfBeam, 0f, type.HalfBeam })
+                    {
+                        Vector3 point = giant.transform.TransformPoint(new Vector3(across, 0f, along));
+                        Assert.Less(ground.HeightAt(point.x, point.z), -type.Draft, $"water under the giant at {point} in world {ground.Seed}");
+                    }
+                }
+
+                var back = gm.ReturnToMenuAsync();
+                while (!back.IsCompleted)
+                {
+                    yield return null;
+                }
+                yield return WaitForState(GameState.Menu);
+            }
         }
 
         private static IEnumerator WaitForState(GameState state)

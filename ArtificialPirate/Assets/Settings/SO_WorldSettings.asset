@@ -28,4 +28,4 @@ MonoBehaviour:
   _seabed: -20
   _startRadius: 24
   _startPeak: 8
-  _startClearing: 160
+  _startClearing: 340

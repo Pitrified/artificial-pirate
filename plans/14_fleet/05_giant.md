@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 05 - The giant
@@ -35,3 +35,10 @@ Context: [`00_start.md`](00_start.md), Decisions; depends on [`04_frigate.md`](0
 - Tests pass; gates green; the budget measured with the giant in view; the captures read.
 
 ## What the implementation found
+- **Reference**: the Amerigo Vespucci's particulars (Wikipedia: 82.4 m between perpendiculars, 100.5 m overall, 15.56 m beam, 7.3 m draft, masts 50, 54 and 43 m) and a public-domain broadside photograph (New York, 1976), kept as `references/giant/vespucci_broadside.jpg`. The model is 82.4 m on deck and 104.5 m overall, its rail 10 m over the water.
+- **The look**: `stripes` paints bands of the trim along the side (two white bands, `M_GiantTrim`, a white copy of the brig's trim); the black topsides; a row of ports with `guns: false` painted in the lower band; the armed row of 15 a side in the upper band on a covered deck; two chasers and two stern guns: 34 barrels, the lower row costing no objects.
+- **The rig took the longest**: the brig's rig scaled above each mast's deck. With the rail so high the main shrouds splay wide, and the main course met them at every brace that keeps it full; it is left off (clewed up), as brigs often sail. The first jib's stay crossed the fore topgallant on the run; a search over 8 layouts of its head, its tack and the fore mast's place found its head at 38.5 to 39.5 m clear (39.5 is used). The masts stand nearly upright (rake 1 to 2 degrees). Tried and dropped: narrower tops, wider shroud spacing, flatter sails (which put the sails aback sooner), shorter yards; none is kept in the builder.
+- **The start clearing is 340 m** (`SO_WorldSettings`), and the giant lies at anchor at (-150, 0, 200), yawed 30 degrees, with its own `ShipRespawn`; a play test checks the water under its whole hull is deeper than its draft in three new worlds. The player's giant starts at (0, 0, 140), clear of the floating props.
+- **The bars stand over the rail**: `ShipBars` places each bar 6 m over its type's freeboard (the brig's still at 9 m), where the fixed 9 m was below the giant's rail.
+- Handling: 6.5 m/s, 9 degrees a second; strength 4 (the brig needs about 67 hits); the helm camera 2 m to starboard, as on the frigate. `PlayerShipKind.Giant` and a Giant button.
+- Gates: spec pass, compile 0/0, EditMode 300/300, PlayMode 32/32 (the map test now counts the giant). Captures: its chase, bird's eye and helm views, and at anchor from the start.

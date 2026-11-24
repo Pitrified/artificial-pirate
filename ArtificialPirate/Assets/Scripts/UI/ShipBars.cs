@@ -24,8 +24,8 @@ namespace Game.UI
         [Tooltip("How far from the player's ship a ship gets a bar (m).")]
         [SerializeField] private float _reach = 180f;
 
-        [Tooltip("How high over the ship's waterline the bar sits (m).")]
-        [SerializeField] private float _height = 9f;
+        [Tooltip("How high over the ship's rail amidships (its type's freeboard) the bar sits (m).")]
+        [SerializeField] private float _overRail = 6f;
 
         [SerializeField] private Color _enemy = new Color(0.85f, 0.2f, 0.15f, 1f);
         [SerializeField] private Color _ally = new Color(0.3f, 0.75f, 0.35f, 1f);
@@ -123,7 +123,7 @@ namespace Game.UI
 
         private bool Place(RectTransform bar, Broadside ship)
         {
-            Vector3 over = ship.Hull.TransformPoint(new Vector3(0f, _height, 0f));
+            Vector3 over = ship.Hull.TransformPoint(new Vector3(0f, ship.Type.Freeboard + _overRail, 0f));
             Vector3 screen = _camera.WorldToScreenPoint(over);
             if (screen.z <= 0f || !RectTransformUtility.ScreenPointToLocalPointInRectangle(_area, screen, null, out Vector2 local))
             {

@@ -73,7 +73,7 @@ def cannons(parts: MeshParts, p: dict) -> None:
     row's carriages are below, out of sight."""
     wood = swatch_uv("carriage")
     for gun in gun_port_centres(p):
-        if not gun.open:
+        if not gun.open or not gun.armed:
             continue
         t, side, port = gun.t, gun.side, gun.centre
         pivot = _trunnions(gun)
@@ -103,6 +103,8 @@ def _named(p: dict) -> list[tuple[str, Port]]:
     GunStern<i>."""
     named, count = [], {}
     for port in gun_port_centres(p) + chase_port_centres(p):
+        if not port.armed:
+            continue
         battery = ("Starboard" if port.side > 0 else "Port") if port.side else ("Bow" if port.out.y > 0 else "Stern")
         named.append((f"Gun{battery}{count.get(battery, 0)}", port))
         count[battery] = count.get(battery, 0) + 1

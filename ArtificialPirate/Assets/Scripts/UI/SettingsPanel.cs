@@ -46,6 +46,7 @@ namespace Game.UI
                 root.Q<Button>("btn-ship-sloop"),
                 root.Q<Button>("btn-ship-brig"),
                 root.Q<Button>("btn-ship-frigate"),
+                root.Q<Button>("btn-ship-giant"),
             };
             for (int i = 0; i < _ships.Length; i++)
             {

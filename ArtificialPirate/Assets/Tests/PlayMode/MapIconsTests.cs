@@ -11,7 +11,7 @@ namespace Game.Tests.PlayMode
 
     /// <summary>
     /// The ships on the maps in the Game scene: the minimap shows the anchored brig near the start as
-    /// an enemy's icon, and the full map both brigs beside the player's ship.
+    /// an enemy's icon, and the full map both brigs and the giant beside the player's ship.
     /// </summary>
     public sealed class MapIconsTests
     {
@@ -41,7 +41,7 @@ namespace Game.Tests.PlayMode
 
             GameManager.Instance.OpenMap(Object.FindAnyObjectByType<WorldMap>(), GameManager.Instance.PlayerShip.transform);
             UISystem ui = Object.FindAnyObjectByType<UISystem>();
-            Assert.AreEqual(2, ui.Map.OthersShowing, "both brigs on the full map");
+            Assert.AreEqual(3, ui.Map.OthersShowing, "both brigs and the giant on the full map");
         }
 
         private static IEnumerator WaitForState(GameState state)

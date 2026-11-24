@@ -81,6 +81,13 @@ namespace Game.Tests.EditMode
                 ShipType = "Assets/Settings/SO_Ship_Frigate.asset",
                 Masts = 3,
             };
+            yield return new Expected
+            {
+                Path = "Assets/Art/Models/Giant.fbx",
+                Materials = ShipMaterials,
+                ShipType = "Assets/Settings/SO_Ship_Giant.asset",
+                Masts = 3,
+            };
         }
 
         private static IEnumerable<Expected> Props()

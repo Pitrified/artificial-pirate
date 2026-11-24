@@ -3,10 +3,11 @@ taffrail, the cutwater, figurehead and head rails, and deck furniture.
 
 Type keys (all but the deck optional):
 - wales: heights of the wales' centres above the water;
+- stripes: bands of the trim's paint along the hull's side, each [low, high] above the water;
 - gun_ports: a row, or a list of rows, each {count (a side), from, to (fractions from the stern), size}
   and either above_deck (an open row: the centre over the deck there, where the gun's axis sits on its
   carriage) or z (a covered row, on a deck below: the centre above the water, the barrels' muzzles
-  showing through the ports);
+  showing through the ports), and guns: false for a row of ports with no guns behind them;
 - chase_ports, stern_ports: {across (each port's x from the centreline), z (centre above the water),
   size}: guns firing ahead through the bow, and astern through the transom, below its windows;
 - stern_windows: how many across the transom;
@@ -35,6 +36,7 @@ from builders.ship.hull import (
 from builders.ship.mesh import MeshParts, axis_box, box, line, pole, ring
 
 WALE_HEIGHT = 0.25
+STRIPE_OUT = 0.02  # m, how far a painted stripe stands off the side, so it shows over the hull's own paint
 WALE_OUT = 0.08
 CAP_RAIL_HEIGHT = 0.1
 CAP_RAIL_OVERHANG = 0.08
@@ -148,10 +150,21 @@ def wales(parts: MeshParts, p: dict) -> None:
         _strip(parts, p, wale, 0.03, 0.97, "Tar")
 
 
+def stripes(parts: MeshParts, p: dict) -> None:
+    for low, high in p.get("stripes", []):
+
+        def stripe(t: float, low: float = low, high: float = high) -> list[tuple[float, float]]:
+            b = half_beam(p, t) + STRIPE_OUT
+            return [(b, high), (b, low)]
+
+        _strip(parts, p, stripe, 0.02, 0.98, "Trim")
+
+
 @dataclass(frozen=True)
 class Port:
     """A gun port: its station t, side (+1 starboard, -1 port, 0 the bow or the stern), centre on the hull,
-    size, the way its gun fires, and whether the gun stands on an open deck (on a carriage)."""
+    size, the way its gun fires, whether the gun stands on an open deck (on a carriage), and whether
+    there is a gun behind it at all."""
 
     t: float
     side: float
@@ -159,6 +172,7 @@ class Port:
     size: float
     out: Vector
     open: bool
+    armed: bool = True
 
 
 def _rows(p: dict) -> list[dict]:
@@ -178,7 +192,7 @@ def gun_port_centres(p: dict) -> list[Port]:
             z = deck_height(p, t) + row["above_deck"] if is_open else row["z"]
             for side in (1.0, -1.0):
                 centre = Vector((side * half_beam(p, t), _y(p, t), z))
-                ports.append(Port(t, side, centre, row["size"], Vector((side, 0.0, 0.0)), is_open))
+                ports.append(Port(t, side, centre, row["size"], Vector((side, 0.0, 0.0)), is_open, row.get("guns", True)))
     return ports
 
 
@@ -422,6 +436,7 @@ def fit(parts: MeshParts, p: dict) -> None:
     deck(parts, p)
     rail(parts, p)
     wales(parts, p)
+    stripes(parts, p)
     gun_ports(parts, p)
     stern(parts, p)
     bow(parts, p)

@@ -27,6 +27,9 @@ namespace Game.Systems
 
         /// <summary>The frigate.</summary>
         Frigate,
+
+        /// <summary>The giant three-master.</summary>
+        Giant,
     }
 
     /// <summary>
