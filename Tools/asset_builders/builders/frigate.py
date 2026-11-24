@@ -61,7 +61,7 @@ PARAMS = {
     ],
     "bowsprit": {"length": 17.0, "steeve_deg": 16.0, "diameter": 0.8},
     "sails": [
-        {"kind": "square", "mast": 0, "top": 0, "bottom": {"z": 7.8, "length": 17.0}},
+        {"kind": "square", "mast": 0, "top": 0, "bottom": {"z": 7.8, "length": 16.4}},
         {"kind": "square", "mast": 0, "top": 1, "bottom": 0},
         {"kind": "square", "mast": 0, "top": 2, "bottom": 1},
         {"kind": "square", "mast": 0, "top": 3, "bottom": 2},

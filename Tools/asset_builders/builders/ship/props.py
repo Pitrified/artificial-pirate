@@ -50,7 +50,11 @@ LANTERN_CAP = 0.25
 FLAG_COLUMNS = 10
 FLAG_ROWS = 5
 FLAG_OF_LENGTH = 0.11
+FLAG_MAX_LENGTH = 4.5  # m: past a brig's, a flag stays this size
 FLAG_ASPECT = 0.65
+FLAGSTAFF_CLEAR = 0.3  # m, between the masthead and the flag's foot
+FLAGSTAFF_ABOVE = 0.2  # m, of staff above the flag's head
+FLAGSTAFF_DIAMETER = 0.1
 
 
 def _y(p: dict, t: float) -> float:
@@ -195,12 +199,23 @@ def place(parts: MeshParts, p: dict) -> None:
     lantern(parts, p)
 
 
+def _flag_size(p: dict) -> tuple[float, float]:
+    length = min(p["length"] * FLAG_OF_LENGTH, FLAG_MAX_LENGTH)
+    return length, length * FLAG_ASPECT
+
+
+def flagstaff(parts: MeshParts, p: dict, head: Vector) -> None:
+    """A staff standing on the masthead, the flag hoisted on it clear of the yards and sails below."""
+    _, height = _flag_size(p)
+    top = head + Vector((0.0, 0.0, FLAGSTAFF_CLEAR + height + FLAGSTAFF_ABOVE))
+    pole(parts, head, top, FLAGSTAFF_DIAMETER, FLAGSTAFF_DIAMETER * 0.7, 6, "Spar")
+
+
 def flag(parts: MeshParts, p: dict, head: Vector, downwind: Vector) -> None:
-    """A flat flag at a masthead, its fly streaming downwind; UV u runs hoist to fly, v foot to head."""
-    length = p["length"] * FLAG_OF_LENGTH
-    height = length * FLAG_ASPECT
+    """A flat flag on the masthead's staff, its fly streaming downwind; UV u runs hoist to fly, v foot to head."""
+    length, height = _flag_size(p)
     fly = Vector((downwind.x, downwind.y, 0.0)).normalized() * length
-    top = head - Vector((0.0, 0.0, 0.3))
+    top = head + Vector((0.0, 0.0, FLAGSTAFF_CLEAR + height))
     grid, uvs = [], []
     for row in range(FLAG_ROWS + 1):
         v = row / FLAG_ROWS

@@ -10,6 +10,8 @@ from builders.ship.mesh import MeshParts, box
 
 STATIONS = 20
 UNDERWATER_POINTS = 5
+TOPSIDE_POINTS = 4  # between the boot and the band, so a tumblehome curves
+TUMBLE_FROM = 0.3  # of the freeboard: the height the sides start to fall in from
 BILGE_POWER = 2.5
 STEM_HALF_WIDTH = 0.12
 BULWARK_THICKNESS = 0.15
@@ -17,7 +19,7 @@ FOREFOOT = 0.75
 BREAK = 0.004  # of the length, over which a raised deck's edge rises from the deck below
 
 # Which slot each band of the loop takes, between consecutive points of the starboard half.
-_SECTION_SLOTS = ("ShipWood", "Trim", "Trim", "Topsides", "HullBottom") + ("HullBottom",) * UNDERWATER_POINTS
+_SECTION_SLOTS = ("ShipWood", "Trim", "Trim") + ("Topsides",) * (TOPSIDE_POINTS + 1) + ("HullBottom",) * (UNDERWATER_POINTS + 1)
 _SMOOTH_SLOTS = ("Topsides", "HullBottom")
 _SHARP_POINTS = (0, 1, 2)
 
@@ -48,7 +50,8 @@ def _raised(p: dict, t: float) -> float:
 def stations(p: dict) -> list[float]:
     """Where the hull is lofted along its length, from the stern: evenly, and either side of each raised
     deck's step so it stands near upright."""
-    ts = {i / STATIONS for i in range(STATIONS + 1)}
+    count = p.get("stations", STATIONS)
+    ts = {i / count for i in range(count + 1)}
     for deck in p.get("raised_decks", []):
         for edge in (deck["from"], deck["to"]):
             if 0.0 < edge < 1.0:
@@ -69,6 +72,18 @@ def half_beam(p: dict, t: float) -> float:
     return max(p["beam"] / 2 * fraction, STEM_HALF_WIDTH)
 
 
+def side(p: dict, t: float, z: float) -> float:
+    """The hull's side at t and height z above the water, from the centreline: the half beam, less the
+    tumblehome as the side falls in above TUMBLE_FROM of the freeboard toward the rail."""
+    b = half_beam(p, t)
+    tumble = p.get("tumblehome", 0.0)
+    low = p["freeboard"] * TUMBLE_FROM
+    if tumble <= 0.0 or z <= low:
+        return b
+    s = min(1.0, (z - low) / (rail_height(p, t) - low))
+    return max(b - tumble * b * s * s, STEM_HALF_WIDTH)
+
+
 def _fullness(p: dict, t: float) -> float:
     """How full the underwater section is: 1 amidships, a V toward the ends."""
     widest = p["widest"]
@@ -85,7 +100,7 @@ def _depth(p: dict, t: float) -> float:
 
 def bulwark_inner(p: dict, t: float) -> float:
     """The inside of the bulwark from the centreline, where the deck meets it."""
-    b = half_beam(p, t)
+    b = side(p, t, rail_height(p, t))
     return max(b - BULWARK_THICKNESS, b * 0.5)
 
 
@@ -104,14 +119,17 @@ def _section(p: dict, t: float) -> list[Vector]:
     depth = _depth(p, t)
     full = _fullness(p, t)
 
+    band = rail - p["band"]
     starboard = [
         (inner, deck),
         (inner, rail),
-        (b, rail),
-        (b, rail - p["band"]),
-        (b, p["boot"]),
-        (b, 0.0),
+        (side(p, t, rail), rail),
+        (side(p, t, band), band),
     ]
+    for k in range(1, TOPSIDE_POINTS + 1):
+        z = band + (p["boot"] - band) * k / (TOPSIDE_POINTS + 1)
+        starboard.append((side(p, t, z), z))
+    starboard += [(b, p["boot"]), (b, 0.0)]
     for k in range(1, UNDERWATER_POINTS + 1):
         s = k / UNDERWATER_POINTS
         x = b * (1 - s**BILGE_POWER) ** (1 / BILGE_POWER) * (1 - (1 - full) * s)

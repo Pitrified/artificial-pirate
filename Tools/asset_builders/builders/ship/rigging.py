@@ -10,7 +10,8 @@ from __future__ import annotations
 
 from mathutils import Vector
 
-from builders.ship.hull import half_beam, rail_height
+from builders.ship.hull import rail_height
+from builders.ship.hull import side as side_at
 from builders.ship.mesh import MeshParts, Rope, axis_box, line
 from builders.ship.rig import Mast, boom_ends, bowsprit, yard_ends
 from builders.ship.sails import Trim, jib_corners, sail_name, square_corners
@@ -46,7 +47,7 @@ def _station(p: dict, y: float) -> float:
 
 def _deck_edge(p: dict, x_side: float, y: float) -> Vector:
     t = min(max(_station(p, y), 0.02), 0.98)
-    return Vector((x_side * half_beam(p, t), y, rail_height(p, t)))
+    return Vector((x_side * side_at(p, t, rail_height(p, t)), y, rail_height(p, t)))
 
 
 def _chainplates(p: dict, mast: Mast, side: float) -> list[Vector]:
@@ -55,7 +56,7 @@ def _chainplates(p: dict, mast: Mast, side: float) -> list[Vector]:
     for i in range(mast.spec["shrouds"]):
         y = mast.foot.y - 0.3 - i * SHROUD_SPACING
         t = _station(p, y)
-        points.append(Vector((side * (half_beam(p, t) + CHANNEL_OUT), y, rail_height(p, t) - 0.3)))
+        points.append(Vector((side * (side_at(p, t, rail_height(p, t)) + CHANNEL_OUT), y, rail_height(p, t) - 0.3)))
     return points
 
 
@@ -96,8 +97,8 @@ def _mast_rigging(body: MeshParts, parts: MeshParts, p: dict, mast: Mast) -> Non
     for side in (1.0, -1.0):
         plates = _chainplates(p, mast, side)
         t = _station(p, plates[0].y)
-        channel_start = Vector((side * half_beam(p, t), plates[0].y + 0.5, plates[0].z))
-        channel_end = Vector((side * (half_beam(p, t) + CHANNEL_OUT), plates[-1].y - 0.5, plates[0].z + CHANNEL_THICKNESS))
+        channel_start = Vector((side * side_at(p, t, plates[0].z), plates[0].y + 0.5, plates[0].z))
+        channel_end = Vector((side * (side_at(p, t, plates[0].z) + CHANNEL_OUT), plates[-1].y - 0.5, plates[0].z + CHANNEL_THICKNESS))
         axis_box(body, (channel_start + channel_end) / 2,
                  Vector((CHANNEL_OUT, abs(channel_end.y - channel_start.y), CHANNEL_THICKNESS)), "ShipWood")
 

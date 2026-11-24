@@ -33,6 +33,7 @@ from builders.ship.hull import (
     stations,
     transom_y,
 )
+from builders.ship.hull import side as side_at
 from builders.ship.mesh import MeshParts, axis_box, box, line, pole, ring
 
 WALE_HEIGHT = 0.25
@@ -75,6 +76,7 @@ WHEEL_PEDESTAL = 0.3  # forward of the wheel
 TILLER_LENGTH = 2.5
 TILLER_RISE = 0.25
 RUDDER_HEAD = 0.26
+FIGURE_FOR_LENGTH = 40.0  # m: a longer ship's figurehead and trailboards grow with it
 
 Profile = Callable[[float], list[tuple[float, float]]]
 
@@ -123,7 +125,7 @@ def rail(parts: MeshParts, p: dict) -> None:
     as a timberhead."""
 
     def cap(t: float) -> list[tuple[float, float]]:
-        inner, outer, z = bulwark_inner(p, t) - CAP_RAIL_OVERHANG, half_beam(p, t) + CAP_RAIL_OVERHANG, rail_height(p, t)
+        inner, outer, z = bulwark_inner(p, t) - CAP_RAIL_OVERHANG, side_at(p, t, rail_height(p, t)) + CAP_RAIL_OVERHANG, rail_height(p, t)
         top, c = z + CAP_RAIL_HEIGHT, CAP_RAIL_CHAMFER
         return [(inner, z), (inner, top - c), (inner + c, top), (outer - c, top), (outer, top - c), (outer, z)]
 
@@ -144,8 +146,8 @@ def wales(parts: MeshParts, p: dict) -> None:
         z0, z1 = centre - WALE_HEIGHT / 2, centre + WALE_HEIGHT / 2
 
         def wale(t: float, z0: float = z0, z1: float = z1) -> list[tuple[float, float]]:
-            b = half_beam(p, t)
-            return [(b, z1), (b + WALE_OUT, z1), (b + WALE_OUT, z0), (b, z0)]
+            b1, b0 = side_at(p, t, z1), side_at(p, t, z0)
+            return [(b1, z1), (b1 + WALE_OUT, z1), (b0 + WALE_OUT, z0), (b0, z0)]
 
         _strip(parts, p, wale, 0.03, 0.97, "Tar")
 
@@ -154,8 +156,7 @@ def stripes(parts: MeshParts, p: dict) -> None:
     for low, high in p.get("stripes", []):
 
         def stripe(t: float, low: float = low, high: float = high) -> list[tuple[float, float]]:
-            b = half_beam(p, t) + STRIPE_OUT
-            return [(b, high), (b, low)]
+            return [(side_at(p, t, high) + STRIPE_OUT, high), (side_at(p, t, low) + STRIPE_OUT, low)]
 
         _strip(parts, p, stripe, 0.02, 0.98, "Trim")
 
@@ -191,7 +192,7 @@ def gun_port_centres(p: dict) -> list[Port]:
             is_open = "above_deck" in row
             z = deck_height(p, t) + row["above_deck"] if is_open else row["z"]
             for side in (1.0, -1.0):
-                centre = Vector((side * half_beam(p, t), _y(p, t), z))
+                centre = Vector((side * side_at(p, t, z), _y(p, t), z))
                 ports.append(Port(t, side, centre, row["size"], Vector((side, 0.0, 0.0)), is_open, row.get("guns", True)))
     return ports
 
@@ -265,7 +266,7 @@ def taffrail(parts: MeshParts, p: dict) -> None:
     rail_z = rail_height(p, 0.0)
     top = rail_z + TAFFRAIL_HEIGHT
     y = transom_y(p, top) + 0.1
-    width = half_beam(p, 0.0) * 1.8
+    width = side_at(p, 0.0, rail_z) * 1.8
     rails = Vector((width, TAFFRAIL_RAIL.y, TAFFRAIL_RAIL.z))
     axis_box(parts, Vector((0.0, y, top - TAFFRAIL_RAIL.z / 2)), rails, "Gilt")
     axis_box(parts, Vector((0.0, y, rail_z + TAFFRAIL_RAIL.z / 2)), rails, "Trim")
@@ -282,7 +283,7 @@ def taffrail(parts: MeshParts, p: dict) -> None:
         end = Vector((side * width / 2, y, top - TAFFRAIL_RAIL.z))
         ring(parts, end + Vector((side * 0.08, 0.0, 0.0)), Vector((0.0, 1.0, 0.0)), 0.1, 0.06, 10, "Gilt")
         t = QUARTER_RAIL_TO
-        forward = Vector((side * half_beam(p, t), _y(p, t), rail_height(p, t) + CAP_RAIL_HEIGHT))
+        forward = Vector((side * side_at(p, t, rail_height(p, t)), _y(p, t), rail_height(p, t) + CAP_RAIL_HEIGHT))
         pole(parts, end, forward, 0.1, 0.1, 8, "Gilt", smooth=True)
         _baluster(parts, Vector(((end.x + forward.x) / 2, (end.y + forward.y) / 2, rail_height(p, t / 2))),
                   (end.z + forward.z) / 2 - rail_height(p, t / 2))
@@ -305,13 +306,19 @@ def bow(parts: MeshParts, p: dict) -> None:
                for y in ys for x in (-0.12, 0.12)]
     box(parts, corners, "Trim")
 
-    foot = Vector((0.0, stem_y + reach - 0.2, top - 0.3))
-    body_top = foot + Vector((0.0, 0.5, 1.1))
-    pole(parts, foot, body_top, 0.5, 0.35, 6, "Gilt")
-    pole(parts, body_top, body_top + Vector((0.0, 0.15, 0.4)), 0.35, 0.3, 6, "Gilt")
+    k = max(1.0, p["length"] / FIGURE_FOR_LENGTH)
+    foot = Vector((0.0, stem_y + reach - 0.2 * k, top - 0.3 * k))
+    body_top = foot + Vector((0.0, 0.5, 1.1)) * k
+    pole(parts, foot, body_top, 0.5 * k, 0.35 * k, 6, "Gilt")
+    pole(parts, body_top, body_top + Vector((0.0, 0.15, 0.4)) * k, 0.35 * k, 0.3 * k, 6, "Gilt")
+    for side in (1.0, -1.0):
+        board = [Vector((side * 0.13, y, z)) for y, z in ((stem_y + 0.2, top - 0.4 * k), (stem_y + reach * 0.8, top - 0.4 * k),
+                                                           (stem_y + reach * 0.8, top - 0.9 * k), (stem_y + 0.2, top - 1.4 * k))]
+        s = parts.add_verts(board)
+        parts.add_face((s, s + 1, s + 2, s + 3) if side > 0 else (s + 3, s + 2, s + 1, s), "Gilt")
 
     for side in (1.0, -1.0):
-        aft = Vector((side * half_beam(p, 0.93), stem_y - 0.07 * p["length"], rail_height(p, 0.93) - 0.3))
+        aft = Vector((side * side_at(p, 0.93, rail_height(p, 0.93)), stem_y - 0.07 * p["length"], rail_height(p, 0.93) - 0.3))
         for drop in (0.0, 0.5):
             line(parts, foot + Vector((side * 0.15, 0.0, 0.2 - drop)), aft - Vector((0.0, 0.0, drop)), 0.12, "Trim")
 

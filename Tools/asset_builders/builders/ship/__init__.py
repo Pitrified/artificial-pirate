@@ -17,7 +17,8 @@ Hull keys: length (on deck), beam, draft, freeboard (amidships, to the rail), sh
 sheer_stern (rise of the rail toward each end), sheer_low (where the rail is lowest, as a fraction
 from the stern), widest (where the hull is widest, same), transom (the transom's width over the
 beam), transom_rake_deg, bulwark (height above the deck), band (the trim band's depth below the rail),
-boot (how high the bottom paint shows above the water); raised_decks, optional (each from and to, fractions
+boot (how high the bottom paint shows above the water); tumblehome, optional (how far the side falls in
+toward the rail, of the half beam), stations, optional (how many slices the hull is lofted in); raised_decks, optional (each from and to, fractions
 from the stern, and height over the deck: a quarterdeck or poop aft, a forecastle forward).
 
 masts: each has at (fraction from the stern), height (above the water), diameter, rake_deg, top_z
@@ -72,7 +73,9 @@ def build(params: dict) -> None:
         make_object(f"{name}{gun}", barrel, preview, origin=trunnions)
     standing_ropes = body.ropes + [rope for parts in standing for rope in parts.ropes]
 
-    head = max(masts, key=lambda m: m.head.z).head
+    tallest = max(range(len(masts)), key=lambda i: masts[i].head.z)
+    head = masts[tallest].head
+    props.flagstaff(standing[tallest], params, head)
     flag = MeshParts()
     props.flag(flag, params, head, Vector((0.0, -1.0, 0.0)))
     make_object(f"{name}Flag", flag, preview, origin=head)

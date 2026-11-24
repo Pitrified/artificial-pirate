@@ -84,7 +84,8 @@ def palette() -> Path:
 
 
 def sail_canvas() -> Path:
-    """Worn canvas over 4 x 4 m, tiling: seams between 0.5 m cloths, dirt and wear in broad patches."""
+    """Worn canvas over 4 x 4 m, tiling: seams between 0.5 m cloths, dirt and wear in broad patches; and its
+    normal map, the seams standing proud, `T_SailCanvas_N`."""
     size = 256
     dirt = tiling_height(size, waves=24, min_freq=1, max_freq=5, falloff=1.0, seed=21)
     grain = tiling_height(size, waves=48, min_freq=12, max_freq=40, falloff=0.8, seed=22)
@@ -92,6 +93,9 @@ def sail_canvas() -> Path:
     x = np.arange(size)
     seams = (x % (size // 8)) < 2
     tone[:, seams] *= 0.86
+    height = 0.15 * grain + 0.3 * dirt
+    height[:, seams] += 1.0
+    normal_map(height, strength=3.0).save(TEXTURES_DIR / "T_SailCanvas_N.png", optimize=False)
     return _save(Image.fromarray(np.round(np.clip(tone, 0, 1) * 255).astype(np.uint8), "RGB"), "T_SailCanvas")
 
 
@@ -111,17 +115,21 @@ def _planks(width_px: int, height_px: int, plank_px: int, butt_every_px: int, se
 
 def hull_planks() -> Path:
     """The hull's sides: 4 m along, 0 to 8 m up (the bottom row is the waterline), strakes 0.25 m,
-    and a wet band darkening the lowest 0.9 m. Grey, multiplied by each hull's paint."""
+    and a wet band darkening the lowest 0.9 m. Grey, multiplied by each hull's paint; and its normal map,
+    `T_HullPlanks_N`."""
     width, height = 256, 512  # 64 px a metre
     tone = _planks(width, height, plank_px=16, butt_every_px=192, seed=31)
     metres = (height - 1 - np.arange(height)) / 64.0
     wet = 0.6 + 0.4 * np.clip(metres / 0.9, 0, 1) ** 0.7
+    normal_map(tone, strength=4.0).save(TEXTURES_DIR / "T_HullPlanks_N.png", optimize=False)
     return _save(_grey(tone * wet[:, None]), "T_HullPlanks")
 
 
 def deck_planks() -> Path:
-    """The deck: planks 0.25 m wide running along 4 m, tiling. Grey, multiplied by the deck's colour."""
-    return _save(_grey(_planks(256, 256, plank_px=16, butt_every_px=128, seed=41)), "T_DeckPlanks")
+    """The deck: planks 0.25 m wide running along 4 m, tiling. Grey, multiplied by the deck's colour; and its
+    normal map."""
+    return _wood("T_DeckPlanks", _planks(256, 256, plank_px=16, butt_every_px=128, seed=41),
+                 _planks(256, 256, plank_px=16, butt_every_px=128, seed=41), strength=4.0)
 
 
 def _wood(name: str, tone: np.ndarray, height: np.ndarray, strength: float) -> Path:

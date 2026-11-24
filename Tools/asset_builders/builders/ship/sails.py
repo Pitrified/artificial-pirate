@@ -29,9 +29,11 @@ GAFF_TWIST = 1.2
 EASE_STEP_DEG = 1.0
 JIB_SHEET = 0.6
 
-ROWS = 6
-COLUMNS = 6
+ROWS = 8
+COLUMNS = 10
 CAMBER = 0.12
+CREASE = 0.012  # of the chord: the shallow folds the cloth hangs in from its head
+CREASES = 3  # across the chord
 FORE_AND_AFT_DRAFT = 0.4
 FOOT_SAG = 0.06
 LEECH_SAG = 0.05
@@ -144,6 +146,7 @@ def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, V
             point = a.lerp(b, u).lerp(d.lerp(c, u), v)
             envelope = math.sin(math.pi * (0.25 + 0.75 * v)) if cut.foot_free else math.sin(math.pi * v)
             depth = CAMBER * chord * math.sin(math.pi * u**sharpness) * envelope
+            depth += CREASE * chord * math.sin(2 * math.pi * CREASES * u) * math.sin(math.pi * u) * v * v
             grid.append(point + normal * depth)
             uvs.append((u * chord, v * height))
 

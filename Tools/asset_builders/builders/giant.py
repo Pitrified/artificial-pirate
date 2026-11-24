@@ -29,6 +29,8 @@ PARAMS = {
     "bulwark": 1.5,          # m
     "band": 0.4,             # m, a white line under the rail
     "boot": 0.6,             # m
+    "tumblehome": 0.08,      # of the half beam, the rail in from the widest
+    "stations": 40,
     "raised_decks": [
         {"from": 0.0, "to": 0.14, "height": 1.3},   # the poop
         {"from": 0.88, "to": 1.0, "height": 1.2},   # the forecastle
