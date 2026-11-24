@@ -17,8 +17,8 @@ An app icon of a brig at sea, boats on the minimap with an icon per kind of ship
 | 02 | The player's ship      | [`02_player_ship.md`](02_player_ship.md) | done |
 | 03 | Map icons              | [`03_map_icons.md`](03_map_icons.md) | done |
 | 04 | App icon               | [`04_app_icon.md`](04_app_icon.md) | done |
-| 05 | Verify                 | [`05_verify.md`](05_verify.md) | in progress |
-| 06 | The view of a sinking ship | [`06_sinking_view.md`](06_sinking_view.md) | in progress |
+| 05 | Verify                 | [`05_verify.md`](05_verify.md) | done |
+| 06 | The view of a sinking ship | [`06_sinking_view.md`](06_sinking_view.md) | done |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -38,3 +38,5 @@ Append-only. Newest at the bottom.
 - 2026-11-23 : phase 05 - review before: nothing to correct. The spec (the game, Scope, a Settings decision row, Controls' camera button, the HUD, the map's ships; a choice of cameras leaves Next) and the pages (`camera-controller.md`, `ui-system.md`, `world.md`, `game-manager.md`, `ship-controller.md`, `building_assets.md`, `headless-unity.md`) updated; spec check pass, links 0 broken, citations clean. Dev APK built with the icon. Waiting on the user's phone run and read.
 - 2026-11-23 : phase 05 - the user's phone read: the icon, the cameras, both ships and both maps work; GPU p50 10.3 ms (cannons 11.8). The helm view is sickening in both motions, and sinking in the helm view breaks it (the hull goes under and tips while the root stays up). Q8 and Q9 raised; phase 05 stays open on them.
 - 2026-11-23 : the user: Q8 a (the chase while the player's ship sinks), Q9 a (the helm kept; a milder sea to Next). Folded in; phase 06 written and started. Review before: a hit at no health returns early, so a sinking start is raised once; a save restored mid-sink is covered through `Restored`.
+- 2026-11-23 : phase 06 - `ShipDamage.SinkingStarted`; the wiring shows the chase while the player's ship sinks, the setting kept; spec Next and the camera and ship pages. Gates green (EditMode 263, PlayMode 31); dev APK built at `cd43e2e`. Waiting on the user's sinking from the helm on the phone.
+- 2026-11-24 : the user's read of `cd43e2e`: the view eased from the helm to the chase at both sinkings; GPU p50 11.8 ms, memory flat over two games. The report's fps maximum (56606, from a 0.0 ms frame) noted, not fixed. Phases 05 and 06 closed; the folder done, priority 0.

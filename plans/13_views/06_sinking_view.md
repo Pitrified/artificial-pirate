@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 06 - The view of a sinking ship
@@ -28,3 +28,7 @@ Context: [`00_start.md`](00_start.md), The phone read; found by [`05_verify.md`]
 - Tests pass; gates green; the user sees a sinking from the helm setting on the phone.
 
 ## What the implementation found
+
+- `GameSceneWiring.ShowView` takes the setting's change, `SinkingStarted` and `Restored` alike; the PlayMode test sinks the player's ship with one hit and reads the camera's view at once.
+- Gates at `cd43e2e`: spec pass, compile 0/0, EditMode 263/263, PlayMode 31/31. Dev APK SHA256 `116faa4c...5695bd`.
+- The user on the phone: from the helm, the view eased to the chase as the ship sank, twice.

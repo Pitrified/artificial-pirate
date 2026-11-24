@@ -1,6 +1,6 @@
 ---
-status: draft
-priority: 1
+status: done
+priority: 0
 description: |
   How the game looks from outside and from the deck: an app icon of a brig at sea, a minimap that
   shows boats (the player's and the other ships, an icon per kind of ship), three cameras (chase,
