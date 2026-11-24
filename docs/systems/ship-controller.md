@@ -29,7 +29,9 @@ A ship's kind is an `SO_ShipType` in `Assets/Settings/` (`SO_Ship_Sloop`), set o
 It holds:
 - **the hull**: half length and half beam at the waterline, draft and freeboard. They are the model's numbers (`Tools/asset_builders/builders/<type>.py`), and `BuiltModelTests` checks them against the imported model. The variant's box collider is sized from them.
 - **the guns**: the starboard muzzles, a ball's damage and the hull's strength against balls (`docs/systems/combat.md`);
-  Above the water the builder's sides are vertical, so the hull's side along its length is one curve, `_beamAlongLength`: the half-beam as a share of the type's, from -1 (stern) to 1 (bow) of the half length, sampled from the builder's `half_beam` at its 21 stations (`HalfBeamAt(z)`). A new type, or a hull reshaped in the builder, gets its curve sampled again; the marks sit on it.
+  The hull's side along its length is one curve, `_beamAlongLength`: the half-beam at the waterline as a share of the type's, from -1 (stern) to 1 (bow) of the half length, sampled from the builder's `half_beam` at its stations, where the bow's overhang has moved them (`HalfBeamAt(z)`).
+  Above the water a type with `_tumblehome` has its side fall in toward the rail, from 0.3 of the freeboard up, as the builder's `tumblehome` (`SideAt(z, height)`); the others' sides are vertical.
+  A new type, or a hull reshaped in the builder, gets its curve sampled again; the marks sit on the side at their height.
 - **the handling**: the fields below;
 - **the cameras' rigs**: the chase's offset and look point, the bird's eye's and the helm's (`Rig(view)`, `docs/systems/camera-controller.md`);
 - **the map icon**, its hull from above (`docs/systems/world.md`).

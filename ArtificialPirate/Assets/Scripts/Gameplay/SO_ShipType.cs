@@ -30,6 +30,8 @@ namespace Game.Gameplay
     [CreateAssetMenu(menuName = "artificial-pirate/Ship Type", fileName = "SO_Ship_")]
     public sealed class SO_ShipType : ScriptableObject
     {
+        private const float TumbleFrom = 0.3f; // of the freeboard: where the side starts to fall in, as the builder's TUMBLE_FROM
+
         [Header("Hull")]
         [Tooltip("From the centre to the bow and to the stern at the waterline (m).")]
         [SerializeField] private float _halfLength = 1f;
@@ -45,6 +47,9 @@ namespace Game.Gameplay
 
         [Tooltip("The hull's side above the water along its length, as a share of Half Beam, from -1 (the stern) to 1 (the bow) of Half Length; the builder's half_beam.")]
         [SerializeField] private AnimationCurve _beamAlongLength = AnimationCurve.Constant(-1f, 1f, 1f);
+
+        [Tooltip("How far the side falls in at the rail, as a share of the half beam there, starting from 0.3 of the freeboard; the builder's tumblehome.")]
+        [SerializeField] private float _tumblehome;
 
         [Header("Handling")]
         [SerializeField] private float _maxSpeed = 8f;
@@ -153,6 +158,18 @@ namespace Game.Gameplay
         {
             float along = _halfLength > 0f ? Mathf.Clamp(z / _halfLength, -1f, 1f) : 0f;
             return _halfBeam * _beamAlongLength.Evaluate(along);
+        }
+
+        /// <summary>
+        /// From the centreline to the hull's side <paramref name="z"/> metres toward the bow and
+        /// <paramref name="height"/> metres above the water: <see cref="HalfBeamAt"/>, less the
+        /// tumblehome as the side falls in toward the rail.
+        /// </summary>
+        public float SideAt(float z, float height)
+        {
+            float low = _freeboard * TumbleFrom;
+            float s = _freeboard > low ? Mathf.Clamp01((height - low) / (_freeboard - low)) : 0f;
+            return HalfBeamAt(z) * (1f - _tumblehome * s * s);
         }
 
         /// <summary>Maximum forward speed in metres per second.</summary>
@@ -296,6 +313,12 @@ namespace Game.Gameplay
             _mastBreakChanceWhole = whole;
             _mastBreakChanceRuined = ruined;
             _mastBreakingHit = breakingHit;
+        }
+
+        /// <summary>Sets how far the side falls in at the rail (types made in code: tests).</summary>
+        internal void SetTumblehome(float share)
+        {
+            _tumblehome = share;
         }
 
         /// <summary>Sets the hull's side along its length (types made in code: tests).</summary>

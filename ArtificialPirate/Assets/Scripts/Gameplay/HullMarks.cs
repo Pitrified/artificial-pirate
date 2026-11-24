@@ -156,7 +156,7 @@ namespace Game.Gameplay
 
             float slope = (type.HalfBeamAt(z + SlopeStep) - type.HalfBeamAt(z - SlopeStep)) / (2f * SlopeStep);
             Vector3 normal = new Vector3(side, 0f, -slope).normalized;
-            Vector3 centre = new Vector3(side * type.HalfBeamAt(z), y, z) + normal * _standOff;
+            Vector3 centre = new Vector3(side * type.SideAt(z, y), y, z) + normal * _standOff;
             Vector3 right = Vector3.Cross(Vector3.up, -normal) * half;
             Vector3 up = Vector3.up * half;
 

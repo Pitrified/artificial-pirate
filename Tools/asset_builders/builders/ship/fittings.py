@@ -3,7 +3,9 @@ taffrail, the cutwater, figurehead and head rails, and deck furniture.
 
 Type keys (all but the deck optional):
 - wales: heights of the wales' centres above the water;
-- stripes: bands of the trim's paint along the hull's side, each [low, high] above the water;
+- stripes: bands of paint along the hull's side, each [low, high] above the water and optionally the slot
+  (the trim's by default);
+- bands_follow_sheer: the stripes and the covered rows of ports rise with the rail toward the ends;
 - gun_ports: a row, or a list of rows, each {count (a side), from, to (fractions from the stern), size}
   and either above_deck (an open row: the centre over the deck there, where the gun's axis sits on its
   carriage) or z (a covered row, on a deck below: the centre above the water, the barrels' muzzles
@@ -11,6 +13,8 @@ Type keys (all but the deck optional):
 - chase_ports, stern_ports: {across (each port's x from the centreline), z (centre above the water),
   size}: guns firing ahead through the bow, and astern through the transom, below its windows;
 - stern_windows: how many across the transom;
+- deckhouses: each [t, length, width, height], on the centreline;
+- boats: each [t, length], a pair hung outboard on davits, one a side;
 - deck: {hatches: [[t, length, width]], companionway: which hatch is the way below (its index), capstan: t,
   helm: "wheel" or "tiller", helm_at: t}. The other hatches are gratings.
 """
@@ -33,10 +37,13 @@ from builders.ship.hull import (
     stations,
     transom_y,
 )
+from builders.ship.hull import sheer
 from builders.ship.hull import side as side_at
 from builders.ship.mesh import MeshParts, axis_box, box, line, pole, ring
 
 WALE_HEIGHT = 0.25
+STRIPE_FROM = 0.02  # fractions from the stern: a stripe runs on to the stem, stopping short of the transom
+STRIPE_TO = 0.995
 STRIPE_OUT = 0.02  # m, how far a painted stripe stands off the side, so it shows over the hull's own paint
 WALE_OUT = 0.08
 CAP_RAIL_HEIGHT = 0.1
@@ -76,6 +83,18 @@ WHEEL_PEDESTAL = 0.3  # forward of the wheel
 TILLER_LENGTH = 2.5
 TILLER_RISE = 0.25
 RUDDER_HEAD = 0.26
+ROOF = 0.15
+ROOF_OVER = 0.15  # how far a deckhouse's roof stands out over its sides
+BOAT_BEAM = 0.27  # of its length
+BOAT_DEPTH = 0.12
+BOAT_STATIONS = 8
+BOAT_FULLNESS = 0.6  # lower is fuller amidships
+BOAT_ROCKER = 0.3  # how much shallower the ends are
+BOAT_CLEAR = 0.4  # m, between the hull's side and the boat's
+BOAT_RAISE = 1.4  # m, the gunwale above the rail
+DAVIT = 0.14
+DAVIT_SPREAD = 0.7  # of the boat's length, between the davits
+DAVIT_ABOVE = 1.0  # m, the davit's head above the boat's gunwale
 FIGURE_FOR_LENGTH = 40.0  # m: a longer ship's figurehead and trailboards grow with it
 
 Profile = Callable[[float], list[tuple[float, float]]]
@@ -152,13 +171,22 @@ def wales(parts: MeshParts, p: dict) -> None:
         _strip(parts, p, wale, 0.03, 0.97, "Tar")
 
 
+def _lift(p: dict, t: float) -> float:
+    """How far a band, a row of ports or a stripe at t rises above its height amidships: the sheer, for a
+    type whose bands follow it."""
+    return sheer(p, t) if p.get("bands_follow_sheer") else 0.0
+
+
 def stripes(parts: MeshParts, p: dict) -> None:
-    for low, high in p.get("stripes", []):
+    for spec in p.get("stripes", []):
+        low, high = spec[0], spec[1]
+        slot = spec[2] if len(spec) > 2 else "Trim"
 
         def stripe(t: float, low: float = low, high: float = high) -> list[tuple[float, float]]:
-            return [(side_at(p, t, high) + STRIPE_OUT, high), (side_at(p, t, low) + STRIPE_OUT, low)]
+            lo, hi = low + _lift(p, t), high + _lift(p, t)
+            return [(side_at(p, t, hi) + STRIPE_OUT, hi), (side_at(p, t, lo) + STRIPE_OUT, lo)]
 
-        _strip(parts, p, stripe, 0.02, 0.98, "Trim")
+        _strip(parts, p, stripe, STRIPE_FROM, STRIPE_TO, slot)
 
 
 @dataclass(frozen=True)
@@ -190,7 +218,7 @@ def gun_port_centres(p: dict) -> list[Port]:
         for i in range(row["count"]):
             t = row["from"] + (row["to"] - row["from"]) * i / max(1, row["count"] - 1)
             is_open = "above_deck" in row
-            z = deck_height(p, t) + row["above_deck"] if is_open else row["z"]
+            z = deck_height(p, t) + row["above_deck"] if is_open else row["z"] + _lift(p, t)
             for side in (1.0, -1.0):
                 centre = Vector((side * side_at(p, t, z), _y(p, t), z))
                 ports.append(Port(t, side, centre, row["size"], Vector((side, 0.0, 0.0)), is_open, row.get("guns", True)))
@@ -213,12 +241,13 @@ def chase_port_centres(p: dict) -> list[Port]:
     if spec:
         for x in spec["across"]:
             t = _bow_t(p, abs(x))
-            ports.append(Port(t, 0.0, Vector((x, _y(p, t), spec["z"])), spec["size"], Vector((0.0, 1.0, 0.0)), False))
+            z = spec["z"] + _lift(p, t)
+            ports.append(Port(t, 0.0, Vector((x, _y(p, t), z)), spec["size"], Vector((0.0, 1.0, 0.0)), False))
     spec = p.get("stern_ports")
     if spec:
+        z = spec["z"] + _lift(p, 0.0)
         for x in spec["across"]:
-            ports.append(Port(0.0, 0.0, Vector((x, transom_y(p, spec["z"]), spec["z"])), spec["size"], Vector((0.0, -1.0, 0.0)),
-                              False))
+            ports.append(Port(0.0, 0.0, Vector((x, transom_y(p, z), z)), spec["size"], Vector((0.0, -1.0, 0.0)), False))
     return ports
 
 
@@ -439,6 +468,49 @@ def tiller(parts: MeshParts, p: dict) -> None:
         pole(parts, start, end, d0, d1, 8, "Spar", smooth=True)
 
 
+def deckhouses(parts: MeshParts, p: dict) -> None:
+    """Deckhouses on the centreline: white sides under a wooden roof standing out a little all round."""
+    for t, length, width, height in p.get("deckhouses", []):
+        base = Vector((0.0, _y(p, t), deck_height(p, t)))
+        axis_box(parts, base + Vector((0.0, 0.0, height / 2)), Vector((width, length, height)), "Trim")
+        roof = Vector((width + 2 * ROOF_OVER, length + 2 * ROOF_OVER, ROOF))
+        axis_box(parts, base + Vector((0.0, 0.0, height + ROOF / 2)), roof, "ShipWood")
+
+
+def _boat(parts: MeshParts, centre: Vector, length: float) -> None:
+    """A ship's boat, white outside and covered over, lofted between two pointed ends."""
+    beam, depth = length * BOAT_BEAM, length * BOAT_DEPTH
+    rows = []
+    for k in range(BOAT_STATIONS + 1):
+        u = -1.0 + 2.0 * k / BOAT_STATIONS
+        w = beam / 2 * max(0.0, 1 - u * u) ** BOAT_FULLNESS
+        d = depth * (1 - BOAT_ROCKER * u * u)
+        section = [(-w, 0.0), (-w * 0.85, -d * 0.6), (0.0, -d), (w * 0.85, -d * 0.6), (w, 0.0)]
+        rows.append(parts.add_verts([centre + Vector((x, u * length / 2, z)) for x, z in section]))
+    for a, b in itertools.pairwise(rows):
+        for k in range(4):
+            parts.add_face((a + k, b + k, b + k + 1, a + k + 1), "Trim", smooth=True)
+        parts.add_face((a + 4, b + 4, b, a), "ShipWood")
+
+
+def boats(parts: MeshParts, p: dict) -> None:
+    """Boats hung outboard on davits, a pair along each side: each [t, length]."""
+    for t, length in p.get("boats", []):
+        rail = rail_height(p, t)
+        out = side_at(p, t, rail)
+        for side in (1.0, -1.0):
+            centre = Vector((side * (out + length * BOAT_BEAM / 2 + BOAT_CLEAR), _y(p, t), rail + BOAT_RAISE))
+            _boat(parts, centre, length)
+            for end in (-1.0, 1.0):
+                y = _y(p, t) + end * length * DAVIT_SPREAD / 2
+                foot = Vector((side * out, y, rail))
+                bend = Vector((side * out, y, centre.z + DAVIT_ABOVE))
+                head = Vector((centre.x, y, centre.z + DAVIT_ABOVE))
+                pole(parts, foot, bend, DAVIT, DAVIT, 6, "Tar")
+                pole(parts, bend, head, DAVIT, DAVIT * 0.8, 6, "Tar")
+                line(parts, head, Vector((centre.x, y, centre.z)), 0.04, "Tar")
+
+
 def fit(parts: MeshParts, p: dict) -> None:
     deck(parts, p)
     rail(parts, p)
@@ -448,3 +520,5 @@ def fit(parts: MeshParts, p: dict) -> None:
     stern(parts, p)
     bow(parts, p)
     furniture(parts, p)
+    deckhouses(parts, p)
+    boats(parts, p)

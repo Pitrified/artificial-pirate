@@ -9,7 +9,8 @@ namespace Game.Tests.EditMode
     /// <see cref="HullMarks"/> on a hull built in code: a hit leaves a quad on the side it landed on,
     /// on the hull's surface and facing out; a bigger hit a bigger mark; the marks follow the kept
     /// hits, the oldest going first; restored hits are drawn; on a tapering hull a mark near the bow
-    /// sits on the narrower side and turns with it.
+    /// sits on the narrower side and turns with it; on a hull with tumblehome a mark high up sits on
+    /// the side fallen in.
     /// </summary>
     public sealed class HullMarksTests
     {
@@ -154,6 +155,20 @@ namespace Game.Tests.EditMode
 
             Assert.AreEqual(-HalfBeam - StandOff, Centre(marks, 0).x, Tolerance);
             Assert.AreEqual(5f, Centre(marks, 0).z, Tolerance);
+        }
+
+        [Test]
+        public void TumblehomeHull_MarkHighOnTheSide_SitsOnTheFallenInSide()
+        {
+            const float Tumble = 0.2f;
+            _type.SetTumblehome(Tumble);
+            (ShipDamage damage, HullMarks marks) = Ship();
+
+            damage.Hit(new Vector3(HalfBeam, Freeboard, 0f), 0.02f);
+
+            float x = Centre(marks, 0).x - StandOff;
+            Assert.That(x, Is.LessThan(HalfBeam), "the side falls in toward the rail");
+            Assert.AreEqual(_type.SideAt(0f, Centre(marks, 0).y), x, Tolerance);
         }
 
         [Test]

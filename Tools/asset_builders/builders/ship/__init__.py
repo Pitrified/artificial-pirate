@@ -59,6 +59,10 @@ def build(params: dict) -> None:
     preview = params["preview_rgb"]
     masts = rig.masts(params)
 
+    def made(object_name: str, parts: MeshParts, origin: Vector | None = None) -> None:
+        moved = hull.overhang(params, origin) if origin is not None else None
+        make_object(object_name, parts, preview, origin=moved, warp=lambda v: hull.overhang(params, v))
+
     body = MeshParts()
     hull.hull(body, params)
     hull.rudder(body, params)
@@ -68,9 +72,9 @@ def build(params: dict) -> None:
     standing = [MeshParts() for _ in masts]
     rig.standing(standing, masts)
     rigging.standing(body, standing, params, masts)
-    make_object(name, body, preview)
+    made(name, body)
     for gun, barrel, trunnions in props.barrels(params):
-        make_object(f"{name}{gun}", barrel, preview, origin=trunnions)
+        made(f"{name}{gun}", barrel, origin=trunnions)
     standing_ropes = body.ropes + [rope for parts in standing for rope in parts.ropes]
 
     tallest = max(range(len(masts)), key=lambda i: masts[i].head.z)
@@ -78,7 +82,7 @@ def build(params: dict) -> None:
     props.flagstaff(standing[tallest], params, head)
     flag = MeshParts()
     props.flag(flag, params, head, Vector((0.0, -1.0, 0.0)))
-    make_object(f"{name}Flag", flag, preview, origin=head)
+    made(f"{name}Flag", flag, origin=head)
 
     kind_of = {sails.sail_name(i, spec): spec["kind"] for i, spec in enumerate(params["sails"])}
     bands = []
@@ -98,13 +102,13 @@ def build(params: dict) -> None:
     rigging.running(anchored, params, masts, sails.Trim.at_anchor(), sails_set=False)
 
     for i, mast in enumerate(masts):
-        make_object(f"{name}Mast{i}", standing[i], preview)
+        made(f"{name}Mast{i}", standing[i])
         for b, sailing in enumerate(bands):
-            make_object(f"{name}Mast{i}Sailing{b}", sailing[i], preview)
-        make_object(f"{name}Mast{i}Anchored", anchored[i], preview)
+            made(f"{name}Mast{i}Sailing{b}", sailing[i])
+        made(f"{name}Mast{i}Anchored", anchored[i])
         stump = MeshParts()
         rig.stump(stump, mast)
-        make_object(f"{name}Mast{i}Stump", stump, preview)
+        made(f"{name}Mast{i}Stump", stump)
 
     for b, per_mast in enumerate(bands):
         clearance.report(f"{name}Sailing{b}", _crossings(standing_ropes, per_mast))
@@ -117,9 +121,9 @@ def report(params: dict) -> dict:
     the helmsman's eyes, and the wind's
     bands the sailing states are set for."""
     def unity(points: list) -> list:
-        return [[round(m.x, 4), round(m.z, 4), round(m.y, 4)] for m in points]
+        return [[round(m.x, 4), round(m.z, 4), round(m.y, 4)] for m in (hull.overhang(params, v) for v in points)]
 
-    eye = fittings.helm_eye(params)
+    eye = hull.overhang(params, fittings.helm_eye(params))
     return {"guns": unity(props.battery_muzzles(params, "Starboard")),
             "bow_guns": unity(props.battery_muzzles(params, "Bow")),
             "stern_guns": unity(props.battery_muzzles(params, "Stern")),

@@ -9,6 +9,7 @@ from mathutils import Vector
 from builders.ship.mesh import MeshParts, box
 
 STATIONS = 20
+END_SPLITS = 3  # extra slices within the hull's last at each end
 UNDERWATER_POINTS = 5
 TOPSIDE_POINTS = 4  # between the boot and the band, so a tumblehome curves
 TUMBLE_FROM = 0.3  # of the freeboard: the height the sides start to fall in from
@@ -16,6 +17,11 @@ BILGE_POWER = 2.5
 STEM_HALF_WIDTH = 0.12
 BULWARK_THICKNESS = 0.15
 FOREFOOT = 0.75
+ENTRY = 2.0  # the power the half beam falls off with toward the stem: lower is a finer bow
+OVERHANG_REACH = 0.14  # of the length: how far in from each end an overhang starts
+OVERHANG_BOW_FROM = 0.5  # of the draft below the water: where the stem starts to lean forward
+OVERHANG_BOW_POWER = 1.5  # the stem's curve
+OVERHANG_STERN_POWER = 0.6  # the counter's: out quickly above the water
 BREAK = 0.004  # of the length, over which a raised deck's edge rises from the deck below
 
 # Which slot each band of the loop takes, between consecutive points of the starboard half.
@@ -24,15 +30,17 @@ _SMOOTH_SLOTS = ("Topsides", "HullBottom")
 _SHARP_POINTS = (0, 1, 2)
 
 
-def rail_height(p: dict, t: float) -> float:
-    """The rail above the water at t, a fraction of the length from the stern: the sheer, and a raised
-    deck's height over it."""
+def sheer(p: dict, t: float) -> float:
+    """How far the rail rises above the freeboard at t, a fraction of the length from the stern."""
     low = p["sheer_low"]
     if t >= low:
-        sheer = p["sheer_bow"] * ((t - low) / (1 - low)) ** 2
-    else:
-        sheer = p["sheer_stern"] * ((low - t) / low) ** 2
-    return p["freeboard"] + sheer + _raised(p, t)
+        return p["sheer_bow"] * ((t - low) / (1 - low)) ** 2
+    return p["sheer_stern"] * ((low - t) / low) ** 2
+
+
+def rail_height(p: dict, t: float) -> float:
+    """The rail above the water at t: the sheer, and a raised deck's height over it."""
+    return p["freeboard"] + sheer(p, t) + _raised(p, t)
 
 
 def _raised(p: dict, t: float) -> float:
@@ -47,11 +55,33 @@ def _raised(p: dict, t: float) -> float:
     return up
 
 
+def overhang(p: dict, v: Vector) -> Vector:
+    """A point of the ship moved by the bow's and the stern's overhangs (bow_overhang, stern_overhang:
+    metres at the rail): forward of the stem's foot and aft of the counter's, more the higher it is, and
+    everything above the rail by the whole of it, so the bowsprit and the taffrail go with the hull."""
+    half = p["length"] / 2
+    start = half - OVERHANG_REACH * p["length"]
+    reach = abs(v.y)
+    if reach <= start:
+        return v
+    w = min(1.0, (reach - start) / (half - start))
+    w = w * w * (3 - 2 * w)
+    if v.y > 0:
+        low = -p["draft"] * OVERHANG_BOW_FROM
+        h = min(1.0, max(0.0, (v.z - low) / (rail_height(p, 1.0) - low))) ** OVERHANG_BOW_POWER
+        return Vector((v.x, v.y + p.get("bow_overhang", 0.0) * w * h, v.z))
+    h = min(1.0, max(0.0, v.z / rail_height(p, 0.0))) ** OVERHANG_STERN_POWER
+    return Vector((v.x, v.y - p.get("stern_overhang", 0.0) * w * h, v.z))
+
+
 def stations(p: dict) -> list[float]:
-    """Where the hull is lofted along its length, from the stern: evenly, and either side of each raised
-    deck's step so it stands near upright."""
+    """Where the hull is lofted along its length, from the stern: evenly, closer within the last slice at
+    each end, and either side of each raised deck's step so it stands near upright."""
     count = p.get("stations", STATIONS)
     ts = {i / count for i in range(count + 1)}
+    # The ends curve fastest, and an overhang stretches them further: split their last slices.
+    for k in range(1, END_SPLITS + 1):
+        ts.update((k / (END_SPLITS + 1) / count, 1 - k / (END_SPLITS + 1) / count))
     for deck in p.get("raised_decks", []):
         for edge in (deck["from"], deck["to"]):
             if 0.0 < edge < 1.0:
@@ -66,7 +96,7 @@ def deck_height(p: dict, t: float) -> float:
 def half_beam(p: dict, t: float) -> float:
     widest = p["widest"]
     if t >= widest:
-        fraction = 1 - ((t - widest) / (1 - widest)) ** 2
+        fraction = 1 - ((t - widest) / (1 - widest)) ** p.get("entry", ENTRY)
     else:
         fraction = 1 - (1 - p["transom"]) * ((widest - t) / widest) ** 2.5
     return max(p["beam"] / 2 * fraction, STEM_HALF_WIDTH)

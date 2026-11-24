@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import math
 from dataclasses import dataclass, field
 
@@ -171,12 +173,14 @@ def line(parts: MeshParts, start: Vector, end: Vector, thickness: float, slot: s
 
 
 def make_object(name: str, parts: MeshParts, preview_rgb: dict[str, list[float]],
-                origin: Vector | None = None) -> bpy.types.Object:
+                origin: Vector | None = None, warp: Callable[[Vector], Vector] | None = None) -> bpy.types.Object:
     """One mesh object from the parts, turned half round so the bow faces -Y (Unity's +Z after export);
-    its origin at the given point (a part that turns about it), else at the ship's."""
+    its origin at the given point (a part that turns about it), else at the ship's. A warp, if given,
+    moves every vertex as the object is made, leaving the parts as they are."""
     o = origin or Vector((0.0, 0.0, 0.0))
+    verts = [warp(v) for v in parts.verts] if warp else parts.verts
     mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata([(-(v.x - o.x), -(v.y - o.y), v.z - o.z) for v in parts.verts], [], parts.faces)
+    mesh.from_pydata([(-(v.x - o.x), -(v.y - o.y), v.z - o.z) for v in verts], [], parts.faces)
     mesh.update()
 
     slot_names = list(dict.fromkeys(parts.slots))
