@@ -5,7 +5,7 @@ standing rigging), its sail states, `<name>Mast<i>Sailing<b>` for each of the wi
 (sails.WIND_BANDS_DEG: every sail set, the booms swung out only as far as the lee rigging lets them)
 and `<name>Mast<i>Anchored` (spars squared, sails furled), and `<name>Mast<i>Stump`, what is left
 when it breaks; and each gun's barrel, `<name>GunStarboard<i>` and `<name>GunPort<i>` (stern to
-bow), its origin at its trunnions so it can be aimed. A game shows the hull, the flag, each mast with
+bow) and `<name>GunBow<i>`, `<name>GunStern<i>` where it has them, its origin at its trunnions so it can be aimed. A game shows the hull, the flag, each mast with
 one state, a broken mast's stump, and the barrels.
 The build reports any rope that still passes through a sail.
 
@@ -17,7 +17,8 @@ Hull keys: length (on deck), beam, draft, freeboard (amidships, to the rail), sh
 sheer_stern (rise of the rail toward each end), sheer_low (where the rail is lowest, as a fraction
 from the stern), widest (where the hull is widest, same), transom (the transom's width over the
 beam), transom_rake_deg, bulwark (height above the deck), band (the trim band's depth below the rail),
-boot (how high the bottom paint shows above the water).
+boot (how high the bottom paint shows above the water); raised_decks, optional (each from and to, fractions
+from the stern, and height over the deck: a quarterdeck or poop aft, a forecastle forward).
 
 masts: each has at (fraction from the stern), height (above the water), diameter, rake_deg, top_z
 (the lower masthead's platform) and crosstrees_z (the topmast's head), shrouds (a side), yards
@@ -109,10 +110,15 @@ def build(params: dict) -> None:
 
 def report(params: dict) -> dict:
     """For the ship's type, in Unity's axes (X starboard, Y up, Z to the bow), metres from the waterline
-    amidships: the starboard guns' muzzles (the port guns mirror them), the helmsman's eyes, and the wind's
+    amidships: the starboard guns' muzzles (the port guns mirror them), the bow chasers' and stern guns',
+    the helmsman's eyes, and the wind's
     bands the sailing states are set for."""
-    guns = [props.muzzle_at(port, side) for _, side, port in fittings.gun_port_centres(params) if side > 0]
+    def unity(points: list) -> list:
+        return [[round(m.x, 4), round(m.z, 4), round(m.y, 4)] for m in points]
+
     eye = fittings.helm_eye(params)
-    return {"guns": [[round(m.x, 4), round(m.z, 4), round(m.y, 4)] for m in guns],
+    return {"guns": unity(props.battery_muzzles(params, "Starboard")),
+            "bow_guns": unity(props.battery_muzzles(params, "Bow")),
+            "stern_guns": unity(props.battery_muzzles(params, "Stern")),
             "helm_eye": [round(eye.x, 3), round(eye.z, 3), round(eye.y, 3)],
             "wind_bands_deg": list(sails.WIND_BANDS_DEG)}

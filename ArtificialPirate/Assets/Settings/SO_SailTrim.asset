@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: SO_SailTrim
   m_EditorClassIdentifier: Game.Gameplay::Game.Gameplay.SO_SailTrim
   _bandsDeg:
-  - 60
+  - 67.5
   - 90
   - 135
   - 180
   - -135
   - -90
-  - -60
+  - -67.5
   _hysteresisDeg: 8

@@ -10,7 +10,7 @@ from __future__ import annotations
 from mathutils import Vector
 
 from builders.palette import swatch_uv
-from builders.ship.fittings import gun_port_centres
+from builders.ship.fittings import Port, chase_port_centres, gun_port_centres
 from builders.ship.hull import bulwark_inner, deck_height, rail_height, transom_y
 from builders.ship.mesh import MeshParts, axis_box, pole, ring
 
@@ -57,22 +57,26 @@ def _y(p: dict, t: float) -> float:
     return (t - 0.5) * p["length"]
 
 
-def muzzle_at(port: Vector, side: float) -> Vector:
+def muzzle_at(port: Port) -> Vector:
     """The centre of a barrel's mouth, run out through its port."""
-    return Vector((port.x + side * BARREL_OUT, port.y, port.z))
+    return port.centre + port.out * BARREL_OUT
 
 
-def _trunnions(port: Vector, side: float) -> Vector:
+def _trunnions(port: Port) -> Vector:
     """The point a gun's barrel turns about."""
-    return muzzle_at(port, side) - Vector((side * BARREL_LENGTH * (1 - TRUNNIONS), 0.0, 0.0))
+    return muzzle_at(port) - port.out * (BARREL_LENGTH * (1 - TRUNNIONS))
 
 
 def cannons(parts: MeshParts, p: dict) -> None:
-    """A truck carriage under each gun, in the hull: two cheeks stepped down toward the breech up to
-    the trunnions, a bed between them, two axletrees and four trucks on the deck."""
+    """A truck carriage under each gun of an open row, in the hull: two cheeks stepped down toward the
+    breech up to the trunnions, a bed between them, two axletrees and four trucks on the deck. A covered
+    row's carriages are below, out of sight."""
     wood = swatch_uv("carriage")
-    for t, side, port in gun_port_centres(p):
-        pivot = _trunnions(port, side)
+    for gun in gun_port_centres(p):
+        if not gun.open:
+            continue
+        t, side, port = gun.t, gun.side, gun.centre
+        pivot = _trunnions(gun)
         front = pivot.x + side * CARRIAGE_AHEAD
         axle_z = deck_height(p, t) + TRUCK
         for end in (front - side * AXLE_IN, front - side * (CARRIAGE_LENGTH - AXLE_IN)):
@@ -94,15 +98,31 @@ def cannons(parts: MeshParts, p: dict) -> None:
         axis_box(parts, bed, Vector((CARRIAGE_LENGTH, CARRIAGE_WIDTH - 2 * CHEEK, AXLE)), "Palette", wood)
 
 
+def _named(p: dict) -> list[tuple[str, Port]]:
+    """Each gun with its name: GunStarboard<i> and GunPort<i> along the broadsides, then GunBow<i> and
+    GunStern<i>."""
+    named, count = [], {}
+    for port in gun_port_centres(p) + chase_port_centres(p):
+        battery = ("Starboard" if port.side > 0 else "Port") if port.side else ("Bow" if port.out.y > 0 else "Stern")
+        named.append((f"Gun{battery}{count.get(battery, 0)}", port))
+        count[battery] = count.get(battery, 0) + 1
+    return named
+
+
+def battery_muzzles(p: dict, battery: str) -> list[Vector]:
+    """The muzzles of one battery's guns (Starboard, Bow or Stern), in order."""
+    return [muzzle_at(port) for name, port in _named(p) if name.rstrip("0123456789") == f"Gun{battery}"]
+
+
 def barrels(p: dict) -> list[tuple[str, MeshParts, Vector]]:
-    """Each gun's barrel: its name (GunStarboard<i> or GunPort<i>, stern to bow), its mesh and its
-    trunnions, the point it turns about. It tapers to the muzzle, with rings, a knob behind the breech
-    and the trunnion pins that rest on the carriage's cheeks."""
+    """Each gun's barrel: its name, its mesh and its trunnions, the point it turns about. It tapers to
+    the muzzle, with rings, a knob behind the breech and the trunnion pins that rest on the carriage's
+    cheeks."""
     iron = swatch_uv("iron")
     made = []
-    for k, (_, side, port) in enumerate(gun_port_centres(p)):
-        muzzle = muzzle_at(port, side)
-        along = Vector((side, 0.0, 0.0))
+    for name, port in _named(p):
+        muzzle = muzzle_at(port)
+        along = port.out
         breech = muzzle - along * BARREL_LENGTH
         parts = MeshParts()
         pole(parts, breech, muzzle, BARREL_BREECH, BARREL_MUZZLE, BARREL_SIDES, "Palette", uv=iron)
@@ -112,10 +132,9 @@ def barrels(p: dict) -> list[tuple[str, MeshParts, Vector]]:
             pole(parts, centre - along * (RING_LENGTH / 2), centre + along * (RING_LENGTH / 2), d, d, BARREL_SIDES,
                  "Palette", uv=iron)
         pole(parts, breech - along * KNOB, breech, KNOB * 0.6, KNOB, BARREL_SIDES, "Palette", uv=iron)
-        pivot = _trunnions(port, side)
-        pins = Vector((0.0, CARRIAGE_WIDTH / 2 - CHEEK / 2, 0.0))
+        pivot = _trunnions(port)
+        pins = Vector((-along.y, along.x, 0.0)) * (CARRIAGE_WIDTH / 2 - CHEEK / 2)
         pole(parts, pivot - pins, pivot + pins, TRUNNION_PIN, TRUNNION_PIN, TRUCK_SIDES, "Palette", uv=iron)
-        name = f"Gun{'Starboard' if side > 0 else 'Port'}{k // 2}"
         made.append((name, parts, pivot))
     return made
 

@@ -2,6 +2,7 @@ namespace Game.Tests.EditMode
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using NUnit.Framework;
     using UnityEditor;
     using UnityEngine;
@@ -72,6 +73,13 @@ namespace Game.Tests.EditMode
                 Materials = ShipMaterials,
                 ShipType = "Assets/Settings/SO_Ship_Brig.asset",
                 Masts = 2,
+            };
+            yield return new Expected
+            {
+                Path = "Assets/Art/Models/Frigate.fbx",
+                Materials = ShipMaterials,
+                ShipType = "Assets/Settings/SO_Ship_Frigate.asset",
+                Masts = 3,
             };
         }
 
@@ -185,6 +193,21 @@ namespace Game.Tests.EditMode
             foreach (KeyValuePair<float, float> station in widest)
             {
                 Assert.AreEqual(type.HalfBeamAt(station.Key), station.Value, HullTolerance, $"Half beam at z {station.Key}");
+            }
+        }
+
+        [Test]
+        public void SailTrim_HasTheBuildersWindBands()
+        {
+            string sails = System.IO.Path.Combine(Application.dataPath, "..", "..", "Tools", "asset_builders", "builders", "ship", "sails.py");
+            Match line = Regex.Match(System.IO.File.ReadAllText(sails), @"^WIND_BANDS_DEG = \(([^)]*)\)", RegexOptions.Multiline);
+            Assert.IsTrue(line.Success, "sails.py lists WIND_BANDS_DEG");
+            float[] built = line.Groups[1].Value.Split(',').Select(v => float.Parse(v.Trim(), System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+            var trim = AssetDatabase.LoadAssetAtPath<SO_SailTrim>("Assets/Settings/SO_SailTrim.asset");
+            Assert.AreEqual(built.Length, trim.BandCount);
+            for (int b = 0; b < built.Length; b++)
+            {
+                Assert.AreEqual(built[b], trim.BandDeg(b), 1e-4f, $"band {b}");
             }
         }
 

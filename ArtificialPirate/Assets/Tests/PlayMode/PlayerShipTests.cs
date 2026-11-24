@@ -12,7 +12,7 @@ namespace Game.Tests.PlayMode
 
     /// <summary>
     /// The ship chosen in the settings is the one sailed: with the brig chosen a new game sails the
-    /// brig, the sloop off and the brig on its side; back to the sloop for the next game. A sinking
+    /// brig, the sloop off and the brig on its side; then the frigate; back to the sloop for the next game. A sinking
     /// ship is seen from the chase whatever the setting. The settings' keys are saved and put back
     /// around each test.
     /// </summary>
@@ -75,6 +75,17 @@ namespace Game.Tests.PlayMode
             }
 
             var back = gm.ReturnToMenuAsync();
+            while (!back.IsCompleted)
+            {
+                yield return null;
+            }
+            yield return WaitForState(GameState.Menu);
+            gm.Settings.SetShip(PlayerShipKind.Frigate);
+            yield return NewGame();
+            Assert.AreEqual("SO_Ship_Frigate", gm.PlayerShip.Type.name, "the frigate sails");
+            Assert.AreEqual(ShipSide.Player, gm.PlayerShip.GetComponent<Broadside>().Side);
+
+            back = gm.ReturnToMenuAsync();
             while (!back.IsCompleted)
             {
                 yield return null;

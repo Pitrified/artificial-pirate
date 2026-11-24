@@ -3,8 +3,12 @@ taffrail, the cutwater, figurehead and head rails, and deck furniture.
 
 Type keys (all but the deck optional):
 - wales: heights of the wales' centres above the water;
-- gun_ports: {count (a side), from, to (fractions from the stern), above_deck (the centre over the deck
-  there, where the gun's axis sits on its carriage), size};
+- gun_ports: a row, or a list of rows, each {count (a side), from, to (fractions from the stern), size}
+  and either above_deck (an open row: the centre over the deck there, where the gun's axis sits on its
+  carriage) or z (a covered row, on a deck below: the centre above the water, the barrels' muzzles
+  showing through the ports);
+- chase_ports, stern_ports: {across (each port's x from the centreline), z (centre above the water),
+  size}: guns firing ahead through the bow, and astern through the transom, below its windows;
 - stern_windows: how many across the transom;
 - deck: {hatches: [[t, length, width]], companionway: which hatch is the way below (its index), capstan: t,
   helm: "wheel" or "tiller", helm_at: t}. The other hatches are gratings.
@@ -15,16 +19,17 @@ from __future__ import annotations
 import itertools
 import math
 from collections.abc import Callable
+from dataclasses import dataclass
 
 from mathutils import Vector
 
 from builders.ship.hull import (
     BULWARK_THICKNESS,
-    STATIONS,
     bulwark_inner,
     deck_height,
     half_beam,
     rail_height,
+    stations,
     transom_y,
 )
 from builders.ship.mesh import MeshParts, axis_box, box, line, pole, ring
@@ -78,8 +83,7 @@ def _y(p: dict, t: float) -> float:
 
 def _strip(parts: MeshParts, p: dict, profile: Profile, t0: float, t1: float, slot: str) -> None:
     """A small section lofted along the hull, both sides: its starboard points x, z, clockwise seen from astern."""
-    steps = max(2, round((t1 - t0) * STATIONS))
-    ts = [t0 + (t1 - t0) * i / steps for i in range(steps + 1)]
+    ts = sorted({t0, t1} | {t for t in stations(p) if t0 < t < t1})
     for side in (1.0, -1.0):
         rows = []
         for t in ts:
@@ -102,8 +106,7 @@ def _around(section: list[tuple[float, float]], y: float) -> list[tuple[float, f
 
 def deck(parts: MeshParts, p: dict) -> None:
     """The deck between the bulwarks, mapped along its length so planks can run fore and aft."""
-    for i in range(STATIONS):
-        t0, t1 = i / STATIONS, (i + 1) / STATIONS
+    for t0, t1 in itertools.pairwise(stations(p)):
         corners = []
         for t, x_side in ((t0, 1.0), (t1, 1.0), (t1, -1.0), (t0, -1.0)):
             z = deck_height(p, t)
@@ -145,26 +148,77 @@ def wales(parts: MeshParts, p: dict) -> None:
         _strip(parts, p, wale, 0.03, 0.97, "Tar")
 
 
-def gun_port_centres(p: dict) -> list[tuple[float, float, Vector]]:
-    """Each gun port's station t, side (+1 starboard, -1 port) and centre on the hull's side."""
+@dataclass(frozen=True)
+class Port:
+    """A gun port: its station t, side (+1 starboard, -1 port, 0 the bow or the stern), centre on the hull,
+    size, the way its gun fires, and whether the gun stands on an open deck (on a carriage)."""
+
+    t: float
+    side: float
+    centre: Vector
+    size: float
+    out: Vector
+    open: bool
+
+
+def _rows(p: dict) -> list[dict]:
     spec = p.get("gun_ports")
     if not spec:
         return []
+    return spec if isinstance(spec, list) else [spec]
+
+
+def gun_port_centres(p: dict) -> list[Port]:
+    """Each broadside port, row by row, stern to bow, starboard then port at each station."""
     ports = []
-    for i in range(spec["count"]):
-        t = spec["from"] + (spec["to"] - spec["from"]) * i / max(1, spec["count"] - 1)
-        for side in (1.0, -1.0):
-            ports.append((t, side, Vector((side * half_beam(p, t), _y(p, t), deck_height(p, t) + spec["above_deck"]))))
+    for row in _rows(p):
+        for i in range(row["count"]):
+            t = row["from"] + (row["to"] - row["from"]) * i / max(1, row["count"] - 1)
+            is_open = "above_deck" in row
+            z = deck_height(p, t) + row["above_deck"] if is_open else row["z"]
+            for side in (1.0, -1.0):
+                centre = Vector((side * half_beam(p, t), _y(p, t), z))
+                ports.append(Port(t, side, centre, row["size"], Vector((side, 0.0, 0.0)), is_open))
+    return ports
+
+
+def _bow_t(p: dict, x: float) -> float:
+    """The station near the bow where the hull's side is x from the centreline."""
+    low, high = p["widest"], 1.0
+    for _ in range(40):
+        mid = (low + high) / 2
+        low, high = (mid, high) if half_beam(p, mid) > x else (low, mid)
+    return low
+
+
+def chase_port_centres(p: dict) -> list[Port]:
+    """The bow chasers' ports through the bow, then the stern guns' through the transom, each across in turn."""
+    ports = []
+    spec = p.get("chase_ports")
+    if spec:
+        for x in spec["across"]:
+            t = _bow_t(p, abs(x))
+            ports.append(Port(t, 0.0, Vector((x, _y(p, t), spec["z"])), spec["size"], Vector((0.0, 1.0, 0.0)), False))
+    spec = p.get("stern_ports")
+    if spec:
+        for x in spec["across"]:
+            ports.append(Port(0.0, 0.0, Vector((x, transom_y(p, spec["z"]), spec["z"])), spec["size"], Vector((0.0, -1.0, 0.0)),
+                              False))
     return ports
 
 
 def gun_ports(parts: MeshParts, p: dict) -> None:
-    for _, side, centre in gun_port_centres(p):
-        size = p["gun_ports"]["size"]
-        port = centre + Vector((side * PORT_DEPTH / 2, 0.0, 0.0))
-        axis_box(parts, port, Vector((PORT_DEPTH, size, size)), "Tar")
-        lid = port + Vector((side * size / 2, 0.0, size / 2 + PORT_LID))
+    for port in gun_port_centres(p):
+        side, size = port.side, port.size
+        hole = port.centre + Vector((side * PORT_DEPTH / 2, 0.0, 0.0))
+        axis_box(parts, hole, Vector((PORT_DEPTH, size, size)), "Tar")
+        lid = hole + Vector((side * size / 2, 0.0, size / 2 + PORT_LID))
         axis_box(parts, lid, Vector((size, size, PORT_LID)), "Trim")
+    for port in chase_port_centres(p):
+        if port.out.y > 0:
+            axis_box(parts, port.centre, Vector((port.size, PORT_DEPTH * 4, port.size)), "Tar")
+        else:
+            _on_transom(parts, p, port.centre.x, port.centre.z, Vector((port.size, PORT_DEPTH, port.size)), "Tar")
 
 
 def stern(parts: MeshParts, p: dict) -> None:

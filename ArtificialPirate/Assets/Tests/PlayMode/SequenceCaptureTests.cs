@@ -27,7 +27,7 @@ namespace Game.Tests.PlayMode
     /// CAPTURE_DAMAGE (0 to 1: health the ship's hull loses at the start, struck on its starboard side),
     /// CAPTURE_BREAK_MAST (a mast's number: brought down at the start on every ship that has it),
     /// CAPTURE_CAMERA (Chase, BirdsEye, Helm or HelmRiding: the game's camera shows that view, the
-    /// settings untouched), CAPTURE_SHIP (Sloop or Brig: the ship sailed, set in the settings for the
+    /// settings untouched), CAPTURE_SHIP (Sloop, Brig or Frigate: the ship sailed, set in the settings for the
     /// run, which the suite puts back after).
     /// Run alone with <c>-testFilter Game.Tests.PlayMode.SequenceCaptureTests</c>.
     /// </summary>

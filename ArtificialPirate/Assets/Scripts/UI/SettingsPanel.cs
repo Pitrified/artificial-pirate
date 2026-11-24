@@ -17,8 +17,7 @@ namespace Game.UI
         private readonly Button[] _cameras;
         private readonly Button _steady;
         private readonly Button _riding;
-        private readonly Button _sloop;
-        private readonly Button _brig;
+        private readonly Button[] _ships;
 
         /// <summary>Raised when Back is tapped.</summary>
         public event Action CloseRequested;
@@ -42,10 +41,17 @@ namespace Game.UI
             _riding = root.Q<Button>("btn-helm-riding");
             _steady.clicked += () => _settings.SetHelmRides(false);
             _riding.clicked += () => _settings.SetHelmRides(true);
-            _sloop = root.Q<Button>("btn-ship-sloop");
-            _brig = root.Q<Button>("btn-ship-brig");
-            _sloop.clicked += () => _settings.SetShip(PlayerShipKind.Sloop);
-            _brig.clicked += () => _settings.SetShip(PlayerShipKind.Brig);
+            _ships = new[]
+            {
+                root.Q<Button>("btn-ship-sloop"),
+                root.Q<Button>("btn-ship-brig"),
+                root.Q<Button>("btn-ship-frigate"),
+            };
+            for (int i = 0; i < _ships.Length; i++)
+            {
+                var ship = (PlayerShipKind)i;
+                _ships[i].clicked += () => _settings.SetShip(ship);
+            }
             root.Q<VisualElement>("settings-ship").style.display = offerShip ? DisplayStyle.Flex : DisplayStyle.None;
             root.Q<Button>("btn-settings-close").clicked += () => CloseRequested?.Invoke();
             _settings.Changed += Refresh;
@@ -61,8 +67,10 @@ namespace Game.UI
             }
             _steady.EnableInClassList(On, !_settings.HelmRides);
             _riding.EnableInClassList(On, _settings.HelmRides);
-            _sloop.EnableInClassList(On, _settings.Ship == PlayerShipKind.Sloop);
-            _brig.EnableInClassList(On, _settings.Ship == PlayerShipKind.Brig);
+            for (int i = 0; i < _ships.Length; i++)
+            {
+                _ships[i].EnableInClassList(On, (int)_settings.Ship == i);
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ BILGE_POWER = 2.5
 STEM_HALF_WIDTH = 0.12
 BULWARK_THICKNESS = 0.15
 FOREFOOT = 0.75
+BREAK = 0.004  # of the length, over which a raised deck's edge rises from the deck below
 
 # Which slot each band of the loop takes, between consecutive points of the starboard half.
 _SECTION_SLOTS = ("ShipWood", "Trim", "Trim", "Topsides", "HullBottom") + ("HullBottom",) * UNDERWATER_POINTS
@@ -22,11 +23,37 @@ _SHARP_POINTS = (0, 1, 2)
 
 
 def rail_height(p: dict, t: float) -> float:
-    """The rail above the water at t, a fraction of the length from the stern."""
+    """The rail above the water at t, a fraction of the length from the stern: the sheer, and a raised
+    deck's height over it."""
     low = p["sheer_low"]
     if t >= low:
-        return p["freeboard"] + p["sheer_bow"] * ((t - low) / (1 - low)) ** 2
-    return p["freeboard"] + p["sheer_stern"] * ((low - t) / low) ** 2
+        sheer = p["sheer_bow"] * ((t - low) / (1 - low)) ** 2
+    else:
+        sheer = p["sheer_stern"] * ((low - t) / low) ** 2
+    return p["freeboard"] + sheer + _raised(p, t)
+
+
+def _raised(p: dict, t: float) -> float:
+    """How far a raised deck (a quarterdeck or poop aft, a forecastle forward) lifts the deck and the rail
+    at t: its height between its ends, stepping up within BREAK of an end that is not the hull's own."""
+    up = 0.0
+    for deck in p.get("raised_decks", []):
+        start, end = deck["from"], deck["to"]
+        rise = 1.0 if start <= 0.0 else min(1.0, max(0.0, (t - start) / BREAK + 0.5))
+        fall = 1.0 if end >= 1.0 else min(1.0, max(0.0, (end - t) / BREAK + 0.5))
+        up += deck["height"] * min(rise, fall)
+    return up
+
+
+def stations(p: dict) -> list[float]:
+    """Where the hull is lofted along its length, from the stern: evenly, and either side of each raised
+    deck's step so it stands near upright."""
+    ts = {i / STATIONS for i in range(STATIONS + 1)}
+    for deck in p.get("raised_decks", []):
+        for edge in (deck["from"], deck["to"]):
+            if 0.0 < edge < 1.0:
+                ts.update((edge - BREAK / 2, edge + BREAK / 2))
+    return sorted(ts)
 
 
 def deck_height(p: dict, t: float) -> float:
@@ -96,13 +123,13 @@ def _section(p: dict, t: float) -> list[Vector]:
 
 
 def hull(parts: MeshParts, p: dict) -> None:
-    sections = [_section(p, i / STATIONS) for i in range(STATIONS + 1)]
+    sections = [_section(p, t) for t in stations(p)]
     loops = [parts.add_verts(section, [(v.y, v.z) for v in section]) for section in sections]
     n = len(sections[0])
     # Starboard's bands and port's mirrored; the deck between them is its own surface (fittings.deck).
     slots = (*_SECTION_SLOTS, *reversed(_SECTION_SLOTS))
 
-    for i in range(STATIONS):
+    for i in range(len(sections) - 1):
         a, b = loops[i], loops[i + 1]
         for k in range(n - 1):
             parts.add_face((a + k, a + k + 1, b + k + 1, b + k), slots[k], slots[k] in _SMOOTH_SLOTS)

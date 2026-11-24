@@ -249,7 +249,7 @@ def map_icons() -> list[Path]:
     from builders.ship.hull import half_beam  # noqa: PLC0415
 
     made = []
-    for name in ("sloop", "brig"):
+    for name in ("sloop", "brig", "frigate"):
         p = importlib.import_module(f"builders.{name}").PARAMS
         big = MAP_ICON_SIZE * MAP_ICON_SUPERSAMPLE
         margin = big * 0.03

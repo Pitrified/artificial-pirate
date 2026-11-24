@@ -24,6 +24,9 @@ namespace Game.Systems
 
         /// <summary>The brig.</summary>
         Brig,
+
+        /// <summary>The frigate.</summary>
+        Frigate,
     }
 
     /// <summary>
@@ -41,7 +44,7 @@ namespace Game.Systems
         private const string HelmRidesKey = "settings.helmRides";
         private const string ShipKey = "settings.ship";
         private const int CameraViews = 3;
-        private const int ShipKinds = 2;
+        private static readonly int ShipKinds = System.Enum.GetValues(typeof(PlayerShipKind)).Length;
 
         /// <summary>Reads the settings, each at its default when it was never set.</summary>
         public GameSettings()
