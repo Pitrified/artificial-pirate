@@ -17,7 +17,9 @@ BILGE_POWER = 2.5
 STEM_HALF_WIDTH = 0.12
 BULWARK_THICKNESS = 0.15
 FOREFOOT = 0.75
-ENTRY = 2.0  # the power the half beam falls off with toward the stem: lower is a finer bow
+ENTRY = 2.0
+RUN = 2.5
+COUNTER_POWER = 0.5  # how quickly a counter stern swells from the waterline's width to the rail's  # the power the half beam falls off with toward the transom: higher keeps it full, then rounds it  # the power the half beam falls off with toward the stem: lower is a finer bow
 OVERHANG_REACH = 0.14  # of the length: how far in from each end an overhang starts
 OVERHANG_BOW_FROM = 0.5  # of the draft below the water: where the stem starts to lean forward
 OVERHANG_BOW_POWER = 1.5  # the stem's curve
@@ -93,24 +95,37 @@ def deck_height(p: dict, t: float) -> float:
     return rail_height(p, t) - p["bulwark"]
 
 
-def half_beam(p: dict, t: float) -> float:
+def _plan(p: dict, t: float, transom: float) -> float:
+    """The half beam along the length for a transom transom wide over the beam."""
     widest = p["widest"]
     if t >= widest:
         fraction = 1 - ((t - widest) / (1 - widest)) ** p.get("entry", ENTRY)
     else:
-        fraction = 1 - (1 - p["transom"]) * ((widest - t) / widest) ** 2.5
+        fraction = 1 - (1 - transom) * ((widest - t) / widest) ** p.get("run", RUN)
     return max(p["beam"] / 2 * fraction, STEM_HALF_WIDTH)
 
 
+def half_beam(p: dict, t: float) -> float:
+    """The half beam at the waterline at t: narrower aft than at the rail where the type has a counter
+    (transom_water under transom)."""
+    return _plan(p, t, p.get("transom_water", p["transom"]))
+
+
 def side(p: dict, t: float, z: float) -> float:
-    """The hull's side at t and height z above the water, from the centreline: the half beam, less the
-    tumblehome as the side falls in above TUMBLE_FROM of the freeboard toward the rail."""
+    """The hull's side at t and height z above the water, from the centreline: the waterline's half beam
+    swelling to the rail's above it (a counter stern), less the tumblehome as the side falls in above
+    TUMBLE_FROM of the freeboard toward the rail."""
     b = half_beam(p, t)
+    if z <= 0.0:
+        return b
+    rail = rail_height(p, t)
+    up = min(1.0, z / rail) ** COUNTER_POWER
+    b += (_plan(p, t, p["transom"]) - b) * up
     tumble = p.get("tumblehome", 0.0)
     low = p["freeboard"] * TUMBLE_FROM
     if tumble <= 0.0 or z <= low:
         return b
-    s = min(1.0, (z - low) / (rail_height(p, t) - low))
+    s = min(1.0, (z - low) / (rail - low))
     return max(b - tumble * b * s * s, STEM_HALF_WIDTH)
 
 

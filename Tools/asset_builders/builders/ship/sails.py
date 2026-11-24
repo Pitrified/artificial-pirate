@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from mathutils import Vector
 
 from builders.ship.mesh import Cloth, MeshParts, frame, pole
-from builders.ship.rig import Mast, boom_ends, bowsprit, gaff_ends, spars, yard_ends
+from builders.ship.rig import Mast, boom_ends, bowsprit, gaff_ends, spars, stay_ends, yard_ends
 
 # Where the wind comes from, degrees clockwise from the bow: close-hauled, abeam, on the quarter and
 # dead astern, on either tack. The game reads the same list (SO_SailTrim).
@@ -39,6 +39,7 @@ FOOT_SAG = 0.06
 LEECH_SAG = 0.05
 SQUARE_SIDE_SAG = 0.03
 
+STAYSAIL_STOWED = 0.5  # of its luff: how far up its stay a lowered staysail lies
 FURL_SIDES = 8
 FURL_OF_HEIGHT = 0.08
 FURL_MIN_DIAMETER = 0.35
@@ -83,7 +84,7 @@ class Trim:
 
     def eased(self, kinds: set[str]) -> Trim:
         """A step closer to the centreline for each kind of sail named: the boom and gaff for a gaff
-        sail, the yards for a square one, the jib sheets for a jib."""
+        sail, the yards for a square one, the jib sheets for a jib or a staysail."""
         def step(deg: float) -> float:
             return math.copysign(max(0.0, abs(deg) - EASE_STEP_DEG), deg)
 
@@ -93,7 +94,7 @@ class Trim:
             brace_deg=step(self.brace_deg) if "square" in kinds else self.brace_deg,
             boom_deg=boom,
             gaff_deg=boom * GAFF_TWIST,
-            jib_deg=step(self.jib_deg) if "jib" in kinds else self.jib_deg,
+            jib_deg=step(self.jib_deg) if kinds & {"jib", "staysail"} else self.jib_deg,
         )
 
     @classmethod
@@ -125,7 +126,7 @@ def sail_name(index: int, spec: dict) -> str:
 
 
 def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, Vector], cut: _Cut,
-           downwind: Vector) -> None:
+           downwind: Vector, camber: float = CAMBER) -> None:
     """A two-sided sail over (tack or clew, clew, head end, head start): u runs luff to leech, v foot to head."""
     a, b, c, d = corners
     normal = (b - a).cross(d - a).normalized()
@@ -145,7 +146,7 @@ def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, V
             u = 0.5 + (u - 0.5) * (1 - cut.side_sag * math.sin(math.pi * v0))
             point = a.lerp(b, u).lerp(d.lerp(c, u), v)
             envelope = math.sin(math.pi * (0.25 + 0.75 * v)) if cut.foot_free else math.sin(math.pi * v)
-            depth = CAMBER * chord * math.sin(math.pi * u**sharpness) * envelope
+            depth = camber * chord * math.sin(math.pi * u**sharpness) * envelope
             depth += CREASE * chord * math.sin(2 * math.pi * CREASES * u) * math.sin(math.pi * u) * v * v
             grid.append(point + normal * depth)
             uvs.append((u * chord, v * height))
@@ -173,6 +174,17 @@ def jib_corners(p: dict, mast: Mast, spec: dict, sheet_deg: float) -> tuple[Vect
     return tack, clew, head
 
 
+def staysail_corners(all_masts: list[Mast], mast: Mast, spec: dict, sheet_deg: float) -> tuple[Vector, Vector, Vector]:
+    """A staysail on the stay from its mast forward: its tack and head at fractions of the stay from the
+    mast's end, its clew clew_ahead metres before the mast at clew_z, swung out by the sheet."""
+    top, foot = stay_ends(all_masts, mast)
+    tack, head = top.lerp(foot, spec["tack"]), top.lerp(foot, spec["head"])
+    sheet = math.radians(sheet_deg)
+    run = head.y - (mast.foot.y + spec["clew_ahead"])
+    clew = Vector((math.sin(sheet) * run, head.y - math.cos(sheet) * run, spec["clew_z"]))
+    return tack, clew, head
+
+
 def square_corners(mast: Mast, spec: dict, brace_deg: float) -> tuple[Vector, Vector, Vector, Vector]:
     yards = mast.spec["yards"]
     top_l, top_r = yard_ends(mast, yards[spec["top"]], brace_deg)
@@ -190,13 +202,16 @@ def sailing(per_mast: list[MeshParts], p: dict, all_masts: list[Mast], trim: Tri
         parts = per_mast[spec["mast"]]
         kind = spec["kind"]
         if kind == "square":
-            _sheet(parts, name, square_corners(mast, spec, trim.brace_deg), _SQUARE, trim.downwind)
+            _sheet(parts, name, square_corners(mast, spec, trim.brace_deg), _SQUARE, trim.downwind, p.get("camber", CAMBER))
         elif kind == "gaff":
             tack, clew = boom_ends(mast, trim.boom_deg)
             throat, peak = gaff_ends(mast, trim.gaff_deg)
             _sheet(parts, name, (tack, clew, peak, throat), _GAFF, trim.downwind)
         elif kind == "jib":
             tack, clew, head = jib_corners(p, mast, spec, trim.jib_deg)
+            _sheet(parts, name, (tack, clew, head, head), _JIB, trim.downwind)
+        elif kind == "staysail":
+            tack, clew, head = staysail_corners(all_masts, mast, spec, trim.jib_deg)
             _sheet(parts, name, (tack, clew, head, head), _JIB, trim.downwind)
         else:
             msg = f"unknown sail kind '{kind}'"
@@ -254,9 +269,9 @@ def _furl(parts: MeshParts, name: str, start: Vector, end: Vector, height: float
 
 
 def anchored(per_mast: list[MeshParts], p: dict, all_masts: list[Mast]) -> None:
-    """The spars squared and every sail rolled up: on top of and before its yard, on its boom, or
-    stowed along the bowsprit, the jibs each in their own stretch of it, innermost tack first; each
-    in its mast's parts."""
+    """The spars squared and every sail rolled up: on top of and before its yard, on its boom,
+    stowed along the bowsprit, the jibs each in their own stretch of it, innermost tack first, or a
+    staysail lowered along the foot of its stay; each in its mast's parts."""
     spars(per_mast, all_masts, 0.0, 0.0, 0.0)
     start, end = bowsprit(p)
     jibs = sorted((spec["tack"], i) for i, spec in enumerate(p["sails"]) if spec["kind"] == "jib")
@@ -275,6 +290,9 @@ def anchored(per_mast: list[MeshParts], p: dict, all_masts: list[Mast]) -> None:
             tack, clew = boom_ends(mast, 0.0)
             throat, _ = gaff_ends(mast, 0.0)
             _furl(parts, name, tack, clew, throat.z - tack.z, above)
+        elif kind == "staysail":
+            tack, clew, head = staysail_corners(all_masts, mast, spec, 0.0)
+            _furl(parts, name, tack, tack.lerp(head, STAYSAIL_STOWED), (head.z - clew.z) * STAYSAIL_STOWED, above)
         elif kind == "jib":
             k = stretch[i]
             tack = start.lerp(end, spec["tack"])

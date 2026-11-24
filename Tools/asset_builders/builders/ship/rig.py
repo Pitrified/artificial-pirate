@@ -61,6 +61,18 @@ def masts(p: dict) -> list[Mast]:
     return result
 
 
+STAY_FOOT = 1.5  # m, above the deck: where a stay meets the mast ahead
+
+
+def stay_ends(all_masts: list[Mast], mast: Mast) -> tuple[Vector, Vector] | None:
+    """The stay from a mast's top forward and down to the foot of the mast ahead, or None for the foremast."""
+    ahead = [m for m in all_masts if m.foot.y > mast.foot.y]
+    if not ahead:
+        return None
+    before = min(ahead, key=lambda m: m.foot.y)
+    return mast.at(mast.spec["top_z"]), before.at(before.foot.z + STAY_FOOT)
+
+
 def bowsprit(p: dict) -> tuple[Vector, Vector]:
     spec = p["bowsprit"]
     steeve = math.radians(spec["steeve_deg"])

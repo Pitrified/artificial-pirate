@@ -13,8 +13,8 @@ from mathutils import Vector
 from builders.ship.hull import rail_height
 from builders.ship.hull import side as side_at
 from builders.ship.mesh import MeshParts, Rope, axis_box, line
-from builders.ship.rig import Mast, boom_ends, bowsprit, yard_ends
-from builders.ship.sails import Trim, jib_corners, sail_name, square_corners
+from builders.ship.rig import Mast, boom_ends, bowsprit, stay_ends, yard_ends
+from builders.ship.sails import Trim, jib_corners, sail_name, square_corners, staysail_corners
 
 SHROUD = 0.09
 RATLINE = 0.05
@@ -26,6 +26,7 @@ CHANNEL_THICKNESS = 0.15
 TOP_OF_BEAM = 0.35
 TOP_LENGTH = 0.6
 TOP_THICKNESS = 0.2
+TOPMAST_SHROUDS_AFT = 0.25  # of the top's length: the topmast shrouds' feet aft of the mast, clear of braced yards
 CROSSTREES_OF_TOP = 0.6
 CROSSTREES_THICKNESS = 0.15
 TOP_RIM = Vector((0.06, 0.06, 0.12))  # thickness, and height above the platform
@@ -108,7 +109,7 @@ def _mast_rigging(body: MeshParts, parts: MeshParts, p: dict, mast: Mast) -> Non
             _rope(parts, "shroud", low, high, SHROUD)
         _ratlines(parts, lower, plates[0].z + 0.6, top_z - 1.0)
 
-        edge = top_centre + Vector((side * width / 2, 0.0, 0.0))
+        edge = top_centre + Vector((side * width / 2, -width * TOP_LENGTH * TOPMAST_SHROUDS_AFT, 0.0))
         cross = cross_centre + Vector((side * d * 0.25, 0.0, 0.0))
         upper = [(edge + Vector((0.0, -k * 0.5, 0.0)), cross) for k in range(2)]
         for low, high in upper:
@@ -133,9 +134,11 @@ def standing(body: MeshParts, per_mast: list[MeshParts], p: dict, masts: list[Ma
     fore = masts[by_place[0]]
     if not any(spec["kind"] == "jib" and spec["tack"] == 0.0 for spec in p["sails"]):
         _rope(per_mast[by_place[0]], "forestay", fore.at(fore.spec["top_z"]), stem, SHROUD)
+    hung = {spec["mast"]: sail_name(i, spec) for i, spec in enumerate(p["sails"]) if spec["kind"] == "staysail"}
     for a, b in zip(by_place[1:], by_place[:-1]):
         after, before = masts[a], masts[b]
-        _rope(per_mast[a], "stay", after.at(after.spec["top_z"]), before.at(before.foot.z + 1.5), SHROUD)
+        top, foot = stay_ends(masts, after)
+        _rope(per_mast[a], "stay", top, foot, SHROUD, hung.get(a))
         _rope(per_mast[a], "topmast stay", after.head, before.at(before.spec["crosstrees_z"]), SHROUD)
     for i, spec in enumerate(p["sails"]):
         if spec["kind"] == "jib":
@@ -144,16 +147,22 @@ def standing(body: MeshParts, per_mast: list[MeshParts], p: dict, masts: list[Ma
 
 
 def running(per_mast: list[MeshParts], p: dict, masts: list[Mast], trim: Trim, sails_set: bool) -> None:
-    """Braces and lifts on every yard, running backstays; with the sails set, the sheets from their clews."""
-    for parts, mast in zip(per_mast, masts, strict=True):
-        ahead = min((m for m in masts if m.foot.y > mast.foot.y), key=lambda m: m.foot.y, default=None)
-        for yard in mast.spec["yards"]:
+    """Braces and lifts on every yard, running backstays; with the sails set, the sheets from their clews.
+    A type with lifts_under_sails false drops, while its sails are set, the lifts of a yard a sail above is
+    sheeted to: on close-set yards they would run up through that sail."""
+    for m, (parts, mast) in enumerate(zip(per_mast, masts, strict=True)):
+        ahead = min((other for other in masts if other.foot.y > mast.foot.y), key=lambda other: other.foot.y, default=None)
+        sheeted = {spec["bottom"] for spec in p["sails"]
+                   if spec["kind"] == "square" and spec["mast"] == m and isinstance(spec["bottom"], int)}
+        for k, yard in enumerate(mast.spec["yards"]):
             port_end, starboard_end = yard_ends(mast, yard, trim.brace_deg)
+            lifted = not (sails_set and k in sheeted and not p.get("lifts_under_sails", True))
             lift_to = mast.at(min(mast.spec["height"], yard["z"] + yard["length"] / 2 * LIFT_SLOPE))
             for end, side in ((port_end, -1.0), (starboard_end, 1.0)):
                 lead = ahead.at(min(yard["z"], ahead.spec["height"])) if ahead else _deck_edge(p, side, end.y - BRACE_LEAD_AFT)
                 _rope(parts, "brace", end, lead, RUNNING)
-                _rope(parts, "lift", end, lift_to, RUNNING)
+                if lifted:
+                    _rope(parts, "lift", end, lift_to, RUNNING)
         if "boom" in mast.spec:
             _, boom_end = boom_ends(mast, trim.boom_deg)
             _rope(parts, "main sheet", boom_end, _deck_edge(p, 0.0, min(boom_end.y + 1.0, -p["length"] / 2 + 0.5)), RUNNING)
@@ -171,6 +180,10 @@ def running(per_mast: list[MeshParts], p: dict, masts: list[Mast], trim: Trim, s
             _, clew, _ = jib_corners(p, mast, spec, trim.jib_deg)
             side = 1.0 if clew.x >= 0 else -1.0
             _rope(parts, "jib sheet", clew, _deck_edge(p, side, min(clew.y - JIB_SHEET_AFT, fore_y)), RUNNING, name)
+        elif spec["kind"] == "staysail":
+            _, clew, _ = staysail_corners(masts, mast, spec, trim.jib_deg)
+            side = 1.0 if clew.x >= 0 else -1.0
+            _rope(parts, "staysail sheet", clew, _deck_edge(p, side, clew.y), RUNNING, name)
         elif spec["kind"] == "square" and not isinstance(spec["bottom"], int):
             foot_l, foot_r, _, _ = square_corners(mast, spec, trim.brace_deg)
             for clew, side in ((foot_l, -1.0), (foot_r, 1.0)):

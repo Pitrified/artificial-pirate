@@ -16,8 +16,9 @@ each object turned half round, so the bow faces -Y: the FBX export makes that Un
 Hull keys: length (on deck), beam, draft, freeboard (amidships, to the rail), sheer_bow and
 sheer_stern (rise of the rail toward each end), sheer_low (where the rail is lowest, as a fraction
 from the stern), widest (where the hull is widest, same), transom (the transom's width over the
-beam), transom_rake_deg, bulwark (height above the deck), band (the trim band's depth below the rail),
-boot (how high the bottom paint shows above the water); tumblehome, optional (how far the side falls in
+beam; transom_water, optional, narrower at the waterline under a counter), transom_rake_deg, bulwark (height above the deck), band (the trim band's depth below the rail),
+boot (how high the bottom paint shows above the water); entry and run, optional (the powers the beam falls off with toward the stem and the transom),
+tumblehome, optional (how far the side falls in
 toward the rail, of the half beam), stations, optional (how many slices the hull is lofted in); raised_decks, optional (each from and to, fractions
 from the stern, and height over the deck: a quarterdeck or poop aft, a forecastle forward).
 
@@ -27,7 +28,9 @@ masts: each has at (fraction from the stern), height (above the water), diameter
 bowsprit: length beyond the stem, steeve_deg, diameter.
 sails: a square sail hangs from a yard (top) to the yard below it (bottom) or to a foot {z, length};
 a gaff sail fills a mast's gaff and boom; a jib runs from head_z on a mast to a point along the bowsprit
-(tack, 0 to 1), its clew clew_aft metres behind the tack at clew_z.
+(tack, 0 to 1), its clew clew_aft metres behind the tack at clew_z. A staysail hangs on the stay from its mast
+forward to the mast ahead: tack and head as fractions of that stay from the mast, its clew clew_ahead
+metres before the mast at clew_z.
 preview_rgb: probe colours by slot name. Optional fittings (wales, gun ports, stern windows, deck
 furniture) are described in builders/ship/fittings.py.
 """

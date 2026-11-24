@@ -12,7 +12,8 @@ Type keys (all but the deck optional):
   showing through the ports), and guns: false for a row of ports with no guns behind them;
 - chase_ports, stern_ports: {across (each port's x from the centreline), z (centre above the water),
   size}: guns firing ahead through the bow, and astern through the transom, below its windows;
-- stern_windows: how many across the transom;
+- stern_windows: how many across the transom; stern_gallery: a balcony under them;
+- stripe_scrolls: a gilt scroll where each painted band ends at the bow;
 - deckhouses: each [t, length, width, height], on the centreline;
 - boats: each [t, length], a pair hung outboard on davits, one a side;
 - deck: {hatches: [[t, length, width]], companionway: which hatch is the way below (its index), capstan: t,
@@ -95,7 +96,15 @@ BOAT_RAISE = 1.4  # m, the gunwale above the rail
 DAVIT = 0.14
 DAVIT_SPREAD = 0.7  # of the boat's length, between the davits
 DAVIT_ABOVE = 1.0  # m, the davit's head above the boat's gunwale
-FIGURE_FOR_LENGTH = 40.0  # m: a longer ship's figurehead and trailboards grow with it
+FIGURE_FOR_LENGTH = 40.0
+SCROLL_OF_STRIPE = 0.45  # a stripe's scroll at the bow: its radius over the stripe's depth
+SCROLL_THICKNESS = 0.16
+SCROLL_SEGMENTS = 12
+GALLERY_OF_TRANSOM = 0.9  # its width over the transom's
+GALLERY_DEPTH = 0.9  # m, how far it stands out aft
+GALLERY_FLOOR = 0.12
+GALLERY_BOARD = 0.35  # the carved board under it
+GALLERY_RAIL = 0.95  # m, the rail above its floor  # m: a longer ship's figurehead and trailboards grow with it
 
 Profile = Callable[[float], list[tuple[float, float]]]
 
@@ -187,6 +196,13 @@ def stripes(parts: MeshParts, p: dict) -> None:
             return [(side_at(p, t, hi) + STRIPE_OUT, hi), (side_at(p, t, lo) + STRIPE_OUT, lo)]
 
         _strip(parts, p, stripe, STRIPE_FROM, STRIPE_TO, slot)
+        if p.get("stripe_scrolls") and slot == "Trim":
+            lift = _lift(p, STRIPE_TO)
+            centre_z = (low + high) / 2 + lift
+            for side in (1.0, -1.0):
+                x = side * (side_at(p, STRIPE_TO, centre_z) + STRIPE_OUT + SCROLL_THICKNESS / 2)
+                ring(parts, Vector((x, _y(p, STRIPE_TO), centre_z)), Vector((1.0, 0.0, 0.0)), (high - low) * SCROLL_OF_STRIPE,
+                     SCROLL_THICKNESS, SCROLL_SEGMENTS, "Gilt")
 
 
 @dataclass(frozen=True)
@@ -266,17 +282,44 @@ def gun_ports(parts: MeshParts, p: dict) -> None:
 
 
 def stern(parts: MeshParts, p: dict) -> None:
-    """Windows across the transom between the deck and the rail, and a carved taffrail above it."""
+    """Windows across the transom between the deck and the rail, larger on a longer ship, a gallery
+    under them if the type has one, and a carved taffrail above it."""
     count = p.get("stern_windows", 0)
     rail_z, deck_z = rail_height(p, 0.0), deck_height(p, 0.0)
     z = (rail_z + deck_z) / 2
-    span = half_beam(p, 0.0) * 1.2
+    span = side_at(p, 0.0, z) * 1.2
+    k = _grown(p)
+    width, height = WINDOW_WIDTH * k, WINDOW_HEIGHT * k
     for i in range(count):
         x = -span / 2 + span * (i + 0.5) / count
-        _on_transom(parts, p, x, z, Vector((WINDOW_WIDTH + WINDOW_FRAME * 2, WINDOW_FRAME_PROUD, WINDOW_HEIGHT + WINDOW_FRAME * 2)),
-                    "Gilt")
-        _on_transom(parts, p, x, z, Vector((WINDOW_WIDTH, WINDOW_GLASS_PROUD, WINDOW_HEIGHT)), "Tar")
+        _on_transom(parts, p, x, z, Vector((width + WINDOW_FRAME * 2, WINDOW_FRAME_PROUD, height + WINDOW_FRAME * 2)), "Gilt")
+        _on_transom(parts, p, x, z, Vector((width, WINDOW_GLASS_PROUD, height)), "Tar")
+    if p.get("stern_gallery"):
+        gallery(parts, p, z - height / 2 - WINDOW_FRAME)
     taffrail(parts, p)
+
+
+def gallery(parts: MeshParts, p: dict, floor: float) -> None:
+    """A balcony across the transom at floor: a deck standing out aft, turned balusters along its edge
+    under a gilt rail, and a carved board under it."""
+    across = side_at(p, 0.0, floor) * GALLERY_OF_TRANSOM * 2
+    back = transom_y(p, floor)
+    edge = back - GALLERY_DEPTH
+    axis_box(parts, Vector((0.0, back - GALLERY_DEPTH / 2, floor - GALLERY_FLOOR / 2)), Vector((across, GALLERY_DEPTH, GALLERY_FLOOR)),
+             "ShipWood")
+    axis_box(parts, Vector((0.0, edge, floor - GALLERY_FLOOR - GALLERY_BOARD / 2)), Vector((across, 0.08, GALLERY_BOARD)), "Gilt")
+    count = round(across / BALUSTER_STEP)
+    for i in range(count + 1):
+        _baluster(parts, Vector((-across / 2 + across * i / count, edge + 0.06, floor)), GALLERY_RAIL)
+    axis_box(parts, Vector((0.0, edge + 0.06, floor + GALLERY_RAIL)), Vector((across, TAFFRAIL_RAIL.y, TAFFRAIL_RAIL.z)), "Gilt")
+    for side in (1.0, -1.0):
+        x = side * across / 2
+        pole(parts, Vector((x, edge, floor + GALLERY_RAIL)), Vector((x, back, floor + GALLERY_RAIL)), 0.08, 0.08, 6, "Gilt")
+
+
+def _grown(p: dict) -> float:
+    """How much a longer ship's carvings, figurehead and stern windows grow over a brig's."""
+    return max(1.0, p["length"] / FIGURE_FOR_LENGTH)
 
 
 def _on_transom(parts: MeshParts, p: dict, x: float, z: float, size: Vector, slot: str) -> None:
@@ -333,10 +376,11 @@ def bow(parts: MeshParts, p: dict) -> None:
     corners = [Vector((x, y, z))
                for z, ys in ((0.4, (stem_y - 0.3, stem_y + 0.3)), (top, (stem_y - 0.3, stem_y + reach)))
                for y in ys for x in (-0.12, 0.12)]
-    box(parts, corners, "Trim")
+    box(parts, corners, "Topsides")
 
-    k = max(1.0, p["length"] / FIGURE_FOR_LENGTH)
+    k = _grown(p)
     foot = Vector((0.0, stem_y + reach - 0.2 * k, top - 0.3 * k))
+    ring(parts, foot - Vector((0.0, 0.0, 0.2 * k)), Vector((1.0, 0.0, 0.0)), 0.3 * k, 0.12 * k, SCROLL_SEGMENTS, "Gilt")
     body_top = foot + Vector((0.0, 0.5, 1.1)) * k
     pole(parts, foot, body_top, 0.5 * k, 0.35 * k, 6, "Gilt")
     pole(parts, body_top, body_top + Vector((0.0, 0.15, 0.4)) * k, 0.35 * k, 0.3 * k, 6, "Gilt")
