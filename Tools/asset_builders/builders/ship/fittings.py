@@ -3,7 +3,8 @@ taffrail, the cutwater, figurehead and head rails, and deck furniture.
 
 Type keys (all but the deck optional):
 - wales: heights of the wales' centres above the water;
-- gun_ports: {count (a side), from, to (fractions from the stern), z (centre), size};
+- gun_ports: {count (a side), from, to (fractions from the stern), above_deck (the centre over the deck
+  there, where the gun's axis sits on its carriage), size};
 - stern_windows: how many across the transom;
 - deck: {hatches: [[t, length, width]], companionway: which hatch is the way below (its index), capstan: t,
   helm: "wheel" or "tiller", helm_at: t}. The other hatches are gratings.
@@ -153,7 +154,7 @@ def gun_port_centres(p: dict) -> list[tuple[float, float, Vector]]:
     for i in range(spec["count"]):
         t = spec["from"] + (spec["to"] - spec["from"]) * i / max(1, spec["count"] - 1)
         for side in (1.0, -1.0):
-            ports.append((t, side, Vector((side * half_beam(p, t), _y(p, t), spec["z"]))))
+            ports.append((t, side, Vector((side * half_beam(p, t), _y(p, t), deck_height(p, t) + spec["above_deck"]))))
     return ports
 
 

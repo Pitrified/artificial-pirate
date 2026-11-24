@@ -58,7 +58,7 @@ PARAMS = {
         {"kind": "jib", "mast": 0, "head_z": 34.5, "tack": 1.0, "clew_aft": 17.0, "clew_z": 11.0},
     ],
     "wales": [1.2, 2.9],
-    "gun_ports": {"count": 9, "from": 0.15, "to": 0.82, "z": 2.25, "size": 0.65},
+    "gun_ports": {"count": 9, "from": 0.15, "to": 0.82, "above_deck": 0.65, "size": 0.65},
     "stern_windows": 5,
     "deck": {"hatches": [[0.58, 3.0, 2.4], [0.3, 2.0, 1.8], [0.88, 1.6, 1.6]], "companionway": 1, "capstan": 0.22,
              "helm": "wheel", "helm_at": 0.09},
