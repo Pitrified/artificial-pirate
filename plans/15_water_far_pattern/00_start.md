@@ -60,6 +60,14 @@ From `Assets/Shaders/Water.shader`, `SO_WaterSettings.asset` and `Tools/asset_bu
   - b. The captures are enough.
   - Recommended: a, because a moire depends on the screen's pixels and the filtering on the device.
   - ANS: a.
+- Q3: Phase 01 found the lines are the far Gerstner waves: past the distance where the short waves fade, only the 40 m and 24 m waves light the water, and two plane waves make a perfectly regular pattern. How to break it up?
+  - a. Vary the waves' strength across the sea: in the fragment, scale each wave's slope by a broad noise (the detail map sampled at a large scale, a different one per wave), so crests come and go in patches instead of running straight to the horizon. A few texture reads, no new asset.
+  - b. Fade the far waves' light sooner (a larger pixel rule), so far water is an even sheen. Cheap, but the far water goes flat.
+  - c. More waves in the fragment only (say eight, the extra ones with spread directions, lit but not moving the mesh). Costs the sum again per pixel.
+  - d. Anisotropic filtering 4x on the detail map, so the near grain survives farther and covers the lines. Costs GPU time to measure on the phone.
+  - In each case also rotate the patch layer's uv so its diagonal bias stops lining up with the waves.
+  - Recommended: a with the patch rotation, because it keeps the far waves' light and costs least; d after the phone read if the grain still dies too near.
+  - NEW_ANS:
 
 ## Phases
 

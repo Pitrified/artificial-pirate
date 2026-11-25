@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 01 - Reproduce and isolate
@@ -27,3 +27,15 @@ Context: [`00_start.md`](00_start.md).
 ## Done when
 
 - The lead (or leads) drawing the lines is named, with the frames that show it, in "What the implementation found".
+
+## What the implementation found
+
+Captures of the game's chase camera behind the giant at 1872x864 (the Pixel's 2340x1080 at render scale 0.8), frames in the session scratchpad; the shader edits reverted after each run.
+
+- As now: rows of bands across the middle distance, with a diagonal grain.
+- Detail off (the waves alone): long, straight, evenly spaced parallel crests out to the horizon. This is the pattern.
+  Far out the short waves fade by the pixel rule, so only the 40 m and 24 m waves light the water, and two plane waves draw a perfectly regular interference.
+- Waves off (the detail alone): an even grain, a faint diagonal bias from the map's streaks, no rows.
+- The 83 m patch layer off: the near layers mip down to flat a little way out, and the waves' lines show bare. The patch layer is what partly hides them now; its own diagonal bias adds the grain.
+- Not run: the ripple square (about 24 m around the ship, the lines are far past it) and anisotropic filtering (a fix to try, not a cause).
+- So lead 3 is the cause, the patch layer's streaks a lesser part of lead 1.
