@@ -4,8 +4,9 @@ A ship's sails are set for each of WIND_BANDS_DEG, the wind's direction off the 
 the band nearest the wind it sails in.
 
 A set sail is a two-sided grid bellied downwind: camber about a tenth of the chord, deepest 40% back
-from the luff on a fore-and-aft sail and in the middle of a square one, and its free edges cut
-hollow between their corners.
+from the luff with a flat leech on a fore-and-aft sail and twisting off toward its head, a full bag in
+the middle of a square one; its free edges cut hollow between their
+corners, a line of tension from each clew, and each sail a little uneven in its own way.
 """
 
 from __future__ import annotations
@@ -39,11 +40,14 @@ EASE_STEP_DEG = 1.0
 JIB_SHEET = 0.6
 
 CANVAS_TILE_MM = 4000  # the canvas texture's width, in millimetres
-ROWS = 8
-COLUMNS = 10
+ROWS = 10
+COLUMNS = 12
 CAMBER = 0.12
-CREASE = 0.012  # of the chord: the shallow folds the cloth hangs in from its head
-CREASES = 3  # across the chord
+SQUARE_FULLNESS = 0.7  # the power on a square sail's chordwise profile: under 1 fills its bag out to the leeches
+TWIST = 0.05  # of the chord: how far a fore-and-aft sail's leech falls off to leeward at its head
+TENSION = 0.25  # of the depth: how much flatter the cloth lies along the line from a clew up to the head
+TENSION_WIDTH = 0.12  # of the sail, across that line
+UNEVEN = 0.2  # of the depth: how much each sail's belly leans along its chord and its height
 FORE_AND_AFT_DRAFT = 0.4
 FOOT_SAG = 0.06
 LEECH_SAG = 0.05
@@ -124,11 +128,30 @@ class _Cut:
     foot_sag: float
     leech_sag: float
     side_sag: float
+    fullness: float = 1.0
+    twist: float = TWIST
+    clews: tuple[float, ...] = (1.0,)  # where along the foot the clews are, as u
 
 
-_SQUARE = _Cut(0.5, True, FOOT_SAG, 0.0, SQUARE_SIDE_SAG)
+_SQUARE = _Cut(0.5, True, FOOT_SAG, 0.0, SQUARE_SIDE_SAG, SQUARE_FULLNESS, 0.0, (0.0, 1.0))
 _GAFF = _Cut(FORE_AND_AFT_DRAFT, False, 0.0, LEECH_SAG, 0.0)
 _JIB = _Cut(FORE_AND_AFT_DRAFT, True, FOOT_SAG, LEECH_SAG, 0.0)
+
+
+def _profile(u: float, draft_at: float) -> float:
+    """The belly along the chord, 1 at draft_at: a parabola either side of it, so it runs straight out of the
+    leech when the draft is forward."""
+    if u < draft_at:
+        return (2 * draft_at * u - u * u) / draft_at**2
+    return (1 - 2 * draft_at + 2 * draft_at * u - u * u) / (1 - draft_at) ** 2
+
+
+def _tension(u: float, v: float, clew_u: float) -> float:
+    """1 on the line from a clew (at clew_u on the foot) to the middle of the head, falling off across it."""
+    du, dv = 0.5 - clew_u, 1.0
+    f = max(0.0, min(1.0, ((u - clew_u) * du + v * dv) / (du * du + dv * dv)))
+    off = math.hypot(u - (clew_u + du * f), v - dv * f)
+    return math.exp(-((off / TENSION_WIDTH) ** 2)) * math.sin(math.pi * f)
 
 
 def sail_name(index: int, spec: dict) -> str:
@@ -145,10 +168,13 @@ def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, V
         normal = -normal
     chord = (b - a).length
     height = ((c + d) / 2 - (a + b) / 2).length
-    sharpness = math.log(0.5) / math.log(cut.draft_at)
 
     # Each sail its own stretch of the canvas's wear, shifted across the cloths so the reef bands keep their depth.
-    shift = zlib.crc32(name.encode()) % CANVAS_TILE_MM / 1000.0
+    seed = zlib.crc32(name.encode())
+    shift = seed % CANVAS_TILE_MM / 1000.0
+    # Each sail's belly leans its own way, from the name's hash: along the chord, and up or down.
+    lean_u = UNEVEN * ((seed >> 12) % 201 / 100.0 - 1.0)
+    lean_v = UNEVEN * ((seed >> 20) % 201 / 100.0 - 1.0)
     grid, uvs = [], []
     for row in range(ROWS + 1):
         v0 = row / ROWS
@@ -159,8 +185,10 @@ def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, V
             u = 0.5 + (u - 0.5) * (1 - cut.side_sag * math.sin(math.pi * v0))
             point = a.lerp(b, u).lerp(d.lerp(c, u), v)
             envelope = math.sin(math.pi * (0.25 + 0.75 * v)) if cut.foot_free else math.sin(math.pi * v)
-            depth = camber * chord * math.sin(math.pi * u**sharpness) * envelope
-            depth += CREASE * chord * math.sin(2 * math.pi * CREASES * u) * math.sin(math.pi * u) * v * v
+            belly = _profile(u, cut.draft_at) ** cut.fullness * envelope
+            belly *= (1 + lean_u * (u - 0.5)) * (1 + lean_v * (v - 0.5))
+            belly *= 1 - TENSION * max(_tension(u, v, clew) for clew in cut.clews)
+            depth = camber * chord * belly + cut.twist * chord * u * u * v
             grid.append(point + normal * depth)
             uvs.append((u * chord + shift, (1 - v) * height))
 

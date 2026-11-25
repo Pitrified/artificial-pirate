@@ -130,7 +130,7 @@ def battery_muzzles(p: dict, battery: str) -> list[Vector]:
 def barrels(p: dict) -> list[tuple[str, MeshParts, Vector]]:
     """Each gun's barrel: its name, its mesh and its trunnions, the point it turns about. It tapers to
     the muzzle, with rings, a knob behind the breech and the trunnion pins that rest on the carriage's
-    cheeks."""
+    cheeks. Behind a covered row's port only the muzzle shows: its barrel keeps the muzzle's ring alone."""
     iron = swatch_uv("iron")
     made = []
     for name, port in _named(p):
@@ -139,15 +139,16 @@ def barrels(p: dict) -> list[tuple[str, MeshParts, Vector]]:
         breech = muzzle - along * BARREL_LENGTH
         parts = MeshParts()
         pole(parts, breech, muzzle, BARREL_BREECH, BARREL_MUZZLE, BARREL_SIDES, "Palette", uv=iron)
-        for at in BARREL_RINGS:
+        for at in BARREL_RINGS if port.open else BARREL_RINGS[-1:]:
             d = BARREL_BREECH + (BARREL_MUZZLE - BARREL_BREECH) * at + 2 * RING_PROUD
             centre = breech + along * BARREL_LENGTH * at
             pole(parts, centre - along * (RING_LENGTH / 2), centre + along * (RING_LENGTH / 2), d, d, BARREL_SIDES,
                  "Palette", uv=iron)
-        pole(parts, breech - along * KNOB, breech, KNOB * 0.6, KNOB, BARREL_SIDES, "Palette", uv=iron)
         pivot = _trunnions(port)
-        pins = Vector((-along.y, along.x, 0.0)) * (CARRIAGE_WIDTH / 2 - CHEEK / 2)
-        pole(parts, pivot - pins, pivot + pins, TRUNNION_PIN, TRUNNION_PIN, TRUCK_SIDES, "Palette", uv=iron)
+        if port.open:
+            pole(parts, breech - along * KNOB, breech, KNOB * 0.6, KNOB, BARREL_SIDES, "Palette", uv=iron)
+            pins = Vector((-along.y, along.x, 0.0)) * (CARRIAGE_WIDTH / 2 - CHEEK / 2)
+            pole(parts, pivot - pins, pivot + pins, TRUNNION_PIN, TRUNNION_PIN, TRUCK_SIDES, "Palette", uv=iron)
         made.append((name, parts, pivot))
     return made
 

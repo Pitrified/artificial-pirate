@@ -440,7 +440,7 @@ MonoBehaviour:
     m_Bits: 64
   _mesh: {fileID: 10200, guid: 0000000000000000e000000000000000, type: 0}
   _material: {fileID: 2100000, guid: e2cc8e9db072259f997e7dc7a824dced, type: 2}
-  _poolSize: 32
+  _poolSize: 96
   _radius: 0.12
   _maxSeconds: 6
   _splashRadius: 1.2

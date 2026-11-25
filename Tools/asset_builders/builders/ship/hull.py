@@ -25,6 +25,7 @@ OVERHANG_BOW_FROM = 0.5  # of the draft below the water: where the stem starts t
 OVERHANG_BOW_POWER = 1.5  # the stem's curve
 OVERHANG_STERN_POWER = 0.6  # the counter's: out quickly above the water
 BREAK = 0.004  # of the length, over which a raised deck's edge rises from the deck below
+SILL = 0.25  # m above the deck: the hull's top where the bulwark gives way to an open rail
 
 # Which slot each band of the loop takes, between consecutive points of the starboard half.
 _SECTION_SLOTS = ("ShipWood", "Trim", "Trim") + ("Topsides",) * (TOPSIDE_POINTS + 1) + ("HullBottom",) * (UNDERWATER_POINTS + 1)
@@ -95,6 +96,22 @@ def deck_height(p: dict, t: float) -> float:
     return rail_height(p, t) - p["bulwark"]
 
 
+class OpenRailError(ValueError):
+    """A type's painted band reaches above the sill of its open rail."""
+
+
+def is_open(p: dict, t: float) -> bool:
+    """Whether the rail at t stands open on posts over a sill (open_rail: [from, to]) rather than on a
+    closed bulwark."""
+    span = p.get("open_rail")
+    return bool(span) and span[0] < t < span[1]
+
+
+def hull_top(p: dict, t: float) -> float:
+    """Where the hull's side ends at t: the rail over a bulwark, the sill under an open rail."""
+    return deck_height(p, t) + SILL if is_open(p, t) else rail_height(p, t)
+
+
 def _plan(p: dict, t: float, transom: float) -> float:
     """The half beam along the length for a transom transom wide over the beam."""
     widest = p["widest"]
@@ -154,21 +171,24 @@ def transom_y(p: dict, z: float) -> float:
     return -p["length"] / 2 - z * math.tan(math.radians(p["transom_rake_deg"]))
 
 
-def _section(p: dict, t: float) -> list[Vector]:
-    """One station's outline, a closed loop: deck to rail to waterline to keel, both sides."""
+def _section(p: dict, t: float, opened: bool) -> list[Vector]:
+    """One station's outline, a closed loop: deck to rail (or the sill, opened) to waterline to keel, both sides."""
     y = (t - 0.5) * p["length"]
     b = half_beam(p, t)
     rail = rail_height(p, t)
     deck = rail - p["bulwark"]
+    top = deck + SILL if opened else rail
     inner = bulwark_inner(p, t)
     depth = _depth(p, t)
     full = _fullness(p, t)
 
     band = rail - p["band"]
+    if band >= top:
+        raise OpenRailError(f"{p['name']}: the band's foot at {band:.2f} m is above the hull's top at {top:.2f} m (t {t:.3f})")
     starboard = [
         (inner, deck),
-        (inner, rail),
-        (side(p, t, rail), rail),
+        (inner, top),
+        (side(p, t, top), top),
         (side(p, t, band), band),
     ]
     for k in range(1, TOPSIDE_POINTS + 1):
@@ -185,8 +205,25 @@ def _section(p: dict, t: float) -> list[Vector]:
     return [Vector((x, y - z * rake, z)) for x, z in starboard + port]
 
 
+def _lofted(p: dict) -> list[tuple[float, bool]]:
+    """The stations with whether each is open; each end of the open rail twice, closed and open, so the
+    bulwark ends in an upright face there."""
+    span = p.get("open_rail")
+    ts = sorted(set(stations(p)) | set(span or ()))
+    lofted = []
+    for t in ts:
+        if span and t == span[0]:
+            lofted += [(t, False), (t, True)]
+        elif span and t == span[1]:
+            lofted += [(t, True), (t, False)]
+        else:
+            lofted.append((t, is_open(p, t)))
+    return lofted
+
+
 def hull(parts: MeshParts, p: dict) -> None:
-    sections = [_section(p, t) for t in stations(p)]
+    lofted = _lofted(p)
+    sections = [_section(p, t, opened) for t, opened in lofted]
     loops = [parts.add_verts(section, [(v.y, v.z) for v in section]) for section in sections]
     n = len(sections[0])
     # Starboard's bands and port's mirrored; the deck between them is its own surface (fittings.deck).
@@ -194,6 +231,11 @@ def hull(parts: MeshParts, p: dict) -> None:
 
     for i in range(len(sections) - 1):
         a, b = loops[i], loops[i + 1]
+        if lofted[i][0] == lofted[i + 1][0]:
+            # The bulwark's end: only the rail's top band sweeps down to the sill, upright; the rest coincide.
+            for k in (1, n - 3):
+                parts.add_face((a + k, a + k + 1, b + k + 1, b + k), "ShipWood")
+            continue
         for k in range(n - 1):
             parts.add_face((a + k, a + k + 1, b + k + 1, b + k), slots[k], slots[k] in _SMOOTH_SLOTS)
         for k in _SHARP_POINTS + tuple(n - 1 - k for k in _SHARP_POINTS):

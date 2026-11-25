@@ -21,7 +21,8 @@ PARAMS = {
     "transom": 0.6,
     "transom_rake_deg": 20.0,
     "bulwark": 0.9,          # m
-    "band": 0.6,             # m
+    "open_rail": [0.06, 0.9],
+    "band": 1.2,             # m, from the rail: under the open rail's sill
     "boot": 0.3,             # m
     "masts": [
         {

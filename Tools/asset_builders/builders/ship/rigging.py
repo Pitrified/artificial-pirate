@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from mathutils import Vector
 
-from builders.ship.hull import rail_height
+from builders.ship.hull import hull_top, rail_height
 from builders.ship.hull import side as side_at
 from builders.ship.mesh import MeshParts, Rope, axis_box, line, pole
 from builders.ship.rig import Mast, boom_ends, bowsprit, stay_ends, yard_ends
@@ -73,7 +73,7 @@ def _chainplates(p: dict, mast: Mast, side: float) -> list[Vector]:
     for i in range(mast.spec["shrouds"]):
         y = mast.foot.y - 0.3 - i * SHROUD_SPACING
         t = _station(p, y)
-        points.append(Vector((side * (side_at(p, t, rail_height(p, t)) + CHANNEL_OUT), y, rail_height(p, t) - 0.3)))
+        points.append(Vector((side * (side_at(p, t, hull_top(p, t)) + CHANNEL_OUT), y, hull_top(p, t) - 0.3)))
     return points
 
 

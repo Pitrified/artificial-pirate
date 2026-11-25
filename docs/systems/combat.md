@@ -32,7 +32,7 @@ Other ships sail on their own through a helm, and a sunk one comes back.
 
 ## Balls (`Cannonballs`)
 
-- One pool of 32 in the Game scene, which every ship's `Broadside` fires through. A ball has no physics body: its position is its start, velocity and gravity over its age.
+- One pool of 96 in the Game scene (two giants' broadsides, 31 balls each, with room for the rest), which every ship's `Broadside` fires through. A ball has no physics body: its position is its start, velocity and gravity over its age.
 - Each step a ray from where it was to where it is (`Physics.RaycastNonAlloc` on the ships' layer) finds the nearest hull that is not its own ship's; a muzzle can sit inside its own hull's box.
 - **A hull struck**: its `ShipDamage.Hit` at the point, for the firer's `BallDamage` over the target's `HullStrength`. The point is what the damage already uses: the mark on that side and at that height, the list toward that side, the end that goes down first, the nearest mast's chance to break (`docs/systems/ship-controller.md`).
 - **The ground** (the world's `HeightAt` above the sea and above the ball) and **the water** (under `WaterSurface.HeightAt`; a ripple ring and foam) end a ball too. A ball still flying after `_maxSeconds` (6 s) is dropped; with every ball flying a shot is dropped and logged once.
@@ -66,7 +66,7 @@ Other ships sail on their own through a helm, and a sunk one comes back.
 ## Cost
 
 - Balls: up to 32 renderers, one material, only while flying. Particles: five systems, five draws while any of their particles live; the smoke is the overdraw.
-- Barrels: 12 objects on the sloop, 18 on the brig, 30 on the frigate and 34 on the giant (its lower row of ports is painted, with no guns), one material each. Each gun is about 390 triangles with its truck carriage (the carriages are in the hull; a covered row has none).
+- Barrels: 12 objects on the sloop, 18 on the brig, 30 on the frigate and 66 on the giant (both its rows armed), one material each. Each gun is about 390 triangles with its truck carriage (the carriages are in the hull; a covered row has none, and its barrels keep only the muzzle's ring, the rest hidden behind the port).
 - No allocation per frame: fixed pools and buffers, non-allocating queries.
 
 ## Tests

@@ -5,6 +5,8 @@ Type keys (all but the deck optional):
 - wales: heights of the wales' centres above the water;
 - stripes: bands of paint along the hull's side, each [low, high] above the water and optionally the slot
   (the trim's by default);
+- open_rail: [from, to] (fractions from the stern), where the rail stands on posts over a low sill instead
+  of a closed bulwark;
 - bands_follow_sheer: the stripes, the wales and the covered rows of ports rise with the rail toward the ends;
 - gun_ports: a row, or a list of rows, each {count (a side), from, to (fractions from the stern), size}
   and either above_deck (an open row: the centre over the deck there, where the gun's axis sits on its
@@ -35,9 +37,11 @@ from mathutils import Vector
 
 from builders.ship.hull import (
     BULWARK_THICKNESS,
+    SILL,
     bulwark_inner,
     deck_height,
     half_beam,
+    is_open,
     rail_height,
     sheer,
     stations,
@@ -58,6 +62,10 @@ CAP_RAIL_CHAMFER = 0.03
 STANCHION_STEP = 1.2
 STANCHION = 0.12
 TIMBERHEAD_EVERY = 3  # stanchions
+POST_STEP = 0.45  # m between an open rail's posts
+POST = 0.09
+MID_RAIL = 0.5  # of the way from the sill up to the cap rail
+MID_RAIL_SIZE = 0.07
 TIMBERHEAD_PROUD = 0.15  # above the cap rail
 PORT_DEPTH = 0.06
 PORT_LID = 0.05
@@ -168,7 +176,7 @@ def deck(parts: MeshParts, p: dict) -> None:
 
 def rail(parts: MeshParts, p: dict) -> None:
     """A cap rail standing proud of the bulwark, and stanchions inside it, every few running up through it
-    as a timberhead."""
+    as a timberhead; where the rail is open, posts under it and a middle rail, clear of the guns' ports."""
 
     def cap(t: float) -> list[tuple[float, float]]:
         inner, outer, z = bulwark_inner(p, t) - CAP_RAIL_OVERHANG, side_at(p, t, rail_height(p, t)) + CAP_RAIL_OVERHANG, rail_height(p, t)
@@ -179,12 +187,41 @@ def rail(parts: MeshParts, p: dict) -> None:
     count = int(p["length"] / STANCHION_STEP)
     for i in range(1, count):
         t = i / count
+        if is_open(p, t):
+            continue
         z0, z1 = deck_height(p, t), rail_height(p, t)
         if i % TIMBERHEAD_EVERY == 0:
             z1 += CAP_RAIL_HEIGHT + TIMBERHEAD_PROUD
         for side in (1.0, -1.0):
             x = side * (bulwark_inner(p, t) - STANCHION / 2)
             axis_box(parts, Vector((x, _y(p, t), (z0 + z1) / 2)), Vector((STANCHION, STANCHION, z1 - z0)), "ShipWood")
+    span = p.get("open_rail")
+    if span:
+        _open_rail(parts, p, span[0], span[1])
+
+
+def _open_rail(parts: MeshParts, p: dict, t0: float, t1: float) -> None:
+    """Posts from the sill to the cap rail between t0 and t1, and a rail halfway up them, both sides."""
+
+    def middle(t: float) -> float:
+        return (bulwark_inner(p, t) + side_at(p, t, rail_height(p, t))) / 2
+
+    def mid_rail(t: float) -> list[tuple[float, float]]:
+        x, h = middle(t), MID_RAIL_SIZE / 2
+        sill = deck_height(p, t) + SILL
+        z = sill + (rail_height(p, t) - sill) * MID_RAIL
+        return [(x - h, z - h), (x - h, z + h), (x + h, z + h), (x + h, z - h)]
+
+    _strip(parts, p, mid_rail, t0, t1, "ShipWood")
+    gaps = [(port.t, port.size / p["length"]) for port in gun_port_centres(p) if port.open and port.side > 0]
+    count = round((t1 - t0) * p["length"] / POST_STEP)
+    for i in range(count + 1):
+        t = t0 + (t1 - t0) * i / count
+        if any(abs(t - at) < half + POST / p["length"] for at, half in gaps):
+            continue
+        z0, z1 = deck_height(p, t), rail_height(p, t)
+        for side in (1.0, -1.0):
+            axis_box(parts, Vector((side * middle(t), _y(p, t), (z0 + z1) / 2)), Vector((POST, POST, z1 - z0)), "ShipWood")
 
 
 def wales(parts: MeshParts, p: dict) -> None:
@@ -288,6 +325,8 @@ def chase_port_centres(p: dict) -> list[Port]:
 
 def gun_ports(parts: MeshParts, p: dict) -> None:
     for port in gun_port_centres(p):
+        if port.open and is_open(p, port.t):
+            continue
         side, size = port.side, port.size
         hole = port.centre + Vector((side * PORT_DEPTH / 2, 0.0, 0.0))
         axis_box(parts, hole, Vector((PORT_DEPTH, size, size)), "Tar")

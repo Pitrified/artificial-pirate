@@ -4,8 +4,8 @@ see builders/ship.py.
 Hull from its published particulars (Wikipedia: 82.4 m between perpendiculars, 100.5 m overall,
 15.56 m beam, about 7 m draft, masts 50, 54 and 43 m), the masts' places, the bands and the ports
 measured on references/giant/vespucci_broadside.jpg; the sheer, the overhanging bow and counter, the bands
-rising with the sheer, the red bottom and the gilt line from the profile drawing references/giant/vespucci_profile.png. A long black hull with two white bands of ports:
-the upper row armed on a covered deck, the lower row painted. The rig is the brig's (builders/brig.py)
+rising with the sheer, the red bottom and the gilt line from the profile drawing references/giant/vespucci_profile.png. A long black hull with two white bands of ports,
+both rows armed on covered decks. The rig is the brig's (builders/brig.py)
 scaled above each mast's deck to its height (the lengths too), four yards a mast where she carries six;
 the yards 1.4 times the brig's scaled lengths, as wide as hers against the beam, the main course set.
 """
@@ -32,7 +32,8 @@ PARAMS = {
     "run": 3.0,
     "transom_rake_deg": 12.0,
     "bulwark": 1.5,          # m
-    "band": 0.4,             # m, a white line under the rail
+    "open_rail": [0.04, 0.87],
+    "band": 1.55,            # m from the rail: a white line under the open rail's sill
     "boot": 0.6,             # m
     "tumblehome": 0.08,      # of the half beam, the rail in from the widest
     "stations": 40,
@@ -95,14 +96,14 @@ PARAMS = {
         {"kind": "staysail", "mast": 2, "tack": 0.85, "head": 0.3, "clew_ahead": 6.0, "clew_z": 12.0},
         {"kind": "jib", "mast": 0, "head_z": 50.0, "tack": 1.0, "clew_aft": 21.5, "clew_z": 20.3},
     ],
-    "stripes": [[3.8, 5.7], [6.6, 8.2], [9.0, 9.25, "Gilt"]],
+    "stripes": [[3.8, 5.7], [6.6, 8.2], [8.25, 8.4, "Gilt"]],
     "bands_follow_sheer": True,
     "stripe_scrolls": True,
     "stern_gallery": True,
     "anchors": True,
     "manned_yards": 2,
     "gun_ports": [
-        {"count": 16, "from": 0.16, "to": 0.84, "z": 4.75, "size": 0.9, "guns": False},
+        {"count": 16, "from": 0.16, "to": 0.84, "z": 4.75, "size": 0.9},
         {"count": 15, "from": 0.18, "to": 0.82, "z": 7.4, "size": 0.9},
     ],
     "chase_ports": {"across": [-1.2, 1.2], "z": 8.6, "size": 0.8},

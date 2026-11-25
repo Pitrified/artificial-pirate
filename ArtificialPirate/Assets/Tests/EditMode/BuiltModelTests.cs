@@ -280,6 +280,23 @@ namespace Game.Tests.EditMode
         }
 
         [TestCaseSource(nameof(Ships))]
+        public void ShipPrefab_TurnsABarrelForEachGun_InTheTypesOrder(Expected model)
+        {
+            SO_ShipType type = LoadType(model);
+            string name = Load(model).name;
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Prefabs/PF_Ship_{name}.prefab");
+            Assert.IsNotNull(prefab, $"PF_Ship_{name}");
+            SerializedProperty barrels = new SerializedObject(prefab.GetComponentInChildren<Broadside>(true)).FindProperty("_barrels");
+            var expected = Batteries.SelectMany(battery => Enumerable.Range(0, type.GunCount(battery)).Select(i => $"{name}Gun{battery}{i}")).ToArray();
+            Assert.AreEqual(expected.Length, barrels.arraySize, "a barrel for each gun");
+            for (int i = 0; i < expected.Length; i++)
+            {
+                Object barrel = barrels.GetArrayElementAtIndex(i).objectReferenceValue;
+                Assert.AreEqual(expected[i], barrel != null ? barrel.name : null, $"barrel {i}");
+            }
+        }
+
+        [TestCaseSource(nameof(Ships))]
         public void Ship_HasAMapIcon_BowUp(Expected model)
         {
             Texture2D icon = LoadType(model).MapIcon;

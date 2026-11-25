@@ -16,6 +16,7 @@ MonoBehaviour:
   _halfBeam: 4.9
   _draft: 3.4
   _freeboard: 3
+  _sideTop: 2.05
   _beamAlongLength:
     serializedVersion: 2
     m_Curve:

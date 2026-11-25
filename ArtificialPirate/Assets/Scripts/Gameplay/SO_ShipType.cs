@@ -45,6 +45,9 @@ namespace Game.Gameplay
         [Tooltip("Rail above the waterline amidships (m).")]
         [SerializeField] private float _freeboard = 0.5f;
 
+        [Tooltip("Where the hull's side ends above the waterline amidships (m): the rail over a closed bulwark, the sill under an open rail; the builder's hull_top.")]
+        [SerializeField] private float _sideTop = 0.5f;
+
         [Tooltip("The hull's side above the water along its length, as a share of Half Beam, from -1 (the stern) to 1 (the bow) of Half Length; the builder's half_beam.")]
         [SerializeField] private AnimationCurve _beamAlongLength = AnimationCurve.Constant(-1f, 1f, 1f);
 
@@ -149,6 +152,9 @@ namespace Game.Gameplay
 
         /// <summary>Rail above the waterline amidships, in metres.</summary>
         public float Freeboard => _freeboard;
+
+        /// <summary>Where the hull's side ends above the waterline amidships, in metres: under an open rail, its sill.</summary>
+        public float SideTop => _sideTop;
 
         /// <summary>
         /// From the centreline to the hull's side above the water, <paramref name="z"/> metres
@@ -343,6 +349,7 @@ namespace Game.Gameplay
             _halfBeam = halfBeam;
             _draft = draft;
             _freeboard = freeboard;
+            _sideTop = freeboard;
         }
     }
 }

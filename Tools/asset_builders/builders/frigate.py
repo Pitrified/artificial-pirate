@@ -24,6 +24,7 @@ PARAMS = {
     "transom_water": 0.3,
     "transom_rake_deg": 10.0,
     "bulwark": 1.3,          # m
+    "open_rail": [0.1, 0.86],
     "band": 3.0,             # m, the ochre band from the rail down past the gun deck's ports
     "boot": 0.5,             # m
     "tumblehome": 0.1,       # of the half beam, the rail in from the widest

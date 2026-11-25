@@ -35,6 +35,7 @@ A change that adds detail is judged by those rows on the phone against a run fro
 | Real-time lights        | 1 directional         | No additional realtime   |
 | Real-time shadows       | Main light only, hard, one cascade, 50 m | On for the ships' detail; the cost on the phone is still to measure |
 | Post-processing         | None / minimal        | Color grading at most    |
+| Anti-aliasing           | MSAA 4x, render scale 0.8 | Against the rigging's sub-pixel ropes shimmering at a distance; the cost on the phone is to measure against a run without it |
 
 URP asset (mobile profile) lives in `Assets/Settings/`. Only one URP asset is shipped.
 

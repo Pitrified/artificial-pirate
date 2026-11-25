@@ -22,6 +22,7 @@ PARAMS = {
     "transom": 0.65,
     "transom_rake_deg": 8.0,
     "bulwark": 1.2,          # m
+    "open_rail": [0.06, 0.88],
     "band": 1.4,             # m, the gun deck's band
     "boot": 0.4,             # m
     "masts": [

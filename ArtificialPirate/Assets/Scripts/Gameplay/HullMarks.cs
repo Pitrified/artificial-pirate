@@ -151,8 +151,8 @@ namespace Game.Gameplay
             float side = hit.Point.x >= 0f ? 1f : -1f;
             float reach = Mathf.Max(type.HalfLength - half, 0f);
             float z = Mathf.Clamp(hit.Point.z, -reach, reach);
-            float top = type.Freeboard - half;
-            float y = top > half ? Mathf.Clamp(hit.Point.y, half, top) : type.Freeboard * 0.5f;
+            float top = type.SideTop - half;
+            float y = top > half ? Mathf.Clamp(hit.Point.y, half, top) : type.SideTop * 0.5f;
 
             float slope = (type.HalfBeamAt(z + SlopeStep) - type.HalfBeamAt(z - SlopeStep)) / (2f * SlopeStep);
             Vector3 normal = new Vector3(side, 0f, -slope).normalized;
