@@ -13,6 +13,7 @@ from __future__ import annotations
 import dataclasses
 import itertools
 import math
+import zlib
 from dataclasses import dataclass
 
 from mathutils import Vector
@@ -37,6 +38,7 @@ GAFF_TWIST = 1.2
 EASE_STEP_DEG = 1.0
 JIB_SHEET = 0.6
 
+CANVAS_TILE_MM = 4000  # the canvas texture's width, in millimetres
 ROWS = 8
 COLUMNS = 10
 CAMBER = 0.12
@@ -145,6 +147,8 @@ def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, V
     height = ((c + d) / 2 - (a + b) / 2).length
     sharpness = math.log(0.5) / math.log(cut.draft_at)
 
+    # Each sail its own stretch of the canvas's wear, shifted across the cloths so the reef bands keep their depth.
+    shift = zlib.crc32(name.encode()) % CANVAS_TILE_MM / 1000.0
     grid, uvs = [], []
     for row in range(ROWS + 1):
         v0 = row / ROWS
@@ -158,7 +162,7 @@ def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, V
             depth = camber * chord * math.sin(math.pi * u**sharpness) * envelope
             depth += CREASE * chord * math.sin(2 * math.pi * CREASES * u) * math.sin(math.pi * u) * v * v
             grid.append(point + normal * depth)
-            uvs.append((u * chord, (1 - v) * height))
+            uvs.append((u * chord + shift, (1 - v) * height))
 
     width = COLUMNS + 1
     first = len(parts.faces)
