@@ -21,6 +21,7 @@ PARAMS = {
     "sheer_low": 0.5,
     "widest": 0.48,
     "transom": 0.62,
+    "transom_water": 0.3,
     "transom_rake_deg": 10.0,
     "bulwark": 1.3,          # m
     "band": 3.0,             # m, the ochre band from the rail down past the gun deck's ports
