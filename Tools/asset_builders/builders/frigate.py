@@ -32,6 +32,7 @@ PARAMS = {
     "transom_slot": "SternPanel",
     "stern_window_rows": 2,
     "anchors": True,
+    "quarter_galleries": {"from": 0.0, "to": 0.08, "out": 0.6, "below_deck": 1.2, "windows": 3, "drop": 1.0},
     "raised_decks": [
         {"from": 0.0, "to": 0.24, "height": 1.0},   # the quarterdeck
         {"from": 0.86, "to": 1.0, "height": 0.8},   # the forecastle

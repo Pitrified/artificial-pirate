@@ -18,6 +18,8 @@ Type keys (all but the deck optional):
 - deckhouses: each [t, length, width, height], on the centreline;
 - boats: each [t, length], a pair hung outboard on davits, one a side;
 - anchors: true for a bower anchor a side hung from a cathead near the bow;
+- quarter_galleries: {from, to (fractions from the stern), out (m from the side), below_deck (its foot, m
+  under the deck), windows, drop (m of carved drop under it)}, one a side in the transom's paint;
 - deck: {hatches: [[t, length, width]], companionway: which hatch is the way below (its index), capstan: t,
   helm: "wheel" or "tiller", helm_at: t}. The other hatches are gratings.
 """
@@ -88,6 +90,7 @@ WHEEL_PEDESTAL = 0.3  # forward of the wheel
 TILLER_LENGTH = 2.5
 TILLER_RISE = 0.25
 RUDDER_HEAD = 0.26
+GALLERY_CAP = 0.15  # m, the gilt cap over a quarter gallery
 ANCHOR_AT = 0.9  # fraction from the stern: the catheads
 ANCHOR_OF_LENGTH = 0.05  # the shank, of the ship's length
 ANCHOR_THICKNESS = 0.06  # of the shank's length
@@ -599,6 +602,37 @@ def boats(parts: MeshParts, p: dict) -> None:
                 line(parts, head, Vector((centre.x, y, centre.z)), 0.04, "Tar")
 
 
+def quarter_galleries(parts: MeshParts, p: dict) -> None:
+    """A windowed gallery standing out from each side near the stern, from below the deck to the rail:
+    the transom's paint, a row of gilt-framed windows, a gilt cap and a drop tapering under it."""
+    spec = p.get("quarter_galleries")
+    if not spec:
+        return
+    t0, t1 = spec["from"], spec["to"]
+    tm = (t0 + t1) / 2
+    rail = rail_height(p, tm)
+    low = deck_height(p, tm) - spec["below_deck"]
+    # From the raked transom's face, if it starts at the stern, to its forward end.
+    aft = transom_y(p, (rail + low) / 2) if t0 <= 0.0 else _y(p, t0)
+    length = _y(p, t1) - aft
+    slot = p.get("transom_slot", "Topsides")
+    for side in (1.0, -1.0):
+        x_side = side_at(p, tm, (rail + low) / 2)
+        centre = Vector((side * (x_side + spec["out"] / 2), aft + length / 2, (rail + low) / 2))
+        axis_box(parts, centre, Vector((spec["out"], length, rail - low)), slot)
+        axis_box(parts, Vector((centre.x, centre.y, rail + GALLERY_CAP / 2)), Vector((spec["out"] + 0.1, length + 0.1, GALLERY_CAP)), "Gilt")
+        face = side * (x_side + spec["out"])
+        k = _grown(p)
+        for i in range(spec["windows"]):
+            y = aft + length * (i + 0.5) / spec["windows"]
+            z = (rail + low) / 2 + 0.1
+            axis_box(parts, Vector((face, y, z)),
+                     Vector((WINDOW_FRAME_PROUD * 2, WINDOW_WIDTH * k + WINDOW_FRAME * 2, WINDOW_HEIGHT * k + WINDOW_FRAME * 2)), "Gilt")
+            axis_box(parts, Vector((face, y, z)), Vector((WINDOW_GLASS_PROUD * 2, WINDOW_WIDTH * k, WINDOW_HEIGHT * k)), "Tar")
+        pole(parts, Vector((centre.x, centre.y, low)), Vector((side * x_side, centre.y, low - spec["drop"])), min(length, spec["out"] * 2),
+             0.1, 8, "Gilt", smooth=True)
+
+
 def anchors(parts: MeshParts, p: dict) -> None:
     """A bower anchor a side, hung from a cathead near the bow against the hull: shank, stock across its
     head, and two arms curving up from the crown, sized to the ship."""
@@ -637,3 +671,4 @@ def fit(parts: MeshParts, p: dict) -> None:
     deckhouses(parts, p)
     boats(parts, p)
     anchors(parts, p)
+    quarter_galleries(parts, p)
