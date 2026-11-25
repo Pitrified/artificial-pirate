@@ -127,7 +127,8 @@ def sail_name(index: int, spec: dict) -> str:
 
 def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, Vector], cut: _Cut,
            downwind: Vector, camber: float = CAMBER) -> None:
-    """A two-sided sail over (tack or clew, clew, head end, head start): u runs luff to leech, v foot to head."""
+    """A two-sided sail over (tack or clew, clew, head end, head start): u runs luff to leech, v down from the
+    head, so the canvas's reef bands lie at the same depths under every yard."""
     a, b, c, d = corners
     normal = (b - a).cross(d - a).normalized()
     if normal.dot(downwind) < 0:
@@ -149,7 +150,7 @@ def _sheet(parts: MeshParts, name: str, corners: tuple[Vector, Vector, Vector, V
             depth = camber * chord * math.sin(math.pi * u**sharpness) * envelope
             depth += CREASE * chord * math.sin(2 * math.pi * CREASES * u) * math.sin(math.pi * u) * v * v
             grid.append(point + normal * depth)
-            uvs.append((u * chord, v * height))
+            uvs.append((u * chord, (1 - v) * height))
 
     width = COLUMNS + 1
     first = len(parts.faces)

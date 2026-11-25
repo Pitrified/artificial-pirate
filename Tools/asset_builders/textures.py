@@ -83,9 +83,15 @@ def palette() -> Path:
     return _save(Image.fromarray(np.round(rgb * 255).astype(np.uint8), "RGB"), "T_Palette")
 
 
+REEF_BANDS_M = (1.0, 3.0)  # below a sail's head, repeating every 4 m
+REEF_BAND_PX = 6
+REEF_POINT_PX = 10
+
+
 def sail_canvas() -> Path:
-    """Worn canvas over 4 x 4 m, tiling: seams between 0.5 m cloths, dirt and wear in broad patches; and its
-    normal map, the seams standing proud, `T_SailCanvas_N`."""
+    """Worn canvas over 4 x 4 m, tiling: seams between 0.5 m cloths, dirt and wear in broad patches, reef
+    bands with their points hanging under them at REEF_BANDS_M below the head; and its normal map, the
+    seams and bands standing proud, `T_SailCanvas_N`."""
     size = 256
     dirt = tiling_height(size, waves=24, min_freq=1, max_freq=5, falloff=1.0, seed=21)
     grain = tiling_height(size, waves=48, min_freq=12, max_freq=40, falloff=0.8, seed=22)
@@ -95,6 +101,14 @@ def sail_canvas() -> Path:
     tone[:, seams] *= 0.86
     height = 0.15 * grain + 0.3 * dirt
     height[:, seams] += 1.0
+    px = size // 4  # a metre
+    for below in REEF_BANDS_M:
+        top = size - 1 - round(below * px)  # v runs up the image from the sail's head at its foot
+        tone[top - REEF_BAND_PX:top] *= 0.9
+        height[top - REEF_BAND_PX:top] += 0.6
+        for x0 in range(px // 8, size, px // 4):
+            tone[top:top + REEF_POINT_PX, x0:x0 + 2] *= 0.75
+            height[top:top + REEF_POINT_PX, x0:x0 + 2] += 0.4
     normal_map(height, strength=3.0).save(TEXTURES_DIR / "T_SailCanvas_N.png", optimize=False)
     return _save(Image.fromarray(np.round(np.clip(tone, 0, 1) * 255).astype(np.uint8), "RGB"), "T_SailCanvas")
 
