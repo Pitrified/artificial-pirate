@@ -1,6 +1,6 @@
 ---
-status: in progress
-priority: 1
+status: done
+priority: 0
 description: |
   The fleet grows and looks the part: gun carriages in place of boxes, sails trimmed to a wind as the
   ship turns, chase and stern guns on bigger ships, a frigate, and a giant three-master with the

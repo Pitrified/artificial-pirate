@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 06 - Verify
@@ -34,3 +34,5 @@ The look passes that followed, against the Vespucci's profile drawing and photo 
 - Details: normal-mapped planks and canvas, the giant's red bottom and gilt line, scrolls ending the bands, a shaped figurehead under the bowsprit, anchors at catheads, deckhouses, boats on davits, more crew, the frigate's blue stern with two rows of windows and quarter galleries, the giant's stern gallery.
 - Tried and dropped: a narrower waterline aft on the brig and the sloop (a box on a narrow bottom without a counter); a sail shader moving the cloth (two-sided sails would part along their normals; it needs its own UVs and shader).
 - Triangles shown, one state: sloop 14.7k, brig 24.1k, frigate 30.4k, giant 40.1k.
+- The second and third reads: the giant's lower row armed and both rows fired together in each volley step, open rails on posts on every type, softer sails without the creases, MSAA 4x against the rigging's shimmer at no GPU cost the phone could see (p50 12.8 ms near both giants).
+- Triangles shown, one state, after them: sloop 15.7k, brig 26.2k, frigate 30.7k, giant 44.4k. The rendering counts in docs/performance-budget.md are now labelled unmeasured starting guesses; the phone's frame time decides.
