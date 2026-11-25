@@ -20,9 +20,9 @@ from mathutils import Vector
 from builders.ship.mesh import Cloth, MeshParts, frame, pole
 from builders.ship.rig import Mast, boom_ends, bowsprit, gaff_ends, spars, stay_ends, yard_ends
 
-# Where the wind comes from, degrees clockwise from the bow: close-hauled, abeam, on the quarter and
-# dead astern, on either tack. The game reads the same list (SO_SailTrim).
-WIND_BANDS_DEG = (67.5, 90.0, 135.0, 180.0, -135.0, -90.0, -67.5)
+# Where the wind comes from, degrees clockwise from the bow: close-hauled, then every 22.5 degrees round
+# to dead astern, on either tack. The game reads the same list (SO_SailTrim).
+WIND_BANDS_DEG = (67.5, 90.0, 112.5, 135.0, 157.5, 180.0, -157.5, -135.0, -112.5, -90.0, -67.5)
 MAX_BRACE_DEG = 40.0
 SHEET_FROM_DEG = 20.0  # the wind's angle off the bow at which the boom and jib sheets lie amidships
 GAFF_TWIST = 1.2

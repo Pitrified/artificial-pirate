@@ -15,9 +15,13 @@ MonoBehaviour:
   _bandsDeg:
   - 67.5
   - 90
+  - 112.5
   - 135
+  - 157.5
   - 180
+  - -157.5
   - -135
+  - -112.5
   - -90
   - -67.5
-  _hysteresisDeg: 8
+  _hysteresisDeg: 5

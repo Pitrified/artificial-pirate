@@ -11,10 +11,10 @@ namespace Game.Gameplay
     public sealed class SO_SailTrim : ScriptableObject
     {
         [Tooltip("Where the wind comes from for each sailing state, off the bow (degrees clockwise, positive on starboard), in the model's order.")]
-        [SerializeField] private float[] _bandsDeg = { 67.5f, 90f, 135f, 180f, -135f, -90f, -67.5f };
+        [SerializeField] private float[] _bandsDeg = { 67.5f, 90f, 112.5f, 135f, 157.5f, 180f, -157.5f, -135f, -112.5f, -90f, -67.5f };
 
         [Tooltip("How much nearer the wind must be to another band before the sails change to it (degrees).")]
-        [SerializeField] private float _hysteresisDeg = 8f;
+        [SerializeField] private float _hysteresisDeg = 5f;
 
         /// <summary>How many sailing states each mast has.</summary>
         public int BandCount => _bandsDeg.Length;
