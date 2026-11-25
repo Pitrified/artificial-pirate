@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 03 - Verify
@@ -21,3 +21,8 @@ Context: [`00_start.md`](00_start.md).
 ## Done when
 
 - The user's read and report.
+
+## What the implementation found
+
+- The user's read of 7f297aa on the Pixel 7 Pro: looks good.
+- Diagnostics, 91 s with both giants fighting: 60 fps held, GPU p50 12.3 ms and p95 13.8 ms (the fleet's run: p50 12.8 ms), 5 slow frames; the two extra texture reads cost nothing the phone shows.

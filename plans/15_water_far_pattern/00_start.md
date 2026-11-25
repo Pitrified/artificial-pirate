@@ -1,6 +1,6 @@
 ---
-status: in progress
-priority: 1
+status: done
+priority: 0
 description: |
   Far water seen from the chase camera shows a pattern: the small ripples line up into faint bands
   of lines in the distance. Find what repeats and break it up.
