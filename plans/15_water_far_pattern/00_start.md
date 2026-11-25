@@ -67,7 +67,7 @@ From `Assets/Shaders/Water.shader`, `SO_WaterSettings.asset` and `Tools/asset_bu
   - d. Anisotropic filtering 4x on the detail map, so the near grain survives farther and covers the lines. Costs GPU time to measure on the phone.
   - In each case also rotate the patch layer's uv so its diagonal bias stops lining up with the waves.
   - Recommended: a with the patch rotation, because it keeps the far waves' light and costs least; d after the phone read if the grain still dies too near.
-  - NEW_ANS:
+  - ANS: a.
 
 ## Phases
 

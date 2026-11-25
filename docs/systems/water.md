@@ -36,6 +36,9 @@ The middle ground, with no package: a Gerstner sum in the vertex shader with the
 - **The drawn waves calm in water shallower than `CalmDepth`; the CPU waves do not.** A floater in very shallow water rides a little high. Keep floaters in deeper water, or add the depth map to `WaveField` if it matters.
 - **The grid follows the ship.** A fine core of 256 m (2 m quads) and coarse flat quads of 64 m out to 2.3 km, past the fog's end. It moves in whole fine quads, so its waves do not swim. The drawn waves' height calms to nothing from 100 to 124 m from the grid's centre (`_WaterFarCalm`), so the core's edge is flat and the coarse quads cannot crack against it; the CPU waves do not calm there, which is fine as long as floaters stay near the ship.
 - **The waves' light goes out to the fog.** The fragment works out the waves' normal and crest height itself, so water past the calm is still lit as waves. A wave fades as its wavelength nears four pixels of water, so the short ones do not shimmer far out. It costs the four-wave sum again in each water pixel. Past 60 m from the camera, fading in to 200 m, the detail map is sampled once more at a tenth of its tiling (about 80 m a repeat), so the far water shows broad uneven patches across the long waves rather than only their lines.
+  That layer is turned 37 degrees off the near layers, so the map's grain does not line up across them.
+  Far out only the long waves are resolved, and two plane waves alone draw straight, even lines to the horizon; so over the same 60 to 200 m each wave's strength in the light swings up and down in patches (the detail map read at about 140 m a repeat, a different reading for each pair of waves).
+  The vertex waves, the CPU's `WaveField` and buoyancy are untouched: only the far water's light changes.
 
 ---
 

@@ -63,6 +63,13 @@ Shader "artificial-pirate/Water"
             static const float PatchStrength = 4.0;    // of the detail's strength
             static const float PatchesFrom = 60.0;     // m from the camera, fading in
             static const float PatchesFull = 200.0;    // m from the camera, at full strength
+            static const float2x2 PatchTurn = float2x2(0.799, -0.602, 0.602, 0.799); // 37 degrees, off the near layers' grain
+            // Far out only the long waves are resolved and two plane waves draw straight lines to the horizon:
+            // each wave's strength comes and goes in broad patches there, read from the detail map at a large scale.
+            static const float SwellTiling = 0.06;     // of the detail's tiling: about 140 m a repeat
+            static const float SwellVary = 1.2;        // how far a wave's strength swings either way
+            static const float2x2 SwellTurn = float2x2(0.259, -0.966, 0.966, 0.259); // 75 degrees, for the second pair of waves
+            static const float2 SwellShift = float2(0.37, 0.61); // of a repeat, for the second pair
 
             struct Attributes
             {
@@ -111,6 +118,13 @@ Shader "artificial-pirate/Water"
                 return wave;
             }
 
+            // A wave with its strength scaled.
+            float4 Varied(float4 wave, float strength)
+            {
+                wave.z *= strength;
+                return wave;
+            }
+
             // How much the waves calm over seabed this deep, so they do not climb onto the land.
             float ShallowCalm(float depth)
             {
@@ -150,10 +164,15 @@ Shader "artificial-pirate/Water"
                 // The waves' normal and height at this pixel, the waves too short to show here left out.
                 float2 footprint = fwidth(i.restXZ);
                 float metresPerPixel = max(max(footprint.x, footprint.y), 1e-4);
+                float patches = saturate((distance(i.positionWS, _WorldSpaceCameraPos) - PatchesFrom) / (PatchesFull - PatchesFrom));
+                float2 swellUV = i.restXZ * _WaterDetail.x * SwellTiling;
+                half2 swellAB = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, swellUV)).xy;
+                half2 swellCD = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, mul(SwellTurn, swellUV) + SwellShift)).xy;
+                float4 strength = max(1.0 + SwellVary * patches * float4(swellAB, swellCD), 0.0);
                 float3 offset, waveNormal;
                 GerstnerSum(i.restXZ,
-                    Resolved(_WaterWaveA, metresPerPixel), Resolved(_WaterWaveB, metresPerPixel),
-                    Resolved(_WaterWaveC, metresPerPixel), Resolved(_WaterWaveD, metresPerPixel),
+                    Varied(Resolved(_WaterWaveA, metresPerPixel), strength.x), Varied(Resolved(_WaterWaveB, metresPerPixel), strength.y),
+                    Varied(Resolved(_WaterWaveC, metresPerPixel), strength.z), Varied(Resolved(_WaterWaveD, metresPerPixel), strength.w),
                     offset, waveNormal);
                 float calm = ShallowCalm(depth);
                 waveNormal = normalize(lerp(float3(0, 1, 0), waveNormal, calm));
@@ -172,9 +191,8 @@ Shader "artificial-pirate/Water"
                 half3 n1 = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uv1));
                 half3 n2 = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uv2));
                 float2 bend = (n1.xy + n2.xy) * _WaterDetail.y;
-                float2 uv3 = i.positionWS.xz * tiling * PatchTiling + float2(-scroll, scroll * 0.7) * PatchTiling * PatchScroll;
+                float2 uv3 = mul(PatchTurn, i.positionWS.xz) * tiling * PatchTiling + float2(-scroll, scroll * 0.7) * PatchTiling * PatchScroll;
                 half3 n3 = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uv3));
-                float patches = saturate((distance(i.positionWS, _WorldSpaceCameraPos) - PatchesFrom) / (PatchesFull - PatchesFrom));
                 bend += n3.xy * _WaterDetail.y * PatchStrength * patches;
 
                 // Ripples: a height field around the action; its slope bends the normal, its height foams.
