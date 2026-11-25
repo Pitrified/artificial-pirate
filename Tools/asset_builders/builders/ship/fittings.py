@@ -17,6 +17,7 @@ Type keys (all but the deck optional):
 - stripe_scrolls: a gilt scroll where each painted band ends at the bow;
 - deckhouses: each [t, length, width, height], on the centreline;
 - boats: each [t, length], a pair hung outboard on davits, one a side;
+- anchors: true for a bower anchor a side hung from a cathead near the bow;
 - deck: {hatches: [[t, length, width]], companionway: which hatch is the way below (its index), capstan: t,
   helm: "wheel" or "tiller", helm_at: t}. The other hatches are gratings.
 """
@@ -86,6 +87,14 @@ WHEEL_PEDESTAL = 0.3  # forward of the wheel
 TILLER_LENGTH = 2.5
 TILLER_RISE = 0.25
 RUDDER_HEAD = 0.26
+ANCHOR_AT = 0.9  # fraction from the stern: the catheads
+ANCHOR_OF_LENGTH = 0.05  # the shank, of the ship's length
+ANCHOR_THICKNESS = 0.06  # of the shank's length
+ANCHOR_STOCK = 0.7
+ANCHOR_ARM = 0.35
+ANCHOR_RING = 0.2  # m
+CATHEAD = 0.3  # m, square
+CATHEAD_OUT = 0.9  # m, beyond the side
 ROOF = 0.15
 ROOF_OVER = 0.15  # how far a deckhouse's roof stands out over its sides
 BOAT_BEAM = 0.27  # of its length
@@ -561,6 +570,32 @@ def boats(parts: MeshParts, p: dict) -> None:
                 line(parts, head, Vector((centre.x, y, centre.z)), 0.04, "Tar")
 
 
+def anchors(parts: MeshParts, p: dict) -> None:
+    """A bower anchor a side, hung from a cathead near the bow against the hull: shank, stock across its
+    head, and two arms curving up from the crown, sized to the ship."""
+    if not p.get("anchors"):
+        return
+    t = ANCHOR_AT
+    shank = p["length"] * ANCHOR_OF_LENGTH
+    rail = rail_height(p, t)
+    for side in (1.0, -1.0):
+        x = side * (side_at(p, t, rail) + CATHEAD_OUT)
+        y = _y(p, t)
+        axis_box(parts, Vector((side * (side_at(p, t, rail) + CATHEAD_OUT / 2), y, rail - CATHEAD / 2)),
+                 Vector((CATHEAD_OUT, CATHEAD, CATHEAD)), "Spar")
+        top = Vector((x, y, rail - CATHEAD - ANCHOR_RING))
+        crown = top - Vector((0.0, 0.0, shank))
+        d = shank * ANCHOR_THICKNESS
+        pole(parts, top, crown, d, d * 1.2, 6, "Tar")
+        ring(parts, top + Vector((0.0, 0.0, ANCHOR_RING / 2)), Vector((side, 0.0, 0.0)), ANCHOR_RING, d * 0.5, 8, "Tar")
+        axis_box(parts, top - Vector((0.0, 0.0, d)), Vector((d, shank * ANCHOR_STOCK, d)), "Tar")
+        for fore in (1.0, -1.0):
+            tip = crown + Vector((0.0, fore * shank * ANCHOR_ARM, shank * ANCHOR_ARM))
+            bend = crown + Vector((0.0, fore * shank * ANCHOR_ARM * 0.6, shank * ANCHOR_ARM * 0.15))
+            pole(parts, crown, bend, d * 1.1, d, 6, "Tar")
+            pole(parts, bend, tip, d, d * 0.4, 6, "Tar")
+
+
 def fit(parts: MeshParts, p: dict) -> None:
     deck(parts, p)
     rail(parts, p)
@@ -572,3 +607,4 @@ def fit(parts: MeshParts, p: dict) -> None:
     furniture(parts, p)
     deckhouses(parts, p)
     boats(parts, p)
+    anchors(parts, p)

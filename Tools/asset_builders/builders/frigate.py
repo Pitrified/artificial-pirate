@@ -31,6 +31,7 @@ PARAMS = {
     "bands_follow_sheer": True,
     "transom_slot": "SternPanel",
     "stern_window_rows": 2,
+    "anchors": True,
     "raised_decks": [
         {"from": 0.0, "to": 0.24, "height": 1.0},   # the quarterdeck
         {"from": 0.86, "to": 1.0, "height": 0.8},   # the forecastle
@@ -90,7 +91,8 @@ PARAMS = {
     "stern_windows": 7,
     "deck": {"hatches": [[0.6, 3.6, 3.0], [0.36, 2.6, 2.2], [0.88, 1.8, 1.8]], "companionway": 1, "capstan": 0.42,
              "helm": "wheel", "helm_at": 0.12},
-    "crew": [[0.05, 0.5], [0.05, -0.5], [0.42, 0.4], [0.55, -0.5], [0.7, 0.0], [0.9, 0.3], [0.3, -0.3]],
+    "crew": [[0.05, 0.5], [0.05, -0.5], [0.42, 0.4], [0.55, -0.5], [0.7, 0.0], [0.9, 0.3], [0.3, -0.3],
+             [0.15, 0.7], [0.2, -0.7], [0.35, 0.7], [0.47, -0.7], [0.6, 0.7], [0.65, -0.7], [0.8, -0.6]],
     "preview_rgb": {
         "HullBottom": [0.05, 0.05, 0.05],
         "Topsides": [0.06, 0.06, 0.06],
