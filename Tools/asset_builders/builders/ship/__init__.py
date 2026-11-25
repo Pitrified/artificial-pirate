@@ -37,9 +37,9 @@ furniture) are described in builders/ship/fittings.py.
 
 from __future__ import annotations
 
-from builders.ship import clearance, fittings, hull, props, rig, rigging, sails
 from mathutils import Vector
 
+from builders.ship import clearance, fittings, hull, props, rig, rigging, sails
 from builders.ship.mesh import MeshParts, make_object
 
 

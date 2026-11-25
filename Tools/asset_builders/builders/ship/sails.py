@@ -18,7 +18,15 @@ from dataclasses import dataclass
 from mathutils import Vector
 
 from builders.ship.mesh import Cloth, MeshParts, frame, pole
-from builders.ship.rig import Mast, boom_ends, bowsprit, gaff_ends, spars, stay_ends, yard_ends
+from builders.ship.rig import (
+    Mast,
+    boom_ends,
+    bowsprit,
+    gaff_ends,
+    spars,
+    stay_ends,
+    yard_ends,
+)
 
 # Where the wind comes from, degrees clockwise from the bow: close-hauled, then every 22.5 degrees round
 # to dead astern, on either tack. The game reads the same list (SO_SailTrim).

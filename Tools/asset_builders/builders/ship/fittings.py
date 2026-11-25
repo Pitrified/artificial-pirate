@@ -39,10 +39,10 @@ from builders.ship.hull import (
     deck_height,
     half_beam,
     rail_height,
+    sheer,
     stations,
     transom_y,
 )
-from builders.ship.hull import sheer
 from builders.ship.hull import side as side_at
 from builders.ship.mesh import MeshParts, axis_box, box, line, pole, ring
 from builders.ship.rig import bowsprit

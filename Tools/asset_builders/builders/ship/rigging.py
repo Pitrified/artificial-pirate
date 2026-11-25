@@ -14,7 +14,13 @@ from builders.ship.hull import rail_height
 from builders.ship.hull import side as side_at
 from builders.ship.mesh import MeshParts, Rope, axis_box, line, pole
 from builders.ship.rig import Mast, boom_ends, bowsprit, stay_ends, yard_ends
-from builders.ship.sails import Trim, jib_corners, sail_name, square_corners, staysail_corners
+from builders.ship.sails import (
+    Trim,
+    jib_corners,
+    sail_name,
+    square_corners,
+    staysail_corners,
+)
 
 SHROUD = 0.09
 RATLINE = 0.05
