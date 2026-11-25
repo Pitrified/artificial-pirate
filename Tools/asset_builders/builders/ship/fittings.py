@@ -43,6 +43,7 @@ from builders.ship.hull import (
 from builders.ship.hull import sheer
 from builders.ship.hull import side as side_at
 from builders.ship.mesh import MeshParts, axis_box, box, line, pole, ring
+from builders.ship.rig import bowsprit
 
 WALE_HEIGHT = 0.25
 STRIPE_FROM = 0.02  # fractions from the stern: a stripe runs on to the stem, stopping short of the transom
@@ -108,6 +109,9 @@ DAVIT = 0.14
 DAVIT_SPREAD = 0.7  # of the boat's length, between the davits
 DAVIT_ABOVE = 1.0  # m, the davit's head above the boat's gunwale
 FIGURE_FOR_LENGTH = 40.0
+FIGURE_SIDES = 8
+FIGURE_TALL = 1.6  # m, a brig's figurehead from its foot to the top of its head
+FIGURE_CLEAR = 0.2  # m, under the bowsprit
 SCROLL_OF_STRIPE = 0.45  # a stripe's scroll at the bow: its radius over the stripe's depth
 SCROLL_THICKNESS = 0.16
 SCROLL_SEGMENTS = 12
@@ -395,10 +399,14 @@ def bow(parts: MeshParts, p: dict) -> None:
 
     k = _grown(p)
     foot = Vector((0.0, stem_y + reach - 0.2 * k, top - 0.3 * k))
+    heel, end = bowsprit(p)
+    over = foot.z + FIGURE_TALL * k - (heel.z + (end.z - heel.z) * (foot.y - heel.y) / (end.y - heel.y) - FIGURE_CLEAR)
+    if over > 0.0:
+        # Under the bowsprit, against the cutwater's leading edge at the height it drops to.
+        z = foot.z - over
+        foot = Vector((0.0, stem_y + 0.3 + (reach - 0.3) * (z - 0.4) / (top - 0.4), z))
     ring(parts, foot - Vector((0.0, 0.0, 0.2 * k)), Vector((1.0, 0.0, 0.0)), 0.3 * k, 0.12 * k, SCROLL_SEGMENTS, "Gilt")
-    body_top = foot + Vector((0.0, 0.5, 1.1)) * k
-    pole(parts, foot, body_top, 0.5 * k, 0.35 * k, 6, "Gilt")
-    pole(parts, body_top, body_top + Vector((0.0, 0.15, 0.4)) * k, 0.35 * k, 0.3 * k, 6, "Gilt")
+    _figure_head(parts, foot, k)
     for side in (1.0, -1.0):
         board = [Vector((side * 0.13, y, z)) for y, z in ((stem_y + 0.2, top - 0.4 * k), (stem_y + reach * 0.8, top - 0.4 * k),
                                                            (stem_y + reach * 0.8, top - 0.9 * k), (stem_y + 0.2, top - 1.4 * k))]
@@ -409,6 +417,27 @@ def bow(parts: MeshParts, p: dict) -> None:
         aft = Vector((side * side_at(p, 0.93, rail_height(p, 0.93)), stem_y - 0.07 * p["length"], rail_height(p, 0.93) - 0.3))
         for drop in (0.0, 0.5):
             line(parts, foot + Vector((side * 0.15, 0.0, 0.2 - drop)), aft - Vector((0.0, 0.0, drop)), 0.12, "Trim")
+
+
+def _figure_head(parts: MeshParts, foot: Vector, k: float) -> None:
+    """A gilt figure leaning out from the cutwater: a robe flaring to the foot, chest and shoulders, arms
+    folded forward, a neck and a head; k times a brig's."""
+    lean = Vector((0.0, 0.45, 1.0)).normalized()
+    waist = foot + lean * 0.75 * k
+    shoulders = foot + lean * 1.25 * k
+    pole(parts, foot, waist, 0.55 * k, 0.36 * k, FIGURE_SIDES, "Gilt", smooth=True)
+    pole(parts, waist, shoulders, 0.36 * k, 0.44 * k, FIGURE_SIDES, "Gilt", smooth=True)
+    pole(parts, shoulders, shoulders + lean * 0.1 * k, 0.44 * k, 0.16 * k, FIGURE_SIDES, "Gilt", smooth=True)
+    neck = shoulders + lean * 0.1 * k
+    head = neck + lean * 0.12 * k
+    pole(parts, neck, head, 0.14 * k, 0.26 * k, FIGURE_SIDES, "Gilt", smooth=True)
+    pole(parts, head, head + lean * 0.28 * k, 0.26 * k, 0.12 * k, FIGURE_SIDES, "Gilt", smooth=True)
+    for side in (1.0, -1.0):
+        shoulder = shoulders + Vector((side * 0.2 * k, 0.0, -0.05 * k))
+        elbow = shoulder + Vector((side * 0.06 * k, 0.12 * k, -0.4 * k))
+        hand = waist + Vector((0.0, 0.28 * k, 0.12 * k))
+        pole(parts, shoulder, elbow, 0.13 * k, 0.11 * k, FIGURE_SIDES, "Gilt", smooth=True)
+        pole(parts, elbow, hand, 0.11 * k, 0.09 * k, FIGURE_SIDES, "Gilt", smooth=True)
 
 
 def furniture(parts: MeshParts, p: dict) -> None:
