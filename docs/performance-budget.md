@@ -22,20 +22,21 @@ targets for v0.2 and tested on-device, not in editor.
 
 ## 2. Rendering
 
-The counts in this table are guides, not limits: they say where to look when a frame costs too much.
+The counts in this table are unmeasured starting guesses, not limits: no run on the phone set them, and none is a reason to cut detail or pass over an approach.
+They only say where to look when a frame costs too much.
 What decides is the frame time on the phone, section 1, and how much of it the CPU and the GPU use.
 The game is capped at 60 fps, so the frame rate alone only says a frame fits in 16.7 ms; the diagnostics report's `cpu ms` and `gpu ms` rows (docs/systems/logging.md) say how much room is left.
 A change that adds detail is judged by those rows on the phone against a run from before it, the p95 above all, not by its draws or triangles.
 
-| Metric                  | Target                | Notes                    |
+| Metric                  | Starting guess        | Notes                    |
 | ----------------------- | --------------------- | ------------------------ |
 | SetPass calls           | ≤ 30                  | URP batching + SRP batcher |
 | Draw calls              | ≤ 80                  |                          |
-| Tris on screen          | ≤ 150 k               |                          |
+| Tris on screen          | ≤ 150 k               | About 148k with both giants in view held 60 fps at GPU p50 12.8 ms |
 | Real-time lights        | 1 directional         | No additional realtime   |
 | Real-time shadows       | Main light only, hard, one cascade, 50 m | On for the ships' detail; the cost on the phone is still to measure |
 | Post-processing         | None / minimal        | Color grading at most    |
-| Anti-aliasing           | MSAA 4x, render scale 0.8 | Against the rigging's sub-pixel ropes shimmering at a distance; the cost on the phone is to measure against a run without it |
+| Anti-aliasing           | MSAA 4x, render scale 0.8 | Against the rigging's sub-pixel ropes shimmering at a distance; on the phone near both giants GPU p50 stayed at 12.8 ms, as without it |
 
 URP asset (mobile profile) lives in `Assets/Settings/`. Only one URP asset is shipped.
 
