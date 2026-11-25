@@ -1,7 +1,8 @@
 """A brig after the Niagara (1988 rebuild of the 1813 brig); see builders/ship.py.
 
 Hull from its published particulars (Wikipedia), the rig measured on
-references/brig/niagara_sail.jpg. The draft is not published; 3.4 m is assumed.
+references/brig/niagara_sail.jpg, the yards a quarter wider than first measured to match her spread
+against the hull, and a main staysail. The draft is not published; 3.4 m is assumed.
 """
 
 from __future__ import annotations
@@ -28,16 +29,16 @@ PARAMS = {
             "at": 0.75, "height": 34.5, "diameter": 0.8, "rake_deg": 4.0,
             "top_z": 14.0, "crosstrees_z": 24.5, "shrouds": 4,
             "yards": [
-                {"z": 13.0, "length": 14.0}, {"z": 23.5, "length": 12.5},
-                {"z": 30.0, "length": 8.5}, {"z": 33.5, "length": 6.5},
+                {"z": 13.0, "length": 17.5}, {"z": 23.5, "length": 15.6},
+                {"z": 30.0, "length": 10.6}, {"z": 33.5, "length": 8.1},
             ],
         },
         {
             "at": 0.40, "height": 36.0, "diameter": 0.8, "rake_deg": 6.0,
             "top_z": 14.5, "crosstrees_z": 25.5, "shrouds": 4,
             "yards": [
-                {"z": 13.5, "length": 14.0}, {"z": 24.5, "length": 12.5},
-                {"z": 31.0, "length": 8.5}, {"z": 34.5, "length": 6.5},
+                {"z": 13.5, "length": 17.5}, {"z": 24.5, "length": 15.6},
+                {"z": 31.0, "length": 10.6}, {"z": 34.5, "length": 8.1},
             ],
             "boom": {"z": 6.0, "length": 15.0, "rise_deg": 4.0},
             "gaff": {"z": 16.5, "length": 11.0, "peak_deg": 25.0},
@@ -45,7 +46,7 @@ PARAMS = {
     ],
     "bowsprit": {"length": 17.0, "steeve_deg": 16.0, "diameter": 0.6},
     "sails": [
-        {"kind": "square", "mast": 0, "top": 0, "bottom": {"z": 6.0, "length": 13.0}},
+        {"kind": "square", "mast": 0, "top": 0, "bottom": {"z": 6.0, "length": 16.2}},
         {"kind": "square", "mast": 0, "top": 1, "bottom": 0},
         {"kind": "square", "mast": 0, "top": 2, "bottom": 1},
         {"kind": "square", "mast": 0, "top": 3, "bottom": 2},
@@ -56,6 +57,7 @@ PARAMS = {
         {"kind": "jib", "mast": 0, "head_z": 27.2, "tack": 0.0, "clew_aft": 7.0, "clew_z": 6.0},
         {"kind": "jib", "mast": 0, "head_z": 31.6, "tack": 0.6, "clew_aft": 14.0, "clew_z": 8.0},
         {"kind": "jib", "mast": 0, "head_z": 34.5, "tack": 1.0, "clew_aft": 17.0, "clew_z": 11.0},
+        {"kind": "staysail", "mast": 1, "tack": 0.85, "head": 0.3, "clew_ahead": 5.0, "clew_z": 7.5},
     ],
     "wales": [1.2, 2.9],
     "gun_ports": {"count": 9, "from": 0.15, "to": 0.82, "above_deck": 0.65, "size": 0.65},
