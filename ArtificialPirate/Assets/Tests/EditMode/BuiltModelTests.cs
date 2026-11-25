@@ -77,7 +77,7 @@ namespace Game.Tests.EditMode
             yield return new Expected
             {
                 Path = "Assets/Art/Models/Frigate.fbx",
-                Materials = ShipMaterials,
+                Materials = ShipMaterials.Append("Assets/Art/M_SternPanel.mat").ToArray(),
                 ShipType = "Assets/Settings/SO_Ship_Frigate.asset",
                 Masts = 3,
             };

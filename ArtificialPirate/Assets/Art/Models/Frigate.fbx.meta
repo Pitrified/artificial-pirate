@@ -57,6 +57,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: SternPanel
+    second: {fileID: 2100000, guid: 8d93d91dced80e16bab74e5c40b2d197, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Tar
     second: {fileID: 2100000, guid: 9e43e005826005fc4a244d0be8caa388, type: 2}
   - first:

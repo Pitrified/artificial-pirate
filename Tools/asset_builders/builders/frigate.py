@@ -16,8 +16,8 @@ PARAMS = {
     "beam": 11.2,            # m
     "draft": 5.4,            # m
     "freeboard": 5.0,        # m, amidships
-    "sheer_bow": 0.9,        # m
-    "sheer_stern": 0.5,      # m
+    "sheer_bow": 1.4,        # m
+    "sheer_stern": 0.9,      # m
     "sheer_low": 0.5,
     "widest": 0.48,
     "transom": 0.62,
@@ -25,6 +25,12 @@ PARAMS = {
     "bulwark": 1.3,          # m
     "band": 3.0,             # m, the ochre band from the rail down past the gun deck's ports
     "boot": 0.5,             # m
+    "tumblehome": 0.1,       # of the half beam, the rail in from the widest
+    "stations": 32,
+    "stern_overhang": 1.5,   # m, the counter under the transom
+    "bands_follow_sheer": True,
+    "transom_slot": "SternPanel",
+    "stern_window_rows": 2,
     "raised_decks": [
         {"from": 0.0, "to": 0.24, "height": 1.0},   # the quarterdeck
         {"from": 0.86, "to": 1.0, "height": 0.8},   # the forecastle
@@ -74,7 +80,7 @@ PARAMS = {
         {"kind": "square", "mast": 2, "top": 3, "bottom": 2},
         {"kind": "gaff", "mast": 2},
         {"kind": "jib", "mast": 0, "head_z": 35.5, "tack": 0.0, "clew_aft": 9.1, "clew_z": 7.8},
-        {"kind": "jib", "mast": 0, "head_z": 41.2, "tack": 0.6, "clew_aft": 18.3, "clew_z": 10.4},
+        {"kind": "jib", "mast": 0, "head_z": 41.2, "tack": 0.6, "clew_aft": 18.3, "clew_z": 11.6},
         {"kind": "jib", "mast": 0, "head_z": 45.0, "tack": 1.0, "clew_aft": 22.2, "clew_z": 14.3},
     ],
     "wales": [1.7, 3.4],
@@ -99,5 +105,6 @@ PARAMS = {
         "Gilt": [0.75, 0.58, 0.22],
         "Palette": [0.55, 0.40, 0.30],
         "Flag": [0.10, 0.10, 0.10],
+        "SternPanel": [0.08, 0.20, 0.55],
     },
 }

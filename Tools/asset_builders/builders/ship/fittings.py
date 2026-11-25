@@ -5,14 +5,15 @@ Type keys (all but the deck optional):
 - wales: heights of the wales' centres above the water;
 - stripes: bands of paint along the hull's side, each [low, high] above the water and optionally the slot
   (the trim's by default);
-- bands_follow_sheer: the stripes and the covered rows of ports rise with the rail toward the ends;
+- bands_follow_sheer: the stripes, the wales and the covered rows of ports rise with the rail toward the ends;
 - gun_ports: a row, or a list of rows, each {count (a side), from, to (fractions from the stern), size}
   and either above_deck (an open row: the centre over the deck there, where the gun's axis sits on its
   carriage) or z (a covered row, on a deck below: the centre above the water, the barrels' muzzles
   showing through the ports), and guns: false for a row of ports with no guns behind them;
 - chase_ports, stern_ports: {across (each port's x from the centreline), z (centre above the water),
   size}: guns firing ahead through the bow, and astern through the transom, below its windows;
-- stern_windows: how many across the transom; stern_gallery: a balcony under them;
+- stern_windows: how many across the transom, in stern_window_rows rows (one by default); stern_gallery:
+  a balcony under them; transom_slot: the transom's paint (the topsides' by default);
 - stripe_scrolls: a gilt scroll where each painted band ends at the bow;
 - deckhouses: each [t, length, width, height], on the centreline;
 - boats: each [t, length], a pair hung outboard on davits, one a side;
@@ -61,6 +62,7 @@ WINDOW_HEIGHT = 0.7
 WINDOW_FRAME = 0.08
 WINDOW_FRAME_PROUD = 0.05
 WINDOW_GLASS_PROUD = 0.07
+WINDOW_ROW_STEP = 1.6  # of a framed window's height, from one row's centre to the next below
 TAFFRAIL_HEIGHT = 0.45
 TAFFRAIL_RAIL = Vector((0.0, 0.16, 0.08))  # the cap and foot rails' depth and height
 BALUSTER_STEP = 0.25
@@ -174,8 +176,9 @@ def wales(parts: MeshParts, p: dict) -> None:
         z0, z1 = centre - WALE_HEIGHT / 2, centre + WALE_HEIGHT / 2
 
         def wale(t: float, z0: float = z0, z1: float = z1) -> list[tuple[float, float]]:
-            b1, b0 = side_at(p, t, z1), side_at(p, t, z0)
-            return [(b1, z1), (b1 + WALE_OUT, z1), (b0 + WALE_OUT, z0), (b0, z0)]
+            hi, lo = z1 + _lift(p, t), z0 + _lift(p, t)
+            b1, b0 = side_at(p, t, hi), side_at(p, t, lo)
+            return [(b1, hi), (b1 + WALE_OUT, hi), (b0 + WALE_OUT, lo), (b0, lo)]
 
         _strip(parts, p, wale, 0.03, 0.97, "Tar")
 
@@ -287,15 +290,18 @@ def stern(parts: MeshParts, p: dict) -> None:
     count = p.get("stern_windows", 0)
     rail_z, deck_z = rail_height(p, 0.0), deck_height(p, 0.0)
     z = (rail_z + deck_z) / 2
-    span = side_at(p, 0.0, z) * 1.2
     k = _grown(p)
     width, height = WINDOW_WIDTH * k, WINDOW_HEIGHT * k
-    for i in range(count):
-        x = -span / 2 + span * (i + 0.5) / count
-        _on_transom(parts, p, x, z, Vector((width + WINDOW_FRAME * 2, WINDOW_FRAME_PROUD, height + WINDOW_FRAME * 2)), "Gilt")
-        _on_transom(parts, p, x, z, Vector((width, WINDOW_GLASS_PROUD, height)), "Tar")
+    for row in range(p.get("stern_window_rows", 1)):
+        zr = z - row * (height + WINDOW_FRAME * 2) * WINDOW_ROW_STEP
+        across = side_at(p, 0.0, zr) * 1.2
+        for i in range(count):
+            x = -across / 2 + across * (i + 0.5) / count
+            _on_transom(parts, p, x, zr, Vector((width + WINDOW_FRAME * 2, WINDOW_FRAME_PROUD, height + WINDOW_FRAME * 2)), "Gilt")
+            _on_transom(parts, p, x, zr, Vector((width, WINDOW_GLASS_PROUD, height)), "Tar")
     if p.get("stern_gallery"):
-        gallery(parts, p, z - height / 2 - WINDOW_FRAME)
+        lowest = z - (p.get("stern_window_rows", 1) - 1) * (height + WINDOW_FRAME * 2) * WINDOW_ROW_STEP
+        gallery(parts, p, lowest - height / 2 - WINDOW_FRAME)
     taffrail(parts, p)
 
 

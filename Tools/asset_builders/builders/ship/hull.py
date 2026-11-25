@@ -200,19 +200,25 @@ def hull(parts: MeshParts, p: dict) -> None:
             parts.mark_sharp(a + k, b + k)
 
     stern, bow = loops[0], loops[-1]
-    parts.add_face(tuple(stern + k for k in reversed(range(n))), "Topsides")
+    if "transom_slot" in p:
+        # Painted from the band up, the hull's paint below it: the band is the starboard half's fourth point.
+        upper = (3, 2, 1, 0, n - 1, n - 2, n - 3, n - 4)
+        parts.add_face(tuple(stern + k for k in upper), p["transom_slot"])
+        parts.add_face(tuple(stern + k for k in range(n - 4, 2, -1)), "Topsides")
+    else:
+        parts.add_face(tuple(stern + k for k in reversed(range(n))), "Topsides")
     parts.add_face(tuple(bow + k for k in range(n)), "Topsides")
     for k in range(n):
         parts.mark_sharp(stern + k, stern + (k + 1) % n)
         parts.mark_sharp(bow + k, bow + (k + 1) % n)
-    _transom_board(parts, stern, n)
+    _transom_board(parts, stern, n, p.get("transom_slot", "Topsides"))
 
 
-def _transom_board(parts: MeshParts, stern: int, n: int) -> None:
+def _transom_board(parts: MeshParts, stern: int, n: int, slot: str) -> None:
     """The transom between the bulwarks from the deck up to the rail, which the stern's loop leaves open:
     its face aft, a top, and planking inside."""
     face = (stern, stern + 1, stern + n - 2, stern + n - 1)
-    parts.add_planar_face(face, "Topsides")
+    parts.add_planar_face(face, slot)
     inside = parts.add_verts([parts.verts[i] + Vector((0.0, BULWARK_THICKNESS, 0.0)) for i in face])
     parts.add_planar_face(tuple(range(inside + 3, inside - 1, -1)), "ShipWood")
     parts.add_planar_face((face[1], inside + 1, inside + 2, face[2]), "Trim")
