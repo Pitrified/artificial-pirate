@@ -37,31 +37,32 @@ PARAMS = {
         {"from": 0.0, "to": 0.24, "height": 1.0},   # the quarterdeck
         {"from": 0.86, "to": 1.0, "height": 0.8},   # the forecastle
     ],
-    # The rig is the brig's (builders/brig.py) scaled to each mast's height: proportions it clears its
-    # ropes at every wind with. The mizzen carries topsails and the spanker.
+    # The rig is the brig's first measure (builders/brig.py) scaled to each mast's height, the yards a fifth
+    # longer for the Hermione's spread. The mizzen carries topsails and the spanker; staysails hang on the
+    # main and mizzen stays.
     "masts": [
         {
             "at": 0.77, "height": 45.0, "diameter": 0.9, "rake_deg": 3.0,
             "top_z": 18.3, "crosstrees_z": 32.0, "shrouds": 4,
             "yards": [
-                {"z": 17.0, "length": 18.2}, {"z": 30.6, "length": 16.3},
-                {"z": 39.1, "length": 11.1}, {"z": 43.7, "length": 8.5},
+                {"z": 17.0, "length": 21.8}, {"z": 30.6, "length": 19.6},
+                {"z": 39.1, "length": 13.3}, {"z": 43.7, "length": 10.2},
             ],
         },
         {
             "at": 0.5, "height": 51.0, "diameter": 1.0, "rake_deg": 4.0,
             "top_z": 21.5, "crosstrees_z": 36.1, "shrouds": 4,
             "yards": [
-                {"z": 19.1, "length": 19.8}, {"z": 34.7, "length": 17.7},
-                {"z": 43.9, "length": 12.0}, {"z": 48.9, "length": 9.2},
+                {"z": 19.1, "length": 23.8}, {"z": 34.7, "length": 21.2},
+                {"z": 43.9, "length": 14.4}, {"z": 48.9, "length": 11.0},
             ],
         },
         {
             "at": 0.2, "height": 38.0, "diameter": 0.7, "rake_deg": 6.0,
             "top_z": 15.3, "crosstrees_z": 26.9, "shrouds": 3,
             "yards": [
-                {"z": 14.3, "length": 11.9}, {"z": 25.9, "length": 10.6},
-                {"z": 32.7, "length": 7.2}, {"z": 36.4, "length": 5.5},
+                {"z": 14.3, "length": 14.3}, {"z": 25.9, "length": 12.7},
+                {"z": 32.7, "length": 8.6}, {"z": 36.4, "length": 6.6},
             ],
             "boom": {"z": 6.3, "length": 13.0, "rise_deg": 4.0},
             "gaff": {"z": 17.4, "length": 10.0, "peak_deg": 25.0},
@@ -69,11 +70,11 @@ PARAMS = {
     ],
     "bowsprit": {"length": 17.0, "steeve_deg": 16.0, "diameter": 0.8},
     "sails": [
-        {"kind": "square", "mast": 0, "top": 0, "bottom": {"z": 7.8, "length": 16.4}},
+        {"kind": "square", "mast": 0, "top": 0, "bottom": {"z": 7.8, "length": 19.7}},
         {"kind": "square", "mast": 0, "top": 1, "bottom": 0},
         {"kind": "square", "mast": 0, "top": 2, "bottom": 1},
         {"kind": "square", "mast": 0, "top": 3, "bottom": 2},
-        {"kind": "square", "mast": 1, "top": 0, "bottom": {"z": 8.5, "length": 18.5}},
+        {"kind": "square", "mast": 1, "top": 0, "bottom": {"z": 8.5, "length": 22.2}},
         {"kind": "square", "mast": 1, "top": 1, "bottom": 0},
         {"kind": "square", "mast": 1, "top": 2, "bottom": 1},
         {"kind": "square", "mast": 1, "top": 3, "bottom": 2},
@@ -84,6 +85,8 @@ PARAMS = {
         {"kind": "jib", "mast": 0, "head_z": 35.5, "tack": 0.0, "clew_aft": 9.1, "clew_z": 7.8},
         {"kind": "jib", "mast": 0, "head_z": 41.2, "tack": 0.6, "clew_aft": 18.3, "clew_z": 11.6},
         {"kind": "jib", "mast": 0, "head_z": 45.0, "tack": 1.0, "clew_aft": 22.2, "clew_z": 14.3},
+        {"kind": "staysail", "mast": 1, "tack": 0.85, "head": 0.3, "clew_ahead": 6.0, "clew_z": 8.0},
+        {"kind": "staysail", "mast": 2, "tack": 0.85, "head": 0.3, "clew_ahead": 4.5, "clew_z": 7.5},
     ],
     "wales": [1.7, 3.4],
     "gun_ports": {"count": 13, "from": 0.17, "to": 0.82, "z": 2.55, "size": 0.62},
