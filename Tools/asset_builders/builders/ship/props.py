@@ -2,7 +2,8 @@
 out at the gun ports (the carriages on deck, each barrel its own object turning about its trunnions), crew, a stern lantern whose glass glows in its own slot (LanternGlass); and the
 flag, its own object for its waving material.
 
-Type keys (optional): crew, a list of [t (fraction from the stern), x (fraction of the half beam)].
+Type keys (optional): crew, a list of [t (fraction from the stern), x (fraction of the half beam)];
+manned_yards, how many of each mast's lowest yards sailors stand along at anchor.
 """
 
 from __future__ import annotations
@@ -12,7 +13,8 @@ from mathutils import Vector
 from builders.palette import swatch_uv
 from builders.ship.fittings import Port, chase_port_centres, gun_port_centres
 from builders.ship.hull import bulwark_inner, deck_height, rail_height, transom_y
-from builders.ship.mesh import MeshParts, axis_box, pole, ring
+from builders.ship.mesh import MeshParts, axis_box, line, pole, ring
+from builders.ship.rig import Mast, yard_ends
 
 BARREL_LENGTH = 1.8
 BARREL_OUT = 0.35
@@ -38,6 +40,11 @@ AXLE = 0.12  # m, an axletree's side
 AXLE_IN = 0.15  # m, the axles in from the carriage's ends
 
 FIGURE_HEIGHT = 1.75
+YARD_BEHIND = 0.5  # m: a sailor manning a yard stands this far aft of it
+YARD_FOOT_BELOW = 1.25  # m: his footrope under the yard
+YARD_CLEAR_OF_MAST = 1.5  # m, from the mast to the first sailor on a yard
+YARD_SPACING = 2.5  # m between sailors on a yard
+FOOTROPE = 0.05
 SHIRTS = ("shirt_white", "shirt_red", "shirt_blue")
 SKINS = ("skin", "skin_dark")
 
@@ -161,6 +168,26 @@ def _figure(parts: MeshParts, foot: Vector, facing: float, shirt: str, skin: str
     brim = neck + Vector((0.0, 0.0, 0.25))
     pole(parts, brim, brim + Vector((0.0, 0.0, 0.05)), 0.42, 0.42, 6, "Palette", uv=hat)
     pole(parts, brim, brim + Vector((0.0, 0.0, 0.16)), 0.26, 0.22, 6, "Palette", uv=hat)
+
+
+def man_yards(per_mast: list[MeshParts], p: dict, masts: list[Mast]) -> None:
+    """At anchor, sailors along the lowest manned_yards yards of each mast, standing on footropes behind
+    the yard with their chests at it, clear of the sail furled on and before it."""
+    count = p.get("manned_yards", 0)
+    i = 0
+    for parts, mast in zip(per_mast, masts, strict=True):
+        for yard in mast.spec["yards"][:count]:
+            port_end, starboard_end = yard_ends(mast, yard, 0.0)
+            half = yard["length"] / 2
+            back = Vector((0.0, -YARD_BEHIND, -YARD_FOOT_BELOW))
+            for end in (port_end, starboard_end):
+                centre = (port_end + starboard_end) / 2
+                line(parts, end + back, centre + back, FOOTROPE, "Tar")
+                steps = int((half - YARD_CLEAR_OF_MAST) / YARD_SPACING)
+                for k in range(steps):
+                    foot = centre.lerp(end, (YARD_CLEAR_OF_MAST + k * YARD_SPACING) / half) + back
+                    _figure(parts, foot, 1.0, SHIRTS[i % len(SHIRTS)], SKINS[i % len(SKINS)])
+                    i += 1
 
 
 def crew(parts: MeshParts, p: dict) -> None:

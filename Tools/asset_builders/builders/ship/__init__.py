@@ -102,6 +102,7 @@ def build(params: dict) -> None:
 
     anchored = [MeshParts() for _ in masts]
     sails.anchored(anchored, params, masts)
+    props.man_yards(anchored, params, masts)
     rigging.running(anchored, params, masts, sails.Trim.at_anchor(), sails_set=False)
 
     for i, mast in enumerate(masts):

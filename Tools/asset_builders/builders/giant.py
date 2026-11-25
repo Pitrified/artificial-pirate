@@ -100,6 +100,7 @@ PARAMS = {
     "stripe_scrolls": True,
     "stern_gallery": True,
     "anchors": True,
+    "manned_yards": 2,
     "gun_ports": [
         {"count": 16, "from": 0.16, "to": 0.84, "z": 4.75, "size": 0.9, "guns": False},
         {"count": 15, "from": 0.18, "to": 0.82, "z": 7.4, "size": 0.9},
