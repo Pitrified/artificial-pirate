@@ -7,7 +7,8 @@ namespace Game.Gameplay
     /// A ship's guns, fired on their own: each <see cref="Battery"/> (the broadsides, and the bow
     /// chasers and stern guns of a type that carries them) looks for the nearest ship of another
     /// <see cref="ShipSide"/> within the gunnery's range and its arc (the beam's, or the chase arc
-    /// ahead or astern), and when loaded fires a volley at it, one gun after another, then reloads.
+    /// ahead or astern), and when loaded fires a volley at it, one gun after another along each row of
+    /// guns, the rows together, then reloads.
     /// Each ball is aimed at a point along the target's hull, led by the target's velocity, on the
     /// low arc at the muzzle speed, kept within the arc and scattered more the farther it flies;
     /// <see cref="Cannonballs"/> flies it. The guns are the type's (<see cref="SO_ShipType.Gun"/>). A
@@ -90,17 +91,19 @@ namespace Game.Gameplay
         /// <summary>Raised once per volley as its first gun fires: the battery.</summary>
         public event Action<Battery> VolleyFired;
 
-        /// <summary>A battery's bearing off the bow, its first barrel and count, and its volley.</summary>
+        /// <summary>A battery's bearing off the bow, its first barrel and count, its rows, and its volley.</summary>
         private sealed class Guns
         {
             public readonly Battery Battery;
             public readonly float BearingDeg;
             public int First;
             public int Count;
+            public int[] RowStarts = Array.Empty<int>();
+            public int Steps;
             public Broadside Target;
             public float Best;
             public bool Firing;
-            public int NextGun;
+            public int NextStep;
             public float Timer;
 
             public Guns(Battery battery, float bearingDeg)
@@ -129,6 +132,7 @@ namespace Game.Gameplay
             {
                 battery.First = guns;
                 battery.Count = type != null ? type.GunCount(battery.Battery) : 0;
+                KeepRows(type, battery);
                 guns += battery.Count;
             }
             int count = _barrels.Length;
@@ -152,6 +156,40 @@ namespace Game.Gameplay
                 }
             }
         }
+
+        /// <summary>
+        /// Where each row of a battery's guns starts, the guns listed row after row, each stern to bow:
+        /// a new row wherever the next gun is farther aft. A volley fires a gun of every row at each step.
+        /// </summary>
+        private static void KeepRows(SO_ShipType type, Guns battery)
+        {
+            int rows = battery.Count > 0 ? 1 : 0;
+            for (int k = 1; k < battery.Count; k++)
+            {
+                if (NewRow(type, battery.Battery, k))
+                {
+                    rows++;
+                }
+            }
+            battery.RowStarts = new int[rows];
+            battery.Steps = 0;
+            int row = 0;
+            for (int k = 0; k < battery.Count; k++)
+            {
+                if (k > 0 && NewRow(type, battery.Battery, k))
+                {
+                    battery.Steps = Mathf.Max(battery.Steps, k - battery.RowStarts[row]);
+                    row++;
+                    battery.RowStarts[row] = k;
+                }
+            }
+            if (rows > 0)
+            {
+                battery.Steps = Mathf.Max(battery.Steps, battery.Count - battery.RowStarts[row]);
+            }
+        }
+
+        private static bool NewRow(SO_ShipType type, Battery battery, int gun) => type.Gun(battery, gun).z < type.Gun(battery, gun - 1).z;
 
         private bool HasBarrels => _barrels.Length > 0 && _barrels.Length == _mouths.Length;
 
@@ -284,7 +322,7 @@ namespace Game.Gameplay
                 if (battery.Timer <= 0f && battery.Target != null)
                 {
                     battery.Firing = true;
-                    battery.NextGun = 0;
+                    battery.NextStep = 0;
                     battery.Timer = 0f;
                     VolleyFired?.Invoke(battery.Battery);
                 }
@@ -300,10 +338,10 @@ namespace Game.Gameplay
                     EndVolley(battery);
                     return;
                 }
-                Fire(battery, battery.NextGun);
-                battery.NextGun++;
+                FireStep(battery, battery.NextStep);
+                battery.NextStep++;
                 battery.Timer += _gunnery.VolleyGap;
-                if (battery.NextGun >= battery.Count)
+                if (battery.NextStep >= battery.Steps)
                 {
                     EndVolley(battery);
                 }
@@ -314,6 +352,21 @@ namespace Game.Gameplay
         {
             battery.Firing = false;
             battery.Timer = _gunnery.ReloadSeconds;
+        }
+
+        /// <summary>Fires gun <paramref name="step"/> of each of the battery's rows that has one.</summary>
+        private void FireStep(Guns battery, int step)
+        {
+            int[] starts = battery.RowStarts;
+            for (int row = 0; row < starts.Length; row++)
+            {
+                int end = row + 1 < starts.Length ? starts[row + 1] : battery.Count;
+                int gun = starts[row] + step;
+                if (gun < end)
+                {
+                    Fire(battery, gun);
+                }
+            }
         }
 
         private void Fire(Guns battery, int gun)

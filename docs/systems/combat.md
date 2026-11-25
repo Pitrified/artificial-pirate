@@ -13,7 +13,8 @@ Other ships sail on their own through a helm, and a sunk one comes back.
 
 - Every `PF_Ship` carries a `Broadside`, with its side (`ShipSide`: `Player`, `Pirates`). A ship fires at ships of another side, never its own; an ally is a ship given the player's side.
 - A ship's guns are in batteries (`Battery`): the broadsides, `Starboard` and `Port`, and on a type that carries them the bow chasers, `Bow`, and the stern guns, `Stern`. Each bears one way off the bow (90, 270, 0, 180 degrees). Every `LookSeconds` (0.25 s) each battery with guns looks for the nearest hull of another side, by `Physics.OverlapSphereNonAlloc` on the ships' layer, whose centre is within `Range` (90 m) and within its arc: `ArcDeg` (20 degrees) either side of the beam for a broadside, `ChaseArcDeg` (30 degrees) either side of dead ahead or astern for the chasers and stern guns.
-- A loaded battery with a target fires a volley: its guns one after another, `VolleyGap` (0.12 s) apart, stern to bow, then reloads for `ReloadSeconds` (5 s). A target lost mid volley ends it, and the battery reloads.
+- A loaded battery with a target fires a volley: its guns one after another, `VolleyGap` (0.12 s) apart, stern to bow, then reloads for `ReloadSeconds` (5 s).
+  A type with two rows of guns (the giant) lists them row after row; each step fires the next gun of every row at once. A target lost mid volley ends it, and the battery reloads.
 - A sinking ship does not fire. `VolleyFired` (the battery) is raised as a volley starts; `TargetOf(battery)` is its target.
 - The numbers every ship shares are in `SO_Gunnery` (`Assets/Settings/SO_Gunnery.asset`).
 
@@ -71,7 +72,7 @@ Other ships sail on their own through a helm, and a sunk one comes back.
 
 ## Tests
 
-- `BroadsideTests` (EditMode): a side bears on a ship within range and within the arc both ways, never on its own side, on the nearest; a volley's guns a gap apart then the reload; the solved arc through a still target and, led, onto a moving one; a ball's damage over the target's strength at the point struck, passing through its own hull; a ball that hits nothing dropped; barrels turning toward the target within the arc, raised, running in and out; chasers bearing ahead and stern guns astern and not on the beam, a type without them bearing on nothing ahead or astern, a chaser volley hitting the ship ahead.
+- `BroadsideTests` (EditMode): a side bears on a ship within range and within the arc both ways, never on its own side, on the nearest; a volley's guns a gap apart then the reload, two rows firing together; the solved arc through a still target and, led, onto a moving one; a ball's damage over the target's strength at the point struck, passing through its own hull; a ball that hits nothing dropped; barrels turning toward the target within the arc, raised, running in and out; chasers bearing ahead and stern guns astern and not on the beam, a type without them bearing on nothing ahead or astern, a chaser volley hitting the ship ahead.
 - `CombatEffectsTests` (EditMode): a launch flashes and smokes, a hull hit throws splinters and dust, a wreck smokes from above its heaviest hit only below the threshold.
 - `CircleHelmTests` (EditMode): onto the circle from inside and outside, round the way it is told, back after a push.
 - `ShipBarsTests` (EditMode): a bar for each other ship in reach, none for the player's, beyond reach or behind the camera, coloured by side, filled to health; the shake dying away.

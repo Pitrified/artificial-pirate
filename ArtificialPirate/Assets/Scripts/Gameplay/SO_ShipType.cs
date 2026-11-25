@@ -126,7 +126,7 @@ namespace Game.Gameplay
         [SerializeField] private float _mastSinkSeconds = 8f;
 
         [Header("Guns")]
-        [Tooltip("The starboard guns' muzzles in the hull's space (m), stern to bow; the port guns mirror them. The builder's report prints them.")]
+        [Tooltip("The starboard guns' muzzles in the hull's space (m), stern to bow, row after row on a type with two; the port guns mirror them. The builder's report prints them.")]
         [SerializeField] private Vector3[] _guns = System.Array.Empty<Vector3>();
 
         [Tooltip("The bow chasers' muzzles in the hull's space (m), each listed; most ships carry none.")]

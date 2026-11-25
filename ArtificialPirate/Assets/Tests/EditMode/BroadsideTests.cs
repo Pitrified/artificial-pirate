@@ -61,12 +61,13 @@ namespace Game.Tests.EditMode
             _made.Clear();
         }
 
-        private SO_ShipType Type(float strength, bool chasers)
+        private SO_ShipType Type(float strength, bool chasers, Vector3[] guns)
         {
             var type = ScriptableObject.CreateInstance<SO_ShipType>();
             type.SetHull(HalfLength, HalfBeam, Draft, Freeboard);
             // Muzzles just inside the hull's box, as a gun amidships can be: its own hull must not stop the ball.
-            type.SetGuns(new[] { new Vector3(HalfBeam - 0.2f, 1f, -4f), new Vector3(HalfBeam - 0.2f, 1f, 0f), new Vector3(HalfBeam - 0.2f, 1f, 4f) }, BallDamage, strength);
+            type.SetGuns(guns ?? new[] { new Vector3(HalfBeam - 0.2f, 1f, -4f), new Vector3(HalfBeam - 0.2f, 1f, 0f), new Vector3(HalfBeam - 0.2f, 1f, 4f) },
+                BallDamage, strength);
             if (chasers)
             {
                 type.SetChasers(new[] { new Vector3(-0.5f, 1f, HalfLength - 0.2f), new Vector3(0.5f, 1f, HalfLength - 0.2f) },
@@ -77,9 +78,9 @@ namespace Game.Tests.EditMode
         }
 
         private Broadside Ship(string name, ShipSide side, Vector3 offset, float yawDeg = 0f, float strength = 1f, bool barrels = false,
-            bool chasers = false)
+            bool chasers = false, Vector3[] guns = null)
         {
-            SO_ShipType type = Type(strength, chasers);
+            SO_ShipType type = Type(strength, chasers, guns);
             var root = new GameObject(name);
             _made.Add(root);
             root.transform.SetPositionAndRotation(Far + offset, Quaternion.Euler(0f, yawDeg, 0f));
@@ -199,6 +200,32 @@ namespace Game.Tests.EditMode
                 us.Tick(Step);
             }
             Assert.AreEqual(4, launches.Count, "the next volley once reloaded");
+        }
+
+        [Test]
+        public void Volley_TwoRows_FireTogether_StepByStep()
+        {
+            Vector3[] rows =
+            {
+                new Vector3(HalfBeam - 0.2f, 1f, -4f), new Vector3(HalfBeam - 0.2f, 1f, 0f), new Vector3(HalfBeam - 0.2f, 1f, 4f),
+                new Vector3(HalfBeam - 0.2f, 2f, -3f), new Vector3(HalfBeam - 0.2f, 2f, 1f),
+            };
+            Broadside us = Ship("Us", ShipSide.Player, Vector3.zero, guns: rows);
+            Ship("Them", ShipSide.Pirates, Bearing(60f, 0f));
+            var launches = new List<float>();
+            float now = 0f;
+            _balls.Launched += (muzzle, direction) => launches.Add(now);
+
+            for (; now < Reload; now += Step)
+            {
+                us.Tick(Step);
+            }
+
+            Assert.AreEqual(5, launches.Count, "one volley of both rows");
+            Assert.AreEqual(launches[0], launches[1], "the rows' sternmost guns at once");
+            Assert.AreEqual(launches[2], launches[3], "their second guns at once");
+            Assert.AreEqual(Gap, launches[2] - launches[0], Step + 1e-4f);
+            Assert.AreEqual(Gap, launches[4] - launches[2], Step + 1e-4f, "the longer row's last gun a step on");
         }
 
         [Test]
