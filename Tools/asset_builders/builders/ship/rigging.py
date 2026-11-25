@@ -12,7 +12,7 @@ from mathutils import Vector
 
 from builders.ship.hull import rail_height
 from builders.ship.hull import side as side_at
-from builders.ship.mesh import MeshParts, Rope, axis_box, line
+from builders.ship.mesh import MeshParts, Rope, axis_box, line, pole
 from builders.ship.rig import Mast, boom_ends, bowsprit, stay_ends, yard_ends
 from builders.ship.sails import Trim, jib_corners, sail_name, square_corners, staysail_corners
 
@@ -32,7 +32,17 @@ CROSSTREES_THICKNESS = 0.15
 TOP_RIM = Vector((0.06, 0.06, 0.12))  # thickness, and height above the platform
 BRACE_LEAD_AFT = 6.0
 BACKSTAY_AFT = 2.5
-LIFT_SLOPE = 0.5  # rise to the mast over the yard's half length
+LIFT_SLOPE = 0.5
+BOBSTAY_AT = 0.6  # along the bowsprit from its heel
+BOBSTAY_FOOT = 0.8  # m above the water, at the stem
+CUTWATER_AHEAD = 0.3  # m, the cutwater's front ahead of the stem near the water
+STRIKER_AT = 0.5  # along the bowsprit: the dolphin striker's head
+STRIKER_OF_BOWSPRIT = 0.12  # its length, of the bowsprit's
+STRIKER_OF_DIAMETER = 0.4  # its diameter, of the bowsprit's
+MARTINGALE_AT = 0.95  # along the bowsprit: the martingale stay's head, under it
+MARTINGALE_UNDER = 0.6  # of the bowsprit's diameter: clear of a jib stowed along its end
+BACK_ROPES_AT = 0.96  # fraction from the stern: where the martingale's back ropes meet the bows
+BACK_ROPES_UNDER_RAIL = 1.0  # m  # rise to the mast over the yard's half length
 JIB_SHEET_AFT = 2.0
 COURSE_SHEET_AFT = 3.0
 
@@ -125,10 +135,34 @@ def _backstay(parts: MeshParts, p: dict, mast: Mast, side: float) -> None:
     _rope(parts, "backstay", mast.head, _deck_edge(p, side, aft), SHROUD)
 
 
+def _y_at(p: dict, t: float) -> float:
+    return (t - 0.5) * p["length"]
+
+
+def _under_bowsprit(body: MeshParts, p: dict) -> None:
+    """The bobstay from the bowsprit down to the stem near the water, and the dolphin striker hanging
+    under the bowsprit with its martingale stay from the bowsprit's end and back ropes to either bow."""
+    heel, end = bowsprit(p)
+    stem_y = p["length"] / 2
+    _rope(body, "bobstay", heel.lerp(end, BOBSTAY_AT), Vector((0.0, stem_y + CUTWATER_AHEAD, BOBSTAY_FOOT)), SHROUD)
+    top = heel.lerp(end, STRIKER_AT)
+    foot = top - Vector((0.0, 0.0, (end - heel).length * STRIKER_OF_BOWSPRIT))
+    d = p["bowsprit"]["diameter"] * STRIKER_OF_DIAMETER
+    pole(body, top, foot, d, d * 0.7, 6, "Spar")
+    under = heel.lerp(end, MARTINGALE_AT) - Vector((0.0, 0.0, p["bowsprit"]["diameter"] * MARTINGALE_UNDER))
+    _rope(body, "martingale stay", under, foot, SHROUD)
+    t = BACK_ROPES_AT
+    z = rail_height(p, t) - BACK_ROPES_UNDER_RAIL
+    for side in (1.0, -1.0):
+        _rope(body, "martingale back rope", foot, Vector((side * side_at(p, t, z), _y_at(p, t), z)), SHROUD)
+
+
 def standing(body: MeshParts, per_mast: list[MeshParts], p: dict, masts: list[Mast]) -> None:
-    """Tops, channels, shrouds and ratlines, backstays, the stays between masts and to the bowsprit."""
+    """Tops, channels, shrouds and ratlines, backstays, the stays between masts and to the bowsprit,
+    and the bowsprit's own from under it."""
     for parts, mast in zip(per_mast, masts, strict=True):
         _mast_rigging(body, parts, p, mast)
+    _under_bowsprit(body, p)
     stem, _ = bowsprit(p)
     by_place = sorted(range(len(masts)), key=lambda i: masts[i].foot.y, reverse=True)
     fore = masts[by_place[0]]

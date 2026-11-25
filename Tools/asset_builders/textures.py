@@ -262,13 +262,14 @@ MAP_ICON_STATIONS = 40
 
 
 def map_icons() -> list[Path]:
-    """Each ship type's map icon: its hull from above, the deck's outline from the stern's transom to
+    """Each ship type's map icon: its hull from above, the widest of its waterline and its rail (past a
+    tumblehome amidships, round a counter aft) from the stern's transom to
     the stem, bow up, white on clear, the length filling the square; the maps size it by the length."""
     import importlib  # noqa: PLC0415 - the ship builders load Blender's modules, only needed here
 
     import bpy  # noqa: F401, PLC0415 - loading Blender makes mathutils importable for the ship builders
 
-    from builders.ship.hull import half_beam  # noqa: PLC0415
+    from builders.ship.hull import half_beam, rail_height, side  # noqa: PLC0415
 
     made = []
     for name in ("sloop", "brig", "frigate", "giant"):
@@ -277,11 +278,12 @@ def map_icons() -> list[Path]:
         margin = big * 0.03
         scale = (big - 2 * margin) / p["length"]
         centre = big / 2
-        side = []
+        edge = []
         for i in range(MAP_ICON_STATIONS + 1):
             s = i / MAP_ICON_STATIONS
-            side.append((centre + half_beam(p, s) * scale, big - margin - s * p["length"] * scale))
-        outline = side + [(centre, margin)] + [(2 * centre - x, y) for x, y in reversed(side)]
+            widest = max(half_beam(p, s), side(p, s, rail_height(p, s)))
+            edge.append((centre + widest * scale, big - margin - s * p["length"] * scale))
+        outline = edge + [(centre, margin)] + [(2 * centre - x, y) for x, y in reversed(edge)]
         image = Image.new("RGBA", (big, big), (255, 255, 255, 0))
         ImageDraw.Draw(image).polygon(outline, fill=(255, 255, 255, 255))
         made.append(_save(image.resize((MAP_ICON_SIZE, MAP_ICON_SIZE), Image.LANCZOS), f"T_MapIcon_{name.title()}"))
