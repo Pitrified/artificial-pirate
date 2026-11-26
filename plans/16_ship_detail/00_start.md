@@ -1,5 +1,5 @@
 ---
-status: draft
+status: in progress
 priority: 0
 description: |
   Finer ship details the user asked for after the fleet: better ship's boats and wooden davits
@@ -51,8 +51,15 @@ Read from the builder and the project, not yet captured.
   One more slot is one more draw call per mast object and per hull shown.
 - Rope ends: deadeyes with their lanyards at the shrouds' feet on the channels, and blocks at the yards' ends where the braces and lifts are made fast.
   These are small parts in the per-mast objects, at most a few thousand triangles a ship.
-- Left out: sag on the running rigging.
-  `clearance.py` checks ropes as straight segments, and a sagging rope would need several segments and a new check.
+- Sag (Q1): a rope laid as a short polyline hanging under the straight line between its ends, instead of one prism.
+  - The drop at the middle is a fraction of the rope's horizontal span, a fraction per kind: the running rigging hangs visibly (braces, sheets, the boats' falls), the standing rigging only a little (stays), shrouds and ratlines straight, as they are set up taut.
+    Parabolic along the rope, straight down; a lift, near vertical, barely sags.
+    The fractions are starting values, tuned on the captures.
+  - `line` becomes a tube through the points, its rings shared between segments, so a sagging rope is one smooth piece; about six segments, so a rope is 36 triangles where it is 6 now.
+    On the giant's running rigging (about a hundred ropes in the state shown) that is under 4k triangles more.
+  - `Rope` keeps its points instead of a start and an end.
+    `clearance.py` is the only reader (checked: nothing else reads a rope's ends); it tests each segment against the cloth's triangles, and `END_GRACE` counts along the whole rope from either end, so a sheet still meets its clew.
+  - A sagging sheet hangs under its straight line, toward the sail's foot, so a band that cleared may not; the eased trim is the same loop as now.
 
 ### Boats and davits
 
@@ -73,10 +80,13 @@ Read from the builder and the project, not yet captured.
 - Seen in passing: `docs/building_assets.md` still gives "150 k triangles and 80 draw calls" as a stop condition, which `docs/performance-budget.md` now calls unmeasured starting guesses.
   The verify phase brings it in line.
 
-## Proposed phases
+## Phases
 
-1. Rope look: the rope texture and its normal map, the UVs by diameter, smooth shading, the `Hemp` slot and material; every ship rebuilt and imported.
-2. Rope ends: deadeyes and lanyards, blocks on the yards' ends; the clearance count still 0 on every type.
+In [`tracking.md`](tracking.md); as derived:
+
+
+1. Rope look: the rope texture and its normal map, the UVs by diameter, smooth shading, the `Hemp` slot and material for the running rigging, `Tar` dark brown; every ship rebuilt and imported.
+2. Sag and rope ends: ropes as hanging polylines, the clearance check along their segments; deadeyes and lanyards, blocks on the yards' ends; the clearance count still 0 on every type, band and the anchored state.
 3. Boats and davits: the open boat with thwarts and oars, the curved wooden davits with blocks and falls.
 4. Verify: the docs, a dev APK and the user's read on the phone.
 
@@ -87,26 +97,26 @@ Read from the builder and the project, not yet captured.
   - b. a, plus deadeyes and lanyards at the shrouds' feet and blocks at the yards' ends.
   - c. b, plus sag on the running rigging (several segments a rope, and a clearance check that follows them).
   - Recommended: b, because the ends are what make a line read as rigging and they cost little; sag needs a new check for a few centimetres of droop.
-  - NEW_ANS:
+  - ANS: c. "the lack of sag is quite unnatural, perhaps more than the colour. ok to update the collision checker".
 - Q2: The ropes' colours.
   - a. Two slots: standing rigging tarred dark brown (`Tar`, about 0.12, 0.09, 0.06), running rigging hemp tan (`Hemp`, about 0.55, 0.45, 0.30).
   - b. One slot for all, a dark brown instead of near black.
   - Recommended: a, because tar and hemp is how a ship's rig looks and the lighter running rigging is what breaks the "black cylinders"; it costs a draw call per mast object.
-  - NEW_ANS:
+  - ANS: a.
 - Q3: The boats.
   - a. Open boats with a transom stern, sheer, thwarts and oars; curved wooden davits (`Spar`) with blocks and hemp falls.
   - b. As a, but still covered over, with a canvas cover (`SailCloth`) instead of the wooden lid.
   - Recommended: a, because the chase camera looks down into them and thwarts and oars read as a boat where a cover reads as a box.
-  - NEW_ANS:
+  - ANS: a.
 - Q4: Which types carry boats?
   - a. The giant only, as now.
   - b. The giant, and the frigate a boat on stern davits (the Hermione carries one there).
   - Recommended: a, because your note was about the giant's boats; another type is a parameter set once the builder's boat is good.
-  - NEW_ANS:
+  - ANS: a.
 - Q5: How the look is checked before the phone.
   The Blender probe renders take under a minute each and write only in the session scratchpad.
   A PlayMode capture from the helm or the chase camera is about 3 to 5 minutes, also only in the scratchpad.
   - a. Probe renders while building each part; one helm and one chase capture at the end of phases 1 to 3 (six runs, about 25 minutes); then the dev APK and your read on the phone.
   - b. Probe renders only, then the dev APK and your read.
   - Recommended: a, because the helm view is where the rope's lay shows and the probe does not render the game's shading.
-  - NEW_ANS:
+  - ANS: a. "we are not in a rush".

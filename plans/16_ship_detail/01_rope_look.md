@@ -1,0 +1,39 @@
+---
+status: planned
+---
+
+# Phase 1 - Rope look
+
+## Overview
+
+The rope's surface: what reads from the helm (the lay) and from the chase camera (the colour and round shading).
+First because it touches every rope without changing where any rope runs, so the clearance count cannot move.
+Context: [`00_start.md`](00_start.md).
+
+## Goals
+
+1. A rope texture and its normal map from `textures.py`: three strands laid in a helix, the grooves darker, tiling once round the rope and once per lay along it.
+2. `mesh.line` maps u in lays along the rope and v once round it, by the rope's diameter, and shades it smooth.
+3. Running rigging (braces, lifts, sheets, the main sheet, the boats' falls) in a new `Hemp` slot; the standing rigging and ratlines stay `Tar`, dark brown.
+4. `M_Hemp.mat` and `M_Tar.mat` take the rope texture and normal map; every ship rebuilt, its FBX set up again for the new slot, `BuiltModelTests` lists `M_Hemp`.
+
+## Plan
+
+- `textures.py rope`: `T_Rope.png` and `T_Rope_N.png`, a small tile (128 px), the helix as diagonal ridges with an integer count round and along so it tiles.
+- `line` UVs: u = distance / (lay length), lay length about three diameters; v = angle / 2 pi.
+  The smooth sides share no seam split but the wrap.
+- `rigging._rope` takes the slot by kind; the boats' fall in `fittings.boats` uses `Hemp`.
+- `Hemp` in every type's `preview_rgb`.
+- Materials set with a throwaway editor script (textures, tiling 1, colours: `Tar` about 0.12, 0.09, 0.06, `Hemp` about 0.55, 0.45, 0.30, low smoothness), deleted before the commit; `ModelSetup` on the four ships.
+- Probe renders of a mast close up; then one helm and one chase capture of the giant.
+
+## Out of scope
+
+- Where ropes run, sag, rope ends (phase 2).
+
+## Done when
+
+- The clearance count unchanged (0) on every type, band and the anchored state.
+- Gates green; the captures in the scratchpad, shown to the user.
+
+## What the implementation found
