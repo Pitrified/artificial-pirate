@@ -49,17 +49,28 @@ namespace Game.Tests.PlayMode
             yield return WaitForState(GameState.Playing);
             yield return null;
 
+            // The anchored brig is the anchored ship nearest the start; the giant lies at anchor farther off.
+            ShipController player = GameManager.Instance.PlayerShip;
             ShipRespawn anchored = null;
+            float nearest = float.MaxValue;
             foreach (ShipRespawn respawn in Object.FindObjectsByType<ShipRespawn>(FindObjectsInactive.Exclude))
             {
-                anchored = respawn.Current != null && respawn.Current.GetComponent<CircleHelm>() == null ? respawn : anchored;
+                if (respawn.Current == null || respawn.Current.GetComponent<CircleHelm>() != null)
+                {
+                    continue;
+                }
+                float distance = Vector3.Distance(respawn.Current.transform.position, player.transform.position);
+                if (distance < nearest)
+                {
+                    nearest = distance;
+                    anchored = respawn;
+                }
             }
             Assert.IsNotNull(anchored, "the anchored brig comes back through a respawn");
             Transform brig = anchored.Current.transform;
             ShipDamage brigDamage = brig.GetComponent<ShipDamage>();
 
             // On the brig's port beam, heading as it does: each has the other on its beam.
-            ShipController player = GameManager.Instance.PlayerShip;
             Vector3 portBeam = -brig.right;
             player.Teleport(brig.position + portBeam * 50f, brig.eulerAngles.y);
             yield return null;
