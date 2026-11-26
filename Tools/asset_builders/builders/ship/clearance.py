@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 from collections import Counter
 from dataclasses import dataclass
 
@@ -28,7 +29,7 @@ def _triangles(parts: MeshParts, cloth: Cloth) -> list[tuple[Vector, Vector, Vec
     return tris
 
 
-def _bounds(points: list[Vector], margin: float) -> tuple[Vector, Vector]:
+def _bounds(points: list[Vector] | tuple[Vector, ...], margin: float) -> tuple[Vector, Vector]:
     lo = Vector([min(p[k] for p in points) - margin for k in range(3)])
     hi = Vector([max(p[k] for p in points) + margin for k in range(3)])
     return lo, hi
@@ -39,20 +40,25 @@ def _overlap(a: tuple[Vector, Vector], b: tuple[Vector, Vector]) -> bool:
 
 
 def _hit(rope: Rope, tris: list[tuple[Vector, Vector, Vector]]) -> Vector | None:
-    """Where the rope's core or either face of it passes through a triangle, away from its ends."""
-    along = rope.end - rope.start
-    length = along.length
-    direction = along / length
-    for tri in tris:
-        n = normal(*tri)
-        for shift in (0.0, rope.thickness / 2, -rope.thickness / 2):
-            origin = rope.start + n * shift
-            point = intersect_ray_tri(*tri, direction, origin, True)
-            if point is None:
-                continue
-            t = (point - origin).dot(direction)
-            if END_GRACE < t < length - END_GRACE:
-                return point
+    """Where the rope's core or either face of it passes through a triangle, along any of its segments,
+    away from its ends (measured along the rope)."""
+    total = sum((b - a).length for a, b in itertools.pairwise(rope.points))
+    walked = 0.0
+    for start, end in itertools.pairwise(rope.points):
+        along = end - start
+        length = along.length
+        direction = along / length
+        for tri in tris:
+            n = normal(*tri)
+            for shift in (0.0, rope.thickness / 2, -rope.thickness / 2):
+                origin = start + n * shift
+                point = intersect_ray_tri(*tri, direction, origin, True)
+                if point is None:
+                    continue
+                t = (point - origin).dot(direction)
+                if t <= length and END_GRACE < walked + t < total - END_GRACE:
+                    return point
+        walked += length
     return None
 
 
@@ -63,7 +69,7 @@ def crossings(ropes: list[Rope], parts: MeshParts) -> list[Crossing]:
         tris = _triangles(parts, cloth)
         box = _bounds([v for tri in tris for v in tri], 0.0)
         for rope in ropes:
-            if rope.sail == cloth.name or not _overlap(box, _bounds([rope.start, rope.end], rope.thickness)):
+            if rope.sail == cloth.name or not _overlap(box, _bounds(rope.points, rope.thickness)):
                 continue
             point = _hit(rope, tris)
             if point is not None:

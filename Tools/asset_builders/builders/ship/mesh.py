@@ -19,11 +19,11 @@ UV = tuple[float, float]
 
 @dataclass(frozen=True)
 class Rope:
-    """A rope laid as a line, kept so the sails can be checked against it."""
+    """A rope laid through its points (two for a taut one, more where it hangs), kept so the sails can be
+    checked against it."""
 
     kind: str
-    start: Vector
-    end: Vector
+    points: tuple[Vector, ...]
     thickness: float
     sail: str | None = None  # the sail it carries or sheets, which it meets along its edge
 

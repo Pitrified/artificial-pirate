@@ -52,11 +52,54 @@ BACK_ROPES_UNDER_RAIL = 1.0  # m  # rise to the mast over the yard's half length
 JIB_SHEET_AFT = 2.0
 COURSE_SHEET_AFT = 3.0
 RUNNING_KINDS = {"brace", "lift", "main sheet", "jib sheet", "staysail sheet", "course sheet"}  # hemp; the rest tarred
+SAG = {  # the drop at a rope's middle, of its span across the water; shrouds and ratlines are set up taut
+    "brace": 0.03, "lift": 0.03, "main sheet": 0.02, "jib sheet": 0.02, "staysail sheet": 0.02, "course sheet": 0.02,
+    "stay": 0.006, "topmast stay": 0.006, "forestay": 0.006, "backstay": 0.004,
+}
+SAG_SEGMENTS = 6
+DEADEYE_OF_SHROUD = 3.5  # its diameter
+DEADEYE_THICKNESS = 0.5  # of its diameter
+DEADEYE_SIDES = 8
+DEADEYE_GAP = 0.8  # m between a pair, along the shroud, spanned by the lanyard
+LANYARD = 0.025
+LANYARD_SPREAD = 0.25  # of the deadeye's diameter, each lanyard's leg off the shroud's line
+BLOCK_LENGTH = 0.3
+BLOCK_WIDTH = 0.16
+BLOCK_SIDES = 6
+
+
+def _hang(start: Vector, end: Vector, kind: str, sail: str | None) -> list[Vector]:
+    """The rope's points: straight, or hanging in a parabola under its chord. A stay carrying a sail stays
+    straight along the sail's edge."""
+    carries = sail is not None and kind.endswith("stay")
+    drop = 0.0 if carries else SAG.get(kind, 0.0) * (end - start).xy.length
+    if drop == 0.0:
+        return [start, end]
+    return [start.lerp(end, f) - Vector((0.0, 0.0, 4 * f * (1 - f) * drop))
+            for f in (k / SAG_SEGMENTS for k in range(SAG_SEGMENTS + 1))]
 
 
 def _rope(parts: MeshParts, kind: str, start: Vector, end: Vector, thickness: float, sail: str | None = None) -> None:
-    rope(parts, [start, end], thickness, "Hemp" if kind in RUNNING_KINDS else "Tar")
-    parts.ropes.append(Rope(kind, start, end, thickness, sail))
+    points = _hang(start, end, kind, sail)
+    rope(parts, points, thickness, "Hemp" if kind in RUNNING_KINDS else "Tar")
+    parts.ropes.append(Rope(kind, tuple(points), thickness, sail))
+
+
+def _deadeyes(parts: MeshParts, foot: Vector, head: Vector, side: float) -> Vector:
+    """A pair of deadeyes on the channel with their lanyard, facing outboard; returns the upper one's
+    centre, where the shroud starts."""
+    d = SHROUD * DEADEYE_OF_SHROUD
+    along = (head - foot).normalized()
+    lower = foot + along * ((CHANNEL_THICKNESS + d / 2) / along.z)
+    upper = lower + along * DEADEYE_GAP
+    out = Vector((side, 0.0, 0.0))
+    for centre in (lower, upper):
+        pole(parts, centre - out * d * DEADEYE_THICKNESS / 2, centre + out * d * DEADEYE_THICKNESS / 2, d, d,
+             DEADEYE_SIDES, "ShipWood")
+    leg = along.cross(out).normalized() * d * LANYARD_SPREAD
+    for offset in (leg, -leg):
+        rope(parts, [lower + offset, upper + offset], LANYARD, "Tar")
+    return upper
 
 
 def _station(p: dict, y: float) -> float:
@@ -121,10 +164,10 @@ def _mast_rigging(body: MeshParts, parts: MeshParts, p: dict, mast: Mast) -> Non
                  Vector((CHANNEL_OUT, abs(channel_end.y - channel_start.y), CHANNEL_THICKNESS)), "ShipWood")
 
         head = mast.at(top_z) + Vector((side * d * 0.4, 0.0, 0.0))
-        lower = [(plate, head) for plate in plates]
+        lower = [(_deadeyes(parts, plate, head, side), head) for plate in plates]
         for low, high in lower:
             _rope(parts, "shroud", low, high, SHROUD)
-        _ratlines(parts, lower, plates[0].z + 0.6, top_z - 1.0)
+        _ratlines(parts, lower, lower[0][0].z + RATLINE_STEP, top_z - 1.0)
 
         edge = top_centre + Vector((side * width / 2, -width * TOP_LENGTH * TOPMAST_SHROUDS_AFT, 0.0))
         cross = cross_centre + Vector((side * d * 0.25, 0.0, 0.0))
@@ -201,7 +244,9 @@ def running(per_mast: list[MeshParts], p: dict, masts: list[Mast], trim: Trim, s
             lift_to = mast.at(min(mast.spec["height"], yard["z"] + yard["length"] / 2 * LIFT_SLOPE))
             for end, side in ((port_end, -1.0), (starboard_end, 1.0)):
                 lead = ahead.at(min(yard["z"], ahead.spec["height"])) if ahead else _deck_edge(p, side, end.y - BRACE_LEAD_AFT)
-                _rope(parts, "brace", end, lead, RUNNING)
+                block = end + (lead - end).normalized() * BLOCK_LENGTH
+                pole(parts, end, block, BLOCK_WIDTH, BLOCK_WIDTH, BLOCK_SIDES, "ShipWood")
+                _rope(parts, "brace", block, lead, RUNNING)
                 if lifted:
                     _rope(parts, "lift", end, lift_to, RUNNING)
         if "boom" in mast.spec:
