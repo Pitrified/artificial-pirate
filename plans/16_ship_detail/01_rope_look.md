@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 ---
 
 # Phase 1 - Rope look
@@ -40,3 +40,7 @@ Context: [`00_start.md`](00_start.md).
 - Gates green; the captures in the scratchpad, shown to the user.
 
 ## What the implementation found
+The first helm capture showed the lay on the near shrouds, but the tar read blue-black: on so dark a colour the sky's reflection and ambient won over the brown.
+`Tar` raised to 0.24, 0.16, 0.09 at smoothness 0.1 (with `MaterialTuning`); the second capture reads dark brown, the lay on the lit side, dark against the sky.
+From the chase camera behind the giant a rope is one or two pixels: only its colour shows there, as expected.
+Triangles unchanged (the rope is the same three-sided tube); clearance 0 on every type, band and the anchored state.

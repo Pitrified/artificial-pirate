@@ -15,7 +15,7 @@ Analysis and decisions in [`00_start.md`](00_start.md).
 
 | #  | Phase                    | Plan                                       | Status      |
 | -- | ------------------------ | ------------------------------------------ | ----------- |
-| 1  | Rope look                | [`01_rope_look.md`](01_rope_look.md)       | in progress |
+| 1  | Rope look                | [`01_rope_look.md`](01_rope_look.md)       | done        |
 | 2  | Sag and rope ends        | [`02_sag_and_ends.md`](02_sag_and_ends.md) | planned     |
 | 3  | Boats and davits         | [`03_boats.md`](03_boats.md)               | planned     |
 | 4  | Verify                   | [`04_verify.md`](04_verify.md)             | planned     |
@@ -29,3 +29,4 @@ Append-only. Newest at the bottom.
 - 2026-11-25 : cut feat/16_ship_detail from main (12033bb); read the rope, boat and davit code and the Tar material; analysis and Q1 to Q5 in 00_start.md.
 - 2026-11-26 : Q1 c (sag, clearance along segments), Q2 a, Q3 a, Q4 a, Q5 a folded in; phases 1 to 4 written.
 - 2026-11-26 : phase 1 review: `line` also draws the head rails in `Trim`, so the rope is a primitive of its own; footropes are ropes too; about 1180 ropes shown on the giant (7.2k triangles), three sides kept; tangents import as MikkTSpace.
+- 2026-11-26 : phase 1 done: T_Rope and its normal map, the rope primitive mapped by diameter, hemp running rigging; tar raised to a lighter brown after the first helm capture read blue-black. Gates green, clearance 0.
