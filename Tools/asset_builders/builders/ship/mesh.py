@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import math
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -11,6 +12,7 @@ from mathutils import Vector
 
 DEFAULT_PREVIEW = (0.5, 0.5, 0.5)
 LINE_SIDES = 3
+ROPE_LAY = 3.0  # a strand's turn along the rope, in diameters
 
 UV = tuple[float, float]
 
@@ -169,6 +171,29 @@ def ring(parts: MeshParts, centre: Vector, axis: Vector, radius: float, thicknes
 def line(parts: MeshParts, start: Vector, end: Vector, thickness: float, slot: str) -> None:
     """A rope: a three-sided prism with no caps, the cheapest pole that reads from every side."""
     pole(parts, start, end, thickness, thickness, LINE_SIDES, slot, caps=False)
+
+
+def rope(parts: MeshParts, points: list[Vector], thickness: float, slot: str) -> None:
+    """A rope through the points: a smooth three-sided tube with no caps, its rings shared between
+    segments. Mapped by its own diameter, u in lays along it and v once round, so every rope shows the
+    same lay whatever its thickness."""
+    lay = ROPE_LAY * thickness
+    side, _ = frame(points[-1] - points[0])
+    rings, distance = [], 0.0
+    for k, centre in enumerate(points):
+        if k:
+            distance += (centre - points[k - 1]).length
+        tangent = (points[min(k + 1, len(points) - 1)] - points[max(k - 1, 0)]).normalized()
+        across = (side - tangent * side.dot(tangent)).normalized()
+        up = across.cross(tangent)  # as frame() turns, so the faces look out
+        rings.append((parts.add_verts([centre + (across * math.cos(a) + up * math.sin(a)) * thickness / 2
+                                       for a in (2 * math.pi * i / LINE_SIDES for i in range(LINE_SIDES))]),
+                      distance / lay))
+    for (a, ua), (b, ub) in itertools.pairwise(rings):
+        for i in range(LINE_SIDES):
+            j = (i + 1) % LINE_SIDES
+            v0, v1 = i / LINE_SIDES, (i + 1) / LINE_SIDES
+            parts.add_face((a + i, b + i, b + j, a + j), slot, True, ((ua, v0), (ub, v0), (ub, v1), (ua, v1)))
 
 
 def make_object(name: str, parts: MeshParts, preview_rgb: dict[str, list[float]],

@@ -48,7 +48,7 @@ from builders.ship.hull import (
     transom_y,
 )
 from builders.ship.hull import side as side_at
-from builders.ship.mesh import MeshParts, axis_box, box, line, pole, ring
+from builders.ship.mesh import MeshParts, axis_box, box, line, pole, ring, rope
 from builders.ship.rig import bowsprit
 
 WALE_HEIGHT = 0.25
@@ -119,6 +119,7 @@ BOAT_RAISE = 1.4  # m, the gunwale above the rail
 DAVIT = 0.14
 DAVIT_SPREAD = 0.7  # of the boat's length, between the davits
 DAVIT_ABOVE = 1.0  # m, the davit's head above the boat's gunwale
+BOAT_FALL = 0.04
 FIGURE_FOR_LENGTH = 40.0
 FIGURE_SIDES = 8
 FIGURE_TALL = 1.6  # m, a brig's figurehead from its foot to the top of its head
@@ -638,7 +639,7 @@ def boats(parts: MeshParts, p: dict) -> None:
                 head = Vector((centre.x, y, centre.z + DAVIT_ABOVE))
                 pole(parts, foot, bend, DAVIT, DAVIT, 6, "Tar")
                 pole(parts, bend, head, DAVIT, DAVIT * 0.8, 6, "Tar")
-                line(parts, head, Vector((centre.x, y, centre.z)), 0.04, "Tar")
+                rope(parts, [head, Vector((centre.x, y, centre.z))], BOAT_FALL, "Hemp")
 
 
 def quarter_galleries(parts: MeshParts, p: dict) -> None:

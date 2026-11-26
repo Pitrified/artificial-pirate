@@ -12,7 +12,7 @@ from mathutils import Vector
 
 from builders.ship.hull import hull_top, rail_height
 from builders.ship.hull import side as side_at
-from builders.ship.mesh import MeshParts, Rope, axis_box, line, pole
+from builders.ship.mesh import MeshParts, Rope, axis_box, pole, rope
 from builders.ship.rig import Mast, boom_ends, bowsprit, stay_ends, yard_ends
 from builders.ship.sails import (
     Trim,
@@ -51,10 +51,11 @@ BACK_ROPES_AT = 0.96  # fraction from the stern: where the martingale's back rop
 BACK_ROPES_UNDER_RAIL = 1.0  # m  # rise to the mast over the yard's half length
 JIB_SHEET_AFT = 2.0
 COURSE_SHEET_AFT = 3.0
+RUNNING_KINDS = {"brace", "lift", "main sheet", "jib sheet", "staysail sheet", "course sheet"}  # hemp; the rest tarred
 
 
 def _rope(parts: MeshParts, kind: str, start: Vector, end: Vector, thickness: float, sail: str | None = None) -> None:
-    line(parts, start, end, thickness, "Tar")
+    rope(parts, [start, end], thickness, "Hemp" if kind in RUNNING_KINDS else "Tar")
     parts.ropes.append(Rope(kind, start, end, thickness, sail))
 
 

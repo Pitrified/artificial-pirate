@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in progress
 ---
 
 # Phase 1 - Rope look
@@ -13,15 +13,18 @@ Context: [`00_start.md`](00_start.md).
 ## Goals
 
 1. A rope texture and its normal map from `textures.py`: three strands laid in a helix, the grooves darker, tiling once round the rope and once per lay along it.
-2. `mesh.line` maps u in lays along the rope and v once round it, by the rope's diameter, and shades it smooth.
+2. A rope primitive in `mesh.py` beside `line`: u in lays along the rope and v once round it, by the rope's diameter, shaded smooth.
+   `line` stays as it is for the bow's head rails (`Trim`, textured in metres); the rigging, the footropes of the manned yards and the boats' falls take the rope.
 3. Running rigging (braces, lifts, sheets, the main sheet, the boats' falls) in a new `Hemp` slot; the standing rigging and ratlines stay `Tar`, dark brown.
 4. `M_Hemp.mat` and `M_Tar.mat` take the rope texture and normal map; every ship rebuilt, its FBX set up again for the new slot, `BuiltModelTests` lists `M_Hemp`.
 
 ## Plan
 
 - `textures.py rope`: `T_Rope.png` and `T_Rope_N.png`, a small tile (128 px), the helix as diagonal ridges with an integer count round and along so it tiles.
-- `line` UVs: u = distance / (lay length), lay length about three diameters; v = angle / 2 pi.
-  The smooth sides share no seam split but the wrap.
+- The rope's UVs: u = distance / (lay length), lay length about three diameters; v = angle / 2 pi, closing at 1 on the last face.
+  Three sides kept: the giant shows about 1180 ropes, most of them ratlines, 7.2k triangles; the helm capture judges the silhouette.
+- Tangents import as MikkTSpace (`tangentImportMode: 3` in the models' meta), so the normal map needs nothing more.
+- The davits are `Tar` poles until phase 3 makes them `Spar`; they take the rope texture in metres meanwhile.
 - `rigging._rope` takes the slot by kind; the boats' fall in `fittings.boats` uses `Hemp`.
 - `Hemp` in every type's `preview_rgb`.
 - Materials set with a throwaway editor script (textures, tiling 1, colours: `Tar` about 0.12, 0.09, 0.06, `Hemp` about 0.55, 0.45, 0.30, low smoothness), deleted before the commit; `ModelSetup` on the four ships.

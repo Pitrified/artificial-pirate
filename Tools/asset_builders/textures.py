@@ -3,7 +3,7 @@
 Run from this folder:
 
     uv run --no-sync python textures.py water_normals   (or palette, sail_canvas, hull_planks, deck_planks, flag, hull_marks,
-                                                         spar_wood, ship_wood, particles, map_icons, app_icon)
+                                                         spar_wood, ship_wood, rope, particles, map_icons, app_icon)
 
 Each texture is a function below. Tiling comes from building the height field out of
 waves with integer frequencies over the tile, so the edges meet. The same seed gives
@@ -165,6 +165,25 @@ def ship_wood() -> Path:
     a tile, and its normal map."""
     tone = _planks(256, 256, plank_px=32, butt_every_px=256, seed=61)
     return _wood("T_ShipWood", tone, tone, strength=3.0)
+
+
+ROPE_STRANDS = 3
+ROPE_FIBRES = 18  # round the rope, the yarns showing along it
+
+
+def rope() -> Path:
+    """Laid rope: one lay along u, once round along v, the strands as rounded ridges winding round it with
+    darker grooves between them and yarns along the rope. Grey, multiplied by the rope's colour (tar,
+    hemp); and its normal map, `T_Rope_N`."""
+    size = 128
+    v, u = np.mgrid[0:size, 0:size] / size
+    v = 1 - v  # v runs up the image
+    across = (ROPE_STRANDS * (v - u)) % 1.0  # across one strand: 0 and 1 at its grooves
+    strand = np.clip(1 - (2 * across - 1) ** 2, 0, 1)
+    fibres = np.sin(2 * np.pi * ROPE_FIBRES * v) * 0.5 + 0.5
+    height = strand + 0.1 * fibres * strand
+    tone = 0.45 + 0.55 * strand - 0.08 * fibres
+    return _wood("T_Rope", tone, height, strength=6.0)
 
 
 def flag() -> Path:
@@ -347,6 +366,7 @@ TEXTURES = {
     "hull_marks": hull_marks,
     "spar_wood": spar_wood,
     "ship_wood": ship_wood,
+    "rope": rope,
     "particles": particles,
     "map_icons": map_icons,
     "app_icon": app_icon,

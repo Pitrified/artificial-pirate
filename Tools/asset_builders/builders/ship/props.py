@@ -13,7 +13,7 @@ from mathutils import Vector
 from builders.palette import swatch_uv
 from builders.ship.fittings import Port, chase_port_centres, gun_port_centres
 from builders.ship.hull import bulwark_inner, deck_height, rail_height, transom_y
-from builders.ship.mesh import MeshParts, axis_box, line, pole, ring
+from builders.ship.mesh import MeshParts, axis_box, pole, ring, rope
 from builders.ship.rig import Mast, yard_ends
 
 BARREL_LENGTH = 1.8
@@ -183,7 +183,7 @@ def man_yards(per_mast: list[MeshParts], p: dict, masts: list[Mast]) -> None:
             back = Vector((0.0, -YARD_BEHIND, -YARD_FOOT_BELOW))
             for end in (port_end, starboard_end):
                 centre = (port_end + starboard_end) / 2
-                line(parts, end + back, centre + back, FOOTROPE, "Tar")
+                rope(parts, [end + back, centre + back], FOOTROPE, "Tar")
                 steps = int((half - YARD_CLEAR_OF_MAST) / YARD_SPACING)
                 for k in range(steps):
                     foot = centre.lerp(end, (YARD_CLEAR_OF_MAST + k * YARD_SPACING) / half) + back

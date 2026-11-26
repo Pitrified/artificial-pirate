@@ -27,6 +27,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Hemp
+    second: {fileID: 2100000, guid: 1e3bb544094cfd78c9cbfa290afeccd9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: HullBottom
     second: {fileID: 2100000, guid: b02ddcd857b387a54b9d87c9b7279538, type: 2}
   - first:
