@@ -42,6 +42,7 @@ In this project the payload is `Game.Gameplay.GameSaveData`.
 - Atomic write: write to `save.json.tmp`, `File.Replace` to `save.json`.
 - On corrupt read: rename to `save.json.bak`, log warning, return defaults.
 - Version mismatch: same as corrupt (no migration).
+- Until the first release, keeping old saves working is not a goal: a change to the world generation that turns a saved seed into a different world, or a schema change that resets the save, needs no migration and no compatibility work.
 
 ---
 
