@@ -1,5 +1,5 @@
 ---
-status: in progress
+status: done
 priority: 0
 description: |
   Finer ship details the user asked for after the fleet: better ship's boats and wooden davits

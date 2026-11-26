@@ -18,7 +18,7 @@ Analysis and decisions in [`00_start.md`](00_start.md).
 | 1  | Rope look                | [`01_rope_look.md`](01_rope_look.md)       | done        |
 | 2  | Sag and rope ends        | [`02_sag_and_ends.md`](02_sag_and_ends.md) | done        |
 | 3  | Boats and davits         | [`03_boats.md`](03_boats.md)               | done        |
-| 4  | Verify                   | [`04_verify.md`](04_verify.md)             | planned     |
+| 4  | Verify                   | [`04_verify.md`](04_verify.md)             | done        |
 
 Status values: draft / planned / in progress / done / superseded / discarded.
 
@@ -34,3 +34,4 @@ Append-only. Newest at the bottom.
 - 2026-11-26 : phase 2 done: ropes sag by kind, clearance along segments (0 everywhere), deadeyes and lanyards, brace blocks; giant +4.0k triangles. The tarred ropes glinted silver against the light: rope materials matte (no environment reflections or highlights). Gates green.
 - 2026-11-26 : phase 3 review: the giant's boats hang along its open rail, so the davits stand outside the posts on the side below the sill, clear of the tumblehome; the falls hang vertical, so no sag; nothing else found.
 - 2026-11-26 : phase 3 done: open boats with transom, sheer, thwarts and oars on curved spar davits with blocks and hemp falls; giant 49.7k triangles. FightTests picked the anchored giant after the reimport changed the search order; it now takes the anchored ship nearest the start. Gates green.
+- 2026-11-26 : phase 4 done: docs in the branch; phone on dev 44b9053 at 60 fps, GPU p50 12.3 / p95 13.3 ms, 0 problems; the user read it as good. Folder done.

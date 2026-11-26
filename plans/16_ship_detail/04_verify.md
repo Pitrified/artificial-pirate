@@ -1,5 +1,5 @@
 ---
-status: planned
+status: done
 ---
 
 # Phase 4 - Verify
@@ -20,3 +20,6 @@ Context: [`00_start.md`](00_start.md).
 - Docs in the branch; gates green; the user's read and report.
 
 ## What the implementation found
+The docs went in with the phases' findings; the spec check stayed green (look only, nothing in the game's scope changed).
+Phone run on dev 44b9053, the player in the giant fighting both brigs and the anchored giant: 60 fps, GPU p50 12.3 ms and p95 13.3 ms (12.3 and 13.8 after the water work), CPU p50 16.8 ms, 5 slow frames, 0 problems.
+The user's read, asked about the ropes, the sag, the far braces and the boats: "looks good"; no dashing of the far braces reported.
