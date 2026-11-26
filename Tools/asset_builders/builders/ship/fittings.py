@@ -111,15 +111,30 @@ ROOF = 0.15
 ROOF_OVER = 0.15  # how far a deckhouse's roof stands out over its sides
 BOAT_BEAM = 0.27  # of its length
 BOAT_DEPTH = 0.12
-BOAT_STATIONS = 8
+BOAT_STATIONS = 12
 BOAT_FULLNESS = 0.6  # lower is fuller amidships
 BOAT_ROCKER = 0.3  # how much shallower the ends are
+BOAT_TRANSOM = 0.55  # of the beam, the transom's width at the stern
+BOAT_SHEER = 0.05  # of its length, the gunwale's rise at the ends
+BOAT_SHELL = 0.05  # m, the planking's thickness
+BOAT_FLOOR = 0.25  # of the depth, the bottom boards above the keel
+BOAT_THWARTS = (-0.5, -0.05, 0.4)  # along it, -1 at the transom and 1 at the stem
+BOAT_THWART = Vector((0.0, 0.25, 0.05))  # its width along the boat and thickness
+BOAT_THWART_DOWN = 0.35  # of the depth, under the gunwale
+BOAT_OARS = (-0.35, 0.35)  # across, of the half beam
+BOAT_OAR = 0.06
+BOAT_OAR_LENGTH = 0.6  # of the boat's length
 BOAT_CLEAR = 0.4  # m, between the hull's side and the boat's
 BOAT_RAISE = 1.4  # m, the gunwale above the rail
 DAVIT = 0.14
 DAVIT_SPREAD = 0.7  # of the boat's length, between the davits
 DAVIT_ABOVE = 1.0  # m, the davit's head above the boat's gunwale
+DAVIT_FOOT = 1.2  # m, its foot under the rail, on the hull's side
+DAVIT_SIDES = 6
+DAVIT_BEND = 4  # segments in the quarter circle out over the boat
+DAVIT_BLOCK = Vector((0.16, 0.12, 0.3))  # across, along, tall
 BOAT_FALL = 0.04
+BOAT_FALL_SPREAD = 0.05  # m, each of a tackle's two parts off the davit's line
 FIGURE_FOR_LENGTH = 40.0
 FIGURE_SIDES = 8
 FIGURE_TALL = 1.6  # m, a brig's figurehead from its foot to the top of its head
@@ -608,38 +623,86 @@ def deckhouses(parts: MeshParts, p: dict) -> None:
         axis_box(parts, base + Vector((0.0, 0.0, height + ROOF / 2)), roof, "ShipWood")
 
 
+def _boat_half_width(u: float, beam: float) -> float:
+    """Its half beam at u, -1 at the transom and 1 at the stem: fine to a point forward, square aft."""
+    narrowing = u * u if u >= 0 else (1 - BOAT_TRANSOM ** (1 / BOAT_FULLNESS)) * u * u
+    return beam / 2 * max(0.0, 1 - narrowing) ** BOAT_FULLNESS
+
+
+def _boat_gunwale(centre: Vector, length: float, u: float) -> float:
+    return centre.z + BOAT_SHEER * length * u * u
+
+
 def _boat(parts: MeshParts, centre: Vector, length: float) -> None:
-    """A ship's boat, white outside and covered over, lofted between two pointed ends."""
+    """A ship's boat, open: white outside, bare wood inside, a gunwale rising toward the ends, a transom
+    stern, thwarts across and the oars laid along them."""
     beam, depth = length * BOAT_BEAM, length * BOAT_DEPTH
-    rows = []
+    outer, inner = [], []
     for k in range(BOAT_STATIONS + 1):
         u = -1.0 + 2.0 * k / BOAT_STATIONS
-        w = beam / 2 * max(0.0, 1 - u * u) ** BOAT_FULLNESS
+        w = _boat_half_width(u, beam)
+        top = _boat_gunwale(centre, length, u)
         d = depth * (1 - BOAT_ROCKER * u * u)
-        section = [(-w, 0.0), (-w * 0.85, -d * 0.6), (0.0, -d), (w * 0.85, -d * 0.6), (w, 0.0)]
-        rows.append(parts.add_verts([centre + Vector((x, u * length / 2, z)) for x, z in section]))
-    for a, b in itertools.pairwise(rows):
+        y = centre.y + u * length / 2
+        outer_section = [(-w, 0.0), (-w * 0.85, -d * 0.6), (0.0, -d), (w * 0.85, -d * 0.6), (w, 0.0)]
+        wi = max(w - BOAT_SHELL, 0.0)
+        floor = -d + depth * BOAT_FLOOR
+        inner_section = [(-wi, 0.0), (-wi * 0.85, floor * 0.6), (0.0, floor), (wi * 0.85, floor * 0.6), (wi, 0.0)]
+        outer.append(parts.add_verts([Vector((centre.x + x, y, top + z)) for x, z in outer_section]))
+        inner.append(parts.add_verts([Vector((centre.x + x, y, top + z)) for x, z in inner_section]))
+    for (a, b), (ia, ib) in zip(itertools.pairwise(outer), itertools.pairwise(inner), strict=True):
         for k in range(4):
             parts.add_face((a + k, b + k, b + k + 1, a + k + 1), "Trim", smooth=True)
-        parts.add_face((a + 4, b + 4, b, a), "ShipWood")
+            parts.add_face((ia + k + 1, ib + k + 1, ib + k, ia + k), "ShipWood", smooth=True)
+        for o, i in ((0, 0), (4, 4)):
+            parts.add_planar_face((a + o, ia + i, ib + i, b + o) if o == 0 else (b + o, ib + i, ia + i, a + o), "ShipWood")
+    parts.add_planar_face(tuple(outer[0] + k for k in range(5)), "Trim")
+    parts.add_planar_face(tuple(inner[0] + k for k in reversed(range(5))), "ShipWood")
+
+    tops = []
+    for u in BOAT_THWARTS:
+        w = _boat_half_width(u, beam) - BOAT_SHELL
+        z = _boat_gunwale(centre, length, u) - depth * BOAT_THWART_DOWN
+        axis_box(parts, Vector((centre.x, centre.y + u * length / 2, z)), Vector((2 * w, BOAT_THWART.y, BOAT_THWART.z)), "ShipWood")
+        tops.append(z + BOAT_THWART.z / 2)
+    oar_z = max(tops) + BOAT_OAR / 2  # on the highest thwart, the sheer lifting the end ones
+    for across in BOAT_OARS:
+        x = centre.x + across * beam / 2
+        half = length * BOAT_OAR_LENGTH / 2
+        pole(parts, Vector((x, centre.y - half, oar_z)), Vector((x, centre.y + half, oar_z)), BOAT_OAR, BOAT_OAR, 4, "Spar")
+
+
+def _davit(parts: MeshParts, foot: Vector, head: Vector, side: float) -> None:
+    """A wooden davit: upright from its foot on the hull's side, then a quarter circle out to its head over
+    the boat."""
+    reach = abs(head.x - foot.x)
+    turn = Vector((foot.x, foot.y, head.z - reach))
+    points = [foot, turn] + [Vector((foot.x + side * reach * (1 - math.cos(a)), foot.y, turn.z + reach * math.sin(a)))
+                             for a in (math.pi / 2 * k / DAVIT_BEND for k in range(1, DAVIT_BEND + 1))]
+    for k, (a, b) in enumerate(itertools.pairwise(points)):
+        last = k == len(points) - 2
+        pole(parts, a, b, DAVIT, DAVIT * (0.8 if last else 1.0), DAVIT_SIDES, "Spar", caps=k == 0 or last, smooth=True)
 
 
 def boats(parts: MeshParts, p: dict) -> None:
     """Boats hung outboard on davits, a pair along each side: each [t, length]."""
     for t, length in p.get("boats", []):
         rail = rail_height(p, t)
-        out = side_at(p, t, rail)
+        out = max(side_at(p, t, rail), side_at(p, t, rail - DAVIT_FOOT)) + CAP_RAIL_OVERHANG + DAVIT / 2
         for side in (1.0, -1.0):
             centre = Vector((side * (out + length * BOAT_BEAM / 2 + BOAT_CLEAR), _y(p, t), rail + BOAT_RAISE))
             _boat(parts, centre, length)
             for end in (-1.0, 1.0):
-                y = _y(p, t) + end * length * DAVIT_SPREAD / 2
-                foot = Vector((side * out, y, rail))
-                bend = Vector((side * out, y, centre.z + DAVIT_ABOVE))
-                head = Vector((centre.x, y, centre.z + DAVIT_ABOVE))
-                pole(parts, foot, bend, DAVIT, DAVIT, 6, "Tar")
-                pole(parts, bend, head, DAVIT, DAVIT * 0.8, 6, "Tar")
-                rope(parts, [head, Vector((centre.x, y, centre.z))], BOAT_FALL, "Hemp")
+                u = end * DAVIT_SPREAD
+                y = _y(p, t) + u * length / 2
+                gunwale = _boat_gunwale(centre, length, u)
+                head = Vector((centre.x, y, gunwale + DAVIT_ABOVE))
+                _davit(parts, Vector((side * out, y, rail - DAVIT_FOOT)), head, side)
+                block = head - Vector((0.0, 0.0, DAVIT / 2 + DAVIT_BLOCK.z / 2))
+                axis_box(parts, block, DAVIT_BLOCK, "ShipWood")
+                for spread in (-BOAT_FALL_SPREAD, BOAT_FALL_SPREAD):
+                    top = block + Vector((0.0, spread, -DAVIT_BLOCK.z / 2))
+                    rope(parts, [top, Vector((top.x, top.y, gunwale))], BOAT_FALL, "Hemp")
 
 
 def quarter_galleries(parts: MeshParts, p: dict) -> None:
