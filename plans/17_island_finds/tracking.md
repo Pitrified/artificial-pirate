@@ -32,3 +32,4 @@ Append-only. Newest at the bottom.
 - 2026-11-26 : cut feat/17_island_finds; read the world, ships and budget; two research passes on real sizes and other games; analysis and Q1 to Q10 in 00_start.md.
 - 2026-11-26 : the note that old saves need not survive before the first release went into `docs/systems/save-system.md`.
 - 2026-11-28 : Q1 to Q10 folded in (Q3 a for two brigs, Q6 b, the rest as recommended); phases 1 to 4 written.
+- 2026-11-28 : reviewed phases 1 to 4 against the code. Corrected: the settled island fits 400 m cells up to about 190 m (reach 1.9 radii plus 33 m), so smaller cells only if measured, at the settled island's cost; two `WorldGeneratorTests` change by design; the fixed settled island moved from phase 3 to phase 1 (world generation); phase 1 measures draws with a full archipelago (up to 50 of 80 from islands); the map's village markers come from the island records. Raised Q11 (how the pier stops ships) and Q12 (village layouts).

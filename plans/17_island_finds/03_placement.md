@@ -12,14 +12,13 @@ Context: [`00_start.md`](00_start.md), depends on [`01_regions.md`](01_regions.m
 ## Goals
 
 1. `WorldStreamer` builds a settled island's village on its strip and its pier out from the shore's root, with the island, pooled the same way.
-2. The pier has a collider the ships stop against; the village stands on the island, which the ships already cannot sail onto.
-3. A fixed village near the start: a settled island just outside the start clearing, in every world, placed so the anchored brig and giant and the ship sailing its circle keep clear of it.
-4. A village icon on the minimap and the full map once its cell is explored (`ExploredCells`), drawn like the ships' icons from the island record, not from scene objects.
+2. Ships stop against the pier, by the means `00_start.md` Q11 settles; the village stands on the island, which the ships already cannot sail onto.
+3. The village on the fixed settled island near the start (made in phase 1).
+4. A village icon on the minimap and the full map once its cell is explored (`ExploredCells`), drawn from the island records, not from scene objects: the minimap finds ships on the ships' layer, so the villages are a second source of `MapMarker`s (heading 0).
 
 ## Plan
 
-- At the review: read how ships meet colliders today (`HullContact`, the ship collision code) and decide whether the pier is a collider the hull stops at or ground in `HeightAt`; the second keeps one height function but makes the pier a shallow.
-- The fixed village's place is drawn from the seed's wind (its strip on the lee side) at a fixed distance from the origin; checked against the anchored ships' positions and the circling ship's path.
+- Ships meet each other through `HullContact`'s overlap query on the ships' layer (kinematic bodies do not collide in PhysX) and the ground through `HeightAt`; the pier follows Q11.
 - Tests (PlayMode): the fixed village built near the start; the pier stops a ship sailed into it; the icon on the minimap once its cell is explored, not before.
 - Captures: the fixed village from the helm and the chase camera, a brig alongside the pier for scale.
 
