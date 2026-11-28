@@ -1,8 +1,8 @@
 ---
-status: draft
+status: planned
 priority: 0
 description: |
-  Things to find on islands, starting with a small village and a dock for about five brigs,
+  Things to find on islands, starting with a small village and a pier for two brigs,
   and the world scale that has to come first: how big things are, how dense islands are, how far apart.
 comment: |
   Crosses the spec's "Next" item "islands made for ships the giant's size": a village needs a larger island.
@@ -160,14 +160,36 @@ Two readings, and the folder's size depends on which:
 - Something used: sail into the dock and something happens (a repair, a save, later trade).
   An economy is in the spec's "Not planned" list; a repair or save is not.
 
-## Phases, a first cut
+## Decisions
 
-To be set once the questions are answered.
+Folded in from Q1 to Q10 on 2026-11-28.
+The numbers are starting targets, tuned on the map captures and the phone; only the proportion rule is meant to hold.
 
-1. Scale and density: the region grid (or the chosen density model), the gap targets, the settled island's shape (a flat lee strip, a bay, 150 to 250 m). Measured with the probe and a map capture.
-2. The village and pier models: builders in `Tools/asset_builders/` as for the ship parts, a few draws, triangles counted.
-3. Placement: the village on its island's lee strip, the pier into the bay, colliders, the map icon.
-4. Verify: gates, the phone at 60 fps with a village and both giants in view, the user's read.
+- **Proportions** (Q1): ships, buildings and the pier at true size; islands and the gaps between them compressed.
+- **The village** (Q2): 8 to 12 houses of about 5 x 8 m, a storehouse and a tavern of 10 to 16 m, tracks 3 to 5 m wide, about 80 x 60 m behind the shore.
+  One builder, so a hamlet or a small town can later be its parameters.
+- **The pier** (Q3): one pier straight out from the shore, a brig alongside each face: about 50 m long (a 34 m brig with room at both ends), 8 m wide.
+  Smaller than the five brigs first asked; the settlement is then about 100 m along the shore, and its island about 120 to 180 m in radius, past today's largest (110 m).
+  The giant lies at anchor off, as a big ship did at a small place.
+- **No battery** (Q4); a battery, as scenery or firing, is its own decision later.
+- **Regions** (Q5): a coarser grid over the cells, each region drawn from the seed and its coordinates as open sea, an archipelago or a settled archipelago.
+  The region sets its cells' island chance and sizes; a settled one has exactly one settled island, holding the village.
+- **Distances, halved** (Q6): islands in an archipelago 150 to 300 m of open water apart; open stretches between archipelagos 0.5 to 1 km; a village every 1.5 to 3 minutes of sailing (about 600 to 1300 m at 7 m/s).
+  Consequences:
+  - an open stretch is shorter than the 900 m of sight, so the next archipelago is almost always on the horizon, and nothing needs to be put on the open water to fill a blind stretch;
+  - a region is then about 1.2 to 1.6 km across (3 x 3 or 4 x 4 cells of 400 m), and the archipelagos' gaps may need a cell under 400 m or a chance near 1; phase 1 measures which;
+  - villages are close enough that two can be in view at once: the budget is measured with two villages and a giant in view.
+- **Nothing to shorten crossings here** (Q7): the gaps are short; the wind's speed-up stays with "a wind that is sailed", fast travel with a later feature once docks are used.
+- **Finding a village** (Q8): seen and marked; it shows from afar and goes on the minimap and the map with its own icon once its cell is explored.
+  Using the dock (a repair, a save alongside) is its own feature: added to the spec's Next list on 2026-11-28, no folder until it is picked.
+- **A fixed village near the start** (Q9), as well as the generated ones: a known village for the tests and the first minutes, kept clear of the start clearing and the anchored ships.
+- **One folder** (Q10), four phases: regions and the settled island, the models, placement, verify.
+- **The spec**: this changes what the game is.
+  The last phase updates `docs/functional-specs.md` (things to find on islands moves into the game, as villages seen and marked; whether "islands made for ships the giant's size" is covered too is the user's read at the end) and `docs/systems/world.md`.
+
+## Phases
+
+In [`tracking.md`](tracking.md).
 
 ## Pitfalls
 
@@ -185,56 +207,56 @@ To be set once the questions are answered.
   - b. Compress the settlement too (fewer, smaller houses, a shorter pier), to keep islands small.
   - c. Bring the gaps closer to real (several km), and add a speed-up to cross them.
   - Recommended: a, because it is what every sailing game in the research does and the player measures only what is next to the ship.
-  - NEW_ANS:
+  - ANS: a.
 - Q2: The village's size.
   - a. Small: 8 to 12 houses, a storehouse, a tavern, about 80 x 60 m.
   - b. Smaller: 4 to 6 houses and a storehouse, a fishing hamlet.
   - c. Larger: 20 to 30 houses, a church, a square, about 150 x 120 m, a small town.
   - Recommended: a, as you asked, with b and c as later variants from the same builder.
-  - NEW_ANS:
+  - ANS: a.
 - Q3: The dock's form, for five brigs.
   - a. One pier out from the shore, berths on both faces, about 120 x 8 m.
   - b. A quay along the shore, about 200 m.
   - c. An L or T pier, about 80 m out and 80 m along.
   - Recommended: a, the most compact, needs no long straight shore, and reads as a pier from the chase camera.
-  - NEW_ANS:
+  - ANS: a, but smaller: a pier for two brigs, one on each face.
 - Q4: A battery above the village?
   - a. Yes, a small one of 4 to 6 guns, as scenery.
   - b. Yes, and it fires on ships, as the guns on ships do.
   - c. Not in this folder.
   - Recommended: c, a battery that fires is a fight design question; scenery alone can come with the village models if wanted.
-  - NEW_ANS:
+  - ANS: c.
 - Q5: The density model.
   - a. Tune the grid's chance only.
   - b. A low-frequency noise on each cell's chance and size.
   - c. A coarser grid of regions: open sea, archipelago, settled archipelago.
   - Recommended: c, because it gives open stretches and clusters and a place to put exactly one village per settled archipelago, and stays local to the seed for streaming.
-  - NEW_ANS:
+  - ANS: c.
 - Q6: The distance targets: islands 300 to 600 m apart in an archipelago, open stretches of 1 to 2 km, a village every 3 to 6 minutes of sailing?
   - a. Yes.
   - b. Shorter, everything about half.
   - c. Longer open stretches (3 km and more), with the speed-up from Q7.
   - Recommended: a, tuned on the phone after phase 1.
-  - NEW_ANS:
+  - ANS: b, everything about half.
 - Q7: Anything to shorten long crossings in this folder?
   - a. No; the gaps are short enough, and the wind's speed-up stays with "a wind that is sailed", fast travel with a later folder once docks exist.
   - b. Fast travel between villages found, here.
   - c. A speed-up out of combat, here.
   - Recommended: a, keeps this folder to the world and the village.
-  - NEW_ANS:
+  - ANS: a.
 - Q8: What does finding a village do?
   - a. Seen and marked: it shows from afar and goes on the map with its icon once seen; nothing to do there yet.
   - b. As a, and the dock repairs the ship (and saves) when the ship lies alongside.
   - c. As b, with moored ships at the pier.
   - Recommended: a, so this folder is the world and the look; using the dock is its own feature, raised as a spin-off.
-  - NEW_ANS:
+  - ANS: a.
 - Q9: Where is the first village?
   - a. Only where the world generates one, in a settled archipelago.
   - b. Also one fixed near the start, for testing and for the first minutes of play.
   - Recommended: b, it gives the tests and the phone a known village to look at, the way the start clearing holds the anchored ships.
-  - NEW_ANS:
+  - ANS: b.
 - Q10: One folder or two?
   - a. One folder: the scale and density, then the village.
   - b. Two: this one for scale, density and the larger islands; a sibling for the village and dock models.
   - Recommended: a, about four phases, and the village is what tells whether the scale is right.
-  - NEW_ANS:
+  - ANS: a.
