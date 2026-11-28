@@ -15,7 +15,7 @@ Context: [`00_start.md`](00_start.md).
 1. Regions: a coarser grid over the cells, each region's kind (open sea, archipelago, settled archipelago) drawn from a new `WorldHash` stream of the seed and the region's coordinates, so a cell's island stays local to the seed and streaming is unchanged.
 2. The region sets its cells' island chance and size ranges; open sea has few or no islands.
 3. A settled region has exactly one settled island, in a cell drawn from the region: radius about 120 to 180 m, round enough to hold it, with a low flat strip of about 100 x 60 m at 1 to 3 m on its lee side (from `WindFromDeg`), its shore there straight enough for a 50 m pier.
-   Its draws are a new stream; the island record (`IslandSite`) says it is settled and where the strip and the pier's root are, for phase 3.
+   Its draws are a new stream; the island record (`IslandSite`) says it is settled and where the strip and the pier's rectangle are, for phase 3.
 4. The gaps measured over seeds, against the targets: 150 to 300 m of open water inside an archipelago, 0.5 to 1 km between, a settled island every 600 to 1300 m of sailing.
 5. The start clearing (340 m) and the start island unchanged.
 6. The fixed settled island near the start: in every world, just outside the start clearing, its strip on the lee side, clear of the anchored ships and the circling brig.

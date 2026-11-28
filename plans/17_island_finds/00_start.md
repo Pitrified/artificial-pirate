@@ -269,10 +269,10 @@ In [`tracking.md`](tracking.md).
   - b. The pier in `HeightAt`: one height function kept, but the water's depth map then reads it as a shallow, with shore foam and calm water around the piles.
   - c. The pier as a rectangle on the settled island's record, checked by `HullContact` beside `HeightAt`: no layer, no change to the depth map, tested in EditMode.
   - Recommended: c, because it stops ships the way the shore does without the side effects of a or b.
-  - NEW_ANS:
+  - ANS: c.
 - Q12: How do villages differ?
   With a village every 1.5 to 3 minutes, one layout repeated would show.
   - a. A few layouts (3 or 4) built in Blender, each one FBX of few draws; a settled island picks one from its seed, mirrored or not.
   - b. Blender builds the houses as parts; Unity places them on the strip from the seed: endless variety, but a draw per part unless they are combined at load, a cost while streaming.
   - Recommended: a, because it keeps a village a few draws and every layout judged in the probe; b can come later if the repeats show.
-  - NEW_ANS:
+  - ANS: a; placing houses one by one from the seed went to the spec's Next list.
